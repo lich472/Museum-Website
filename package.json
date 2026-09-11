@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon backend/server.js",
-    "start": "node backend/server.js"
+    "dev": "nodemon --exec tsx backend/server.ts",
+    "start": "tsx server.ts",
+    "test": "vitest"
   },
   "repository": {
     "type": "git",
@@ -20,9 +21,19 @@
   "homepage": "https://github.com/lich472/Museum-Website#readme",
   "description": "",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "ioredis": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.6.0",
     "mongoose": "^9.9.4"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "tsx": "^4.23.13"
   }
 }
