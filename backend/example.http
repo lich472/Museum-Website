@@ -1,0 +1,55 @@
+@baseUrl = http://localhost:6000/api/auth
+
+# @name signup
+POST {{baseUrl}}/signup
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "securepassword123",
+  "address": "123 MERN Stack Lane"
+}
+
+###
+
+POST {{baseUrl}}/signup
+Content-Type: application/json
+
+{
+  "name": "Lich",
+  "email": "lich2003@example.com",
+  "password": "securepassword",
+  "address": "123 MERN Stack Lane"
+}
+
+###
+
+# @name login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "securepassword123"
+}
+
+###
+
+# @name getProfile
+GET {{baseUrl}}/profile
+
+###
+
+# @name refreshToken
+POST {{baseUrl}}/refresh-token
+
+###
+
+# @name logout
+POST {{baseUrl}}/logout
+
+###
+
+# @name logout
+DELETE  {{baseUrl}}/6aa35c3f0b36674a579531ab
