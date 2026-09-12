@@ -78,10 +78,10 @@ function ExhibitionList() {
               </p>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#888' }}>
                 <span>📅 {exhibition.startDate} ~ {exhibition.endDate}</span>
-                <span>📍 {exhibition.location}</span>
+                <span>📍 {exhibition.room}</span>
               </div>
               <div style={{ marginTop: '8px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                {exhibition.category?.map((cat, idx) => (
+                {exhibition.category?.map((tag, idx) => (
                   <span
                     key={idx}
                     style={{
@@ -92,7 +92,7 @@ function ExhibitionList() {
                       color: '#1a5a9c',
                     }}
                   >
-                    {cat}
+                    {tag}
                   </span>
                 ))}
               </div>

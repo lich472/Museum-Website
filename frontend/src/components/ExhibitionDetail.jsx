@@ -5,20 +5,33 @@ function ExhibitionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [exhibition, setExhibition] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchExhibition = async () => {
+    const fetchAll = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:5000/api/exhibitions/${id}`);
-        if (!response.ok) {
-          if (response.status === 404) throw new Error('Exhibition not found');
+        // Fetch exhibition + recommendations in parallel
+        const [detailRes, recRes] = await Promise.all([
+          fetch(`http://localhost:5000/api/exhibitions/${id}`),
+          fetch(`http://localhost:5000/api/recommendations?exhibitionId=${id}`),
+        ]);
+
+        if (!detailRes.ok) {
+          if (detailRes.status === 404) throw new Error('Exhibition not found');
           throw new Error('Failed to fetch');
         }
-        const result = await response.json();
-        setExhibition(result.data);
+
+        const detailData = await detailRes.json();
+        setExhibition(detailData.data);
+
+        // Recommendations are optional — don't fail the page if they error
+        if (recRes.ok) {
+          const recData = await recRes.json();
+          setRecommendations(recData.data || []);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -26,7 +39,7 @@ function ExhibitionDetail() {
       }
     };
 
-    fetchExhibition();
+    fetchAll();
   }, [id]);
 
   if (loading) {
@@ -74,23 +87,18 @@ function ExhibitionDetail() {
 
       <div style={{ display: 'flex', gap: '16px', color: '#666', marginBottom: '16px', flexWrap: 'wrap' }}>
         <span>📅 {exhibition.startDate} – {exhibition.endDate}</span>
-        <span>📍 {exhibition.location}</span>
-        {exhibition.isFeatured && (
-          <span style={{ backgroundColor: '#f39c12', color: 'white', padding: '2px 12px', borderRadius: '12px', fontSize: '0.8rem' }}>
-            ★ Featured
-          </span>
-        )}
+        <span>📍 {exhibition.room}</span>
       </div>
 
       <div style={{ lineHeight: '1.8', fontSize: '1.05rem', whiteSpace: 'pre-wrap' }}>
         <p>{exhibition.description}</p>
       </div>
 
-      {exhibition.category?.length > 0 && (
+      {exhibition.tags?.length > 0 && (
         <div style={{ marginTop: '24px' }}>
-          <h3>Categories</h3>
+          <h3>Topics</h3>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {exhibition.category.map((cat, idx) => (
+            {exhibition.tags.map((tag, idx) => (
               <span
                 key={idx}
                 style={{
@@ -100,8 +108,58 @@ function ExhibitionDetail() {
                   fontSize: '0.9rem',
                 }}
               >
-                {cat}
+                {tag}
               </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ---------- Recommendations ---------- */}
+      {recommendations.length > 0 && (
+        <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid #e0e0e0' }}>
+          <h2 style={{ marginBottom: '8px' }}>You might also like</h2>
+          <p style={{ color: '#888', fontSize: '0.9rem', marginBottom: '20px' }}>
+            Based on the topics in this exhibition
+          </p>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {recommendations.map((rec) => (
+              <div
+                key={rec.id}
+                onClick={() => navigate(`/exhibitions/${rec.id}`)}
+                style={{
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  backgroundColor: '#fff',
+                  transition: 'box-shadow 0.2s, transform 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <img
+                  src={rec.imageUrl}
+                  alt={rec.title}
+                  style={{ width: '100%', height: '140px', objectFit: 'cover' }}
+                />
+                <div style={{ padding: '12px' }}>
+                  <h4 style={{ margin: '0 0 6px 0', fontSize: '1rem' }}>{rec.title}</h4>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#f39c12' }}>{rec.reason}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
