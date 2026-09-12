@@ -168,13 +168,10 @@ or
 
 ## 6. Recommendations — owned by P5
 
-### `GET /api/recommendations?userId=123`
+### `GET /api/recommendations/tagName`
 ```json
-[
-  { "id": 3, "title": "Modern Art", "reason": "Similar to exhibitions you viewed" }
-]
 ```
-*(Sprint 1: P5 can build this against a fake list of exhibitions with tags, matching by shared tag — no real user history needed yet. Sprint 2: swap in real user view/booking history from P3 if time allows.)*
+*(Sprint 1: P5 can build this against a fake list of exhibitions with tags, matching by shared tag. Sprint 2: swap in real user view/booking history from P3 if time allows.)*
 
 ---
 
