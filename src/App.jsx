@@ -1,0 +1,143 @@
+import { useState } from 'react'
+import './App.css'
+
+function App() {
+ const [exhibitions, setExhibitions] = useState([
+    {
+      id: 1,
+      title: 'Dinosaur Exhibition',
+      date: '2026-09-20',
+      status: 'Live'
+    },
+    {
+      id: 2,
+      title: 'Local History Exhibition',
+      date: '2026-10-05',
+      status: 'Upcoming'
+    }
+      ])
+        const [title, setTitle] = useState('')
+        const [date, setDate] = useState('')
+        const [status, setStatus] = useState('Upcoming')
+        const [editingId, setEditingId] = useState(null)
+    function deleteExhibition(id) {
+    const updatedExhibitions = exhibitions.filter(function (exhibition) {
+      return exhibition.id !== id
+    })
+
+    setExhibitions(updatedExhibitions)
+  }
+  function startEdit(exhibition) {
+  setTitle(exhibition.title)
+  setDate(exhibition.date)
+  setStatus(exhibition.status)
+  setEditingId(exhibition.id)
+}
+ function addExhibition(event) {
+  event.preventDefault()
+
+  if (title === '' || date === '') {
+    alert('Please enter the exhibition name and date.')
+    return
+  }
+
+  if (editingId !== null) {
+    const updatedExhibitions = exhibitions.map(function (exhibition) {
+      if (exhibition.id === editingId) {
+        return {
+          id: exhibition.id,
+          title: title,
+          date: date,
+          status: status
+        }
+      }
+
+      return exhibition
+    })
+
+    setExhibitions(updatedExhibitions)
+    setEditingId(null)
+  } else {
+    const newExhibition = {
+      id: Date.now(),
+      title: title,
+      date: date,
+      status: status
+    }
+
+    const updatedExhibitions = exhibitions.concat(newExhibition)
+    setExhibitions(updatedExhibitions)
+  }
+
+  setTitle('')
+  setDate('')
+  setStatus('Upcoming')
+}
+  return (
+    <div className="admin-page">
+      <h1>Museum Admin Dashboard</h1>
+      <p>Manage museum exhibitions and events.</p>
+
+      <h2>Exhibition Management</h2>
+<form onSubmit={addExhibition}>
+  <h3>Add Exhibition</h3>
+
+  <input
+    type="text"
+    placeholder="Exhibition name"
+    value={title}
+    onChange={(event) => setTitle(event.target.value)}
+  />
+
+  <input
+    type="date"
+    value={date}
+    onChange={(event) => setDate(event.target.value)}
+  />
+
+  <select
+    value={status}
+    onChange={(event) => setStatus(event.target.value)}
+  >
+    <option value="Upcoming">Upcoming</option>
+    <option value="Live">Live</option>
+    <option value="Archived">Archived</option>
+  </select>
+
+  <button type="submit">Add Exhibition</button>
+</form>
+      <table>
+        <thead>
+          <tr>
+            <th>Exhibition Name</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {exhibitions.map(function (exhibition) {
+            return (
+              <tr key={exhibition.id}>
+                <td>{exhibition.title}</td>
+                <td>{exhibition.date}</td>
+                <td>{exhibition.status}</td>
+                <td>
+                  <button onClick={() => startEdit(exhibition)}>
+  Edit
+</button>
+                  <button onClick={() => deleteExhibition(exhibition.id)}>
+  Delete
+</button>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+export default App
