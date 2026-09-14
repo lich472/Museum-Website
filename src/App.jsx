@@ -7,18 +7,24 @@ function App() {
       id: 1,
       title: 'Dinosaur Exhibition',
       date: '2026-09-20',
-      status: 'Live'
+      status: 'Live',
+      description: 'Explore dinosaur fossils and prehistoric life.',
+      imageUrl: '/icons.svg'
     },
     {
       id: 2,
       title: 'Local History Exhibition',
       date: '2026-10-05',
-      status: 'Upcoming'
+      status: 'Upcoming',
+      description: 'Learn about the history of the local community.',
+      imageUrl: '/icons.svg'
     }
       ])
         const [title, setTitle] = useState('')
         const [date, setDate] = useState('')
         const [status, setStatus] = useState('Upcoming')
+        const [description, setDescription] = useState('')
+        const [imageUrl, setImageUrl] = useState('')
         const [editingId, setEditingId] = useState(null)
     function deleteExhibition(id) {
     const updatedExhibitions = exhibitions.filter(function (exhibition) {
@@ -31,6 +37,10 @@ function App() {
   setTitle(exhibition.title)
   setDate(exhibition.date)
   setStatus(exhibition.status)
+  setDescription(exhibition.description)
+  setImageUrl(exhibition.imageUrl)
+  setDescription(exhibition.description)
+  setImage(exhibition.image) 
   setEditingId(exhibition.id)
 }
  function addExhibition(event) {
@@ -48,8 +58,10 @@ function App() {
           id: exhibition.id,
           title: title,
           date: date,
-          status: status
-        }
+          status: status,
+          description: description,
+          imageUrl: imageUrl
+}
       }
 
       return exhibition
@@ -62,7 +74,9 @@ function App() {
       id: Date.now(),
       title: title,
       date: date,
-      status: status
+      status: status,
+      description: description,
+      imageUrl: imageUrl
     }
 
     const updatedExhibitions = exhibitions.concat(newExhibition)
@@ -72,6 +86,8 @@ function App() {
   setTitle('')
   setDate('')
   setStatus('Upcoming')
+  setDescription('')
+  setImageUrl('')
 }
   return (
     <div className="admin-page">
@@ -94,7 +110,17 @@ function App() {
     value={date}
     onChange={(event) => setDate(event.target.value)}
   />
-
+  <textarea
+    placeholder="Exhibition description"
+    value={description}
+    onChange={(event) => setDescription(event.target.value)}
+  />
+  <input
+    type="text"
+    placeholder="Image URL"
+    value={imageUrl}
+    onChange={(event) => setImageUrl(event.target.value)}
+  />
   <select
     value={status}
     onChange={(event) => setStatus(event.target.value)}
@@ -111,7 +137,9 @@ function App() {
           <tr>
             <th>Exhibition Name</th>
             <th>Date</th>
-            <th>Status</th>
+            <th>Status</th> 
+            <th>Description</th>
+            <th>Image</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -123,6 +151,14 @@ function App() {
                 <td>{exhibition.title}</td>
                 <td>{exhibition.date}</td>
                 <td>{exhibition.status}</td>
+                <td>{exhibition.description}</td>
+                <td>
+                 <img
+                  src={exhibition.imageUrl}
+                  alt={exhibition.title}
+                  className="exhibition-image"
+                 />
+                </td>
                 <td>
                   <button onClick={() => startEdit(exhibition)}>
   Edit
