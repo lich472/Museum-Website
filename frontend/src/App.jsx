@@ -3,6 +3,11 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import ExhibitionList from './components/ExhibitionList';
 import ExhibitionDetail from './components/ExhibitionDetail';
 import './App.css';
+import EventsList from './components/EventsList';
+import EventDetail from './components/EventDetail';
+import EventRegister from './components/EventRegister';
+
+
 
 function App() {
   return (
@@ -16,6 +21,9 @@ function App() {
             <Link to="/" style={{ color: '#ecf0f1', marginRight: '16px', textDecoration: 'none' }}>
               Exhibitions
             </Link>
+            <Link to="/events" style={{ color: '#ecf0f1', marginRight: '16px', textDecoration: 'none' }}>
+              Events
+            </Link>
           </nav>
         </header>
         <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
@@ -23,6 +31,9 @@ function App() {
             <Route path="/" element={<ExhibitionList />} />
             <Route path="/exhibitions" element={<ExhibitionList />} />
             <Route path="/exhibitions/:id" element={<ExhibitionDetail />} />
+            <Route path="/events" element={<EventsList />} />
+            <Route path="/events/:id" element={<EventDetail />} />
+            <Route path="/events/:id/register" element={<EventRegister />} />
           </Routes>
         </main>
       </div>

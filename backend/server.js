@@ -100,6 +100,55 @@ const exhibitions = [
   },
 ];
 
+
+const events = [
+  {
+    id: 1,
+    title: 'Pottery Workshop',
+    description: 'Hands-on workshop for beginners. Learn traditional hand-building techniques and take home your own piece.',
+    date: '2026-09-20',
+    time: '14:00',
+    capacity: 20,
+    spotsRemaining: 8,
+    location: 'Workshop Room 1',
+  },
+  {
+    id: 2,
+    title: 'Curator Talk: Ancient Civilisations',
+    description: 'Join our senior curator for an in-depth discussion of the museum\'s Mediterranean collection.',
+    date: '2026-09-25',
+    time: '18:30',
+    capacity: 50,
+    spotsRemaining: 32,
+    location: 'Lecture Theatre',
+  },
+  {
+    id: 3,
+    title: 'Family Tour: Stories in Stone',
+    description: 'A guided, interactive tour designed for families with children aged 6–12.',
+    date: '2026-10-03',
+    time: '11:00',
+    capacity: 15,
+    spotsRemaining: 0,
+    location: 'Main Hall',
+  },
+  {
+    id: 4,
+    title: 'Evening Lecture: Modern Australian Art',
+    description: 'A lecture exploring the evolution of Australian art from 1960 to 2000.',
+    date: '2026-10-10',
+    time: '19:00',
+    capacity: 40,
+    spotsRemaining: 25,
+    location: 'Lecture Theatre',
+  },
+];
+
+// 用于模拟注册记录自增ID
+let nextRegistrationId = 501;
+
+
+
 // ---------- Unified response helpers ----------
 const ok = (res, data, extra = {}) => res.json({ success: true, data, ...extra });
 const fail = (res, status, message) =>
@@ -158,6 +207,67 @@ app.get('/api/recommendations', (req, res) => {
 // ---------- GET /api/health ----------
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+
+// ---------- Events API ----------
+
+// 获取所有活动
+app.get('/api/events', (req, res) => {
+  setTimeout(() => {
+    res.json(events);
+  }, 300);
+});
+
+// 获取单个活动详情
+app.get('/api/events/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const event = events.find((e) => e.id === id);
+
+  if (!event) {
+    return res.status(404).json({ success: false, message: 'Event not found' });
+  }
+
+  setTimeout(() => {
+    res.json(event);
+  }, 200);
+});
+
+// 活动注册
+app.post('/api/events/:id/register', (req, res) => {
+  const id = parseInt(req.params.id);
+  const event = events.find((e) => e.id === id);
+
+  if (!event) {
+    return res.status(404).json({ success: false, message: 'Event not found' });
+  }
+
+  const { visitorName, email, numGuests } = req.body;
+
+  // 服务端校验
+  if (!visitorName || !email || !numGuests) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+
+  if (numGuests < 1) {
+    return res.status(400).json({ success: false, message: 'At least 1 guest required' });
+  }
+
+  if (numGuests > event.spotsRemaining) {
+    return res.status(400).json({
+      success: false,
+      message: `Only ${event.spotsRemaining} spot(s) remaining`,
+    });
+  }
+
+  // 扣减名额（内存模拟）
+  event.spotsRemaining -= numGuests;
+
+  const registrationId = nextRegistrationId++;
+
+  setTimeout(() => {
+    res.json({ success: true, registrationId });
+  }, 400);
 });
 
 // ---------- Start server ----------
