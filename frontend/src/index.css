@@ -1,0 +1,46 @@
+:root {
+  --color-background: #faf7f0;
+  --color-surface: #fff;
+  --color-primary: #a34f35;
+  --color-secondary: #dfebef;
+  --color-text: #34332f;
+  --color-border: #e5dfd3;
+  font-family: system-ui, 'Segoe UI', Arial, sans-serif;
+  color: var(--color-text);
+  background: var(--color-background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+}
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #a34f35;
+  outline-offset: 5px;
+}
+p {
+  line-height: 1.7;
+}
+h1,
+h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+}
