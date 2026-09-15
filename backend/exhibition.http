@@ -1,0 +1,52 @@
+### Variables
+@baseUrl = http://localhost:6000/api/exhibition
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YWE5NDJhMzJhNWE2NDRiNjEyNzdmZDIiLCJpYXQiOjE3ODk0NzkyNjcsImV4cCI6MTc4OTQ4MDE2N30.tWTl5YeP3z06_woMr2tB1Z_wSnkpX3l74Jf_-kvwBio
+
+### Create a New Exhibition
+POST {{baseUrl}}/createExhibition
+Content-Type: application/json
+
+{
+  "title": "Modern Art & Tech Exhibition 2026",
+  "description": "An immersive digital art exhibition showcasing emerging creators",
+  "image": "https://example.com",
+  "start_date": "2026-10-15T09:00:00.000Z",
+  "end_date": "2026-10-17T17:00:00.000Z",
+  "status": "current",
+  "highlight": true
+}
+
+### Create a New Exhibition
+POST {{baseUrl}}/createExhibition
+Content-Type: application/json
+
+{
+  "title": "Tech Exhibition 2027",
+  "description": "An immersive digital art exhibition showcasing emerging creators",
+  "image": "https://example.com",
+  "start_date": "2026-10-15T09:00:00.000Z",
+  "end_date": "2026-10-17T17:00:00.000Z",
+  "status": "upcoming",
+  "highlight": true
+}
+
+###
+
+### Get All Exhibitions (Requires Protected Route)
+GET {{baseUrl}}/getAllExhibition
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### Get Exhibition by ID (Requires Protected Route)
+GET {{baseUrl}}/6aa947a8f81122448d1ae62a
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### Delete an Exhibition (Requires Admin Route)
+DELETE {{baseUrl}}/6aa947a8f81122448d1ae62a
+Authorization: Bearer {{authToken}}
+Content-Type: application/json

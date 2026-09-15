@@ -52,4 +52,4 @@ POST {{baseUrl}}/logout
 ###
 
 # @name Delete User
-DELETE  {{baseUrl}}/6aa35c3f0b36674a579531ab
+DELETE  {{baseUrl}}/6aa51ef44e5d6f17780f64d6

@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import path from "path";
 
 import authRoutes from "./routes/auth.route.ts";
+import eventRoutes from "./routes/event.route.ts";
+import exhibitionRoutes from "./routes/exhibition.route.ts";
 import { connectDB } from "./lib/db.ts";
 
 dotenv.config();
@@ -18,6 +20,9 @@ app.use(cookieParser());
 
 // TODO: Add more routes here such as exhibitions, event, membership, etc.
 app.use("/api/auth", authRoutes);
+app.use("/api/event", eventRoutes);
+app.use("/api/exhibition", exhibitionRoutes);
+
 
 
 app.listen(PORT, () => {
