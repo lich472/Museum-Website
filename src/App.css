@@ -1,0 +1,406 @@
+.navbar {
+  background-color: #1d2925;
+  color: white;
+  width: 100%;
+  padding: 18px 0;
+}
+
+.nav-container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.museum-logo h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.museum-logo p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-links a {
+  color: white;
+  font-size: 15px;
+}
+
+.nav-links a:hover {
+  opacity: 0.7;
+}
+
+.hero {
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  background-color: #e8e0d3;
+}
+
+.hero-content {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero-label {
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #7b6044;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font-size: 64px;
+  line-height: 1.05;
+  margin: 0 0 25px;
+  max-width: 750px;
+  color: #1d2925;
+}
+
+.hero-description {
+  max-width: 600px;
+  font-size: 18px;
+  line-height: 1.7;
+  color: #555555;
+  margin-bottom: 35px;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.primary-button,
+.secondary-button {
+  display: inline-block;
+  padding: 15px 25px;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.primary-button {
+  background-color: #1d2925;
+  color: white;
+}
+
+.secondary-button {
+  border: 2px solid #1d2925;
+  color: #1d2925;
+}
+
+.primary-button:hover {
+  opacity: 0.85;
+}
+
+.secondary-button:hover {
+  background-color: #1d2925;
+  color: white;
+}
+
+/* Featured Exhibitions */
+
+.featured-exhibitions {
+  max-width: 1200px;
+  width: 90%;
+  margin: 0 auto;
+  padding: 90px 0;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-bottom: 45px;
+  border-bottom: 1px solid #cfc8bc;
+  padding-bottom: 25px;
+}
+
+.section-label {
+  margin: 0 0 10px;
+  color: #7b6044;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: #1d2925;
+  font-size: 42px;
+}
+
+.view-all-link {
+  font-weight: bold;
+  color: #1d2925;
+  padding-bottom: 5px;
+}
+
+.exhibition-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.exhibition-card {
+  background: white;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.exhibition-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.exhibition-image-placeholder {
+  height: 270px;
+  background-color: #263832;
+  display: flex;
+  align-items: flex-end;
+  padding: 25px;
+}
+
+.exhibition-image-placeholder span {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 60px;
+  font-weight: bold;
+}
+
+.exhibition-card-content {
+  padding: 28px;
+}
+
+.exhibition-category {
+  color: #8a6847;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.exhibition-card h3 {
+  color: #1d2925;
+  font-size: 25px;
+  margin: 12px 0;
+}
+
+.exhibition-date {
+  font-size: 13px;
+  font-weight: bold;
+  color: #666;
+}
+
+.exhibition-description {
+  color: #666;
+  line-height: 1.7;
+  font-size: 14px;
+  margin: 18px 0 25px;
+}
+
+.discover-link {
+  color: #1d2925;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Exhibition Detail */
+
+.detail-hero {
+  background-color: #263832;
+  color: white;
+  padding: 90px 0;
+}
+
+.detail-hero-content {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.back-link {
+  display: inline-block;
+  color: #d6c5a9;
+  margin-bottom: 50px;
+  font-size: 14px;
+}
+
+.detail-hero .section-label {
+  color: #d6b98c;
+}
+
+.detail-hero h1 {
+  max-width: 800px;
+  margin: 15px 0 20px;
+  font-size: 60px;
+  line-height: 1.1;
+}
+
+.detail-date {
+  margin: 0;
+  font-size: 17px;
+  color: #d8d8d8;
+}
+
+.detail-content {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 90px 0;
+
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 80px;
+}
+
+.detail-main h2 {
+  margin: 10px 0 25px;
+  color: #1d2925;
+  font-size: 38px;
+}
+
+.detail-main > p:not(.section-label) {
+  color: #555;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.detail-info {
+  background-color: #eee8de;
+  padding: 35px;
+}
+
+.info-item {
+  padding: 20px 0;
+  border-bottom: 1px solid #cec5b8;
+}
+
+.info-item span {
+  display: block;
+  margin-bottom: 7px;
+  color: #777;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.info-item strong {
+  color: #1d2925;
+  font-size: 16px;
+}
+
+.detail-button {
+  margin-top: 30px;
+}
+
+.not-found {
+  width: 90%;
+  max-width: 1200px;
+  margin: 100px auto;
+}
+
+/* Collection Highlights */
+
+.collections-page {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 90px 0;
+}
+
+.collections-intro {
+  max-width: 700px;
+  margin-bottom: 50px;
+}
+
+.collections-intro h2 {
+  margin: 10px 0 15px;
+  color: #1d2925;
+  font-size: 38px;
+}
+
+.collections-intro > p:last-child {
+  color: #666;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.collection-card {
+  background-color: white;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.collection-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.collection-image {
+  height: 330px;
+  background-color: #b8aa94;
+  display: flex;
+  align-items: flex-end;
+  padding: 25px;
+}
+
+.collection-image span {
+  font-size: 58px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.collection-card-content {
+  padding: 28px;
+}
+
+.collection-category {
+  margin: 0;
+  color: #8a6847;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.collection-card h3 {
+  margin: 12px 0 15px;
+  color: #1d2925;
+  font-size: 24px;
+}
+
+.collection-metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #ddd5c9;
+  color: #777;
+  font-size: 12px;
+}
+
+.collection-description {
+  margin: 18px 0 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.7;
+}
