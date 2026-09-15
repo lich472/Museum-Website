@@ -1,0 +1,52 @@
+### Variables
+@baseUrl = http://localhost:6000/api/event
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YWE5NDJhMzJhNWE2NDRiNjEyNzdmZDIiLCJpYXQiOjE3ODk0NzkyNjcsImV4cCI6MTc4OTQ4MDE2N30.tWTl5YeP3z06_woMr2tB1Z_wSnkpX3l74Jf_-kvwBio
+
+### Create a New Event
+POST {{baseUrl}}/createEvent
+Content-Type: application/json
+
+{
+  "title": "Tech workshop 2026",
+  "description": "An annual gathering for tech enthusiasts and developers.",
+  "image": "https://example.com",
+  "start_date": "2026-10-15T09:00:00.000Z",
+  "end_date": "2026-10-17T17:00:00.000Z",
+  "type": "workshop",
+  "capacity": 500
+}
+
+### Create a New Event
+POST {{baseUrl}}/createEvent
+Content-Type: application/json
+
+{
+  "title": "Tech Talk 2026",
+  "description": "An annual gathering for tech enthusiasts and developers.",
+  "image": "https://example.com",
+  "start_date": "2026-10-15T09:00:00.000Z",
+  "end_date": "2026-10-17T17:00:00.000Z",
+  "type": "talk",
+  "capacity": 200
+}
+
+###
+
+### 2. Get All Events (Requires Protected Route)
+GET {{baseUrl}}/getAllEvent
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 3. Get Event by ID (Requires Protected Route)
+GET {{baseUrl}}/6aa9459623b318bfad4708d2
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 4. Delete an Event (Requires Admin Route)
+DELETE {{baseUrl}}/6aa944cd23b318bfad4708d1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
