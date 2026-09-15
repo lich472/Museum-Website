@@ -9,7 +9,7 @@ function App() {
       date: '2026-09-20',
       status: 'Live',
       description: 'Explore dinosaur fossils and prehistoric life.',
-      imageUrl: '/icons.svg'
+      imageUrl: '/favicon.svg'
     },
     {
       id: 2,
@@ -17,7 +17,7 @@ function App() {
       date: '2026-10-05',
       status: 'Upcoming',
       description: 'Learn about the history of the local community.',
-      imageUrl: '/icons.svg'
+      imageUrl: '/favicon.svg'
     }
       ])
         const [title, setTitle] = useState('')
@@ -39,8 +39,6 @@ function App() {
   setStatus(exhibition.status)
   setDescription(exhibition.description)
   setImageUrl(exhibition.imageUrl)
-  setDescription(exhibition.description)
-  setImage(exhibition.image) 
   setEditingId(exhibition.id)
 }
  function addExhibition(event) {
@@ -96,7 +94,9 @@ function App() {
 
       <h2>Exhibition Management</h2>
 <form onSubmit={addExhibition}>
-  <h3>Add Exhibition</h3>
+  <h3>
+  {editingId === null ? 'Add Exhibition' : 'Edit Exhibition'}
+</h3>
 
   <input
     type="text"
@@ -130,7 +130,9 @@ function App() {
     <option value="Archived">Archived</option>
   </select>
 
-  <button type="submit">Add Exhibition</button>
+  <button type="submit">
+  {editingId === null ? 'Add Exhibition' : 'Save Changes'}
+</button>
 </form>
       <table>
         <thead>
