@@ -4,6 +4,12 @@ import Footer from './components/Footer'
 import BookingsPage from './features/bookings/BookingsPage'
 import MembershipsPage from './features/memberships/MembershipsPage'
 import './App.css'
+import { BookingDraftProvider } from './features/bookings/BookingDraftProvider'
+import BookingLayout from './features/bookings/BookingLayout'
+import TicketsPage from './features/bookings/pages/TicketsPage'
+import TicketsDetailsPage from './features/bookings/pages/TicketsDetailsPage'
+import TicketsReviewPage from './features/bookings/pages/TicketsReviewPage'
+import BookingConfirmationPage from './features/bookings/pages/BookingConfirmationPage'
 
 function IndexPage() {
   return (
@@ -41,37 +47,53 @@ function Placeholder({ title }: { title: string }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="site-shell">
-        <Header />
-        <main
-          id="main-content"
-          className="site-container main-content"
-          tabIndex={-1}
-        >
-          <Routes>
-            <Route path="/" element={<IndexPage />} />
-            <Route path="/booking" element={<BookingsPage />} />
-            <Route path="/tickets" element={<BookingsPage />} />
-            <Route path="/membership" element={<MembershipsPage />} />
-            {Object.entries({
-              visit: 'Plan your visit',
-              accessibility: 'Accessibility',
-              login: 'Log in',
-              contact: 'Contact us',
-              shop: 'Museum shop',
-              privacy: 'Privacy & Legal',
-            }).map(([path, title]) => (
+      <BookingDraftProvider>
+        <div className="site-shell">
+          <Header />
+          <main
+            id="main-content"
+            className="site-container main-content"
+            tabIndex={-1}
+          >
+            <Routes>
+              <Route path="/" element={<IndexPage />} />
+              <Route path="/booking" element={<BookingsPage />} />
+              <Route element={<BookingLayout />}>
+                <Route path="/tickets" element={<TicketsPage />} />
+                <Route
+                  path="/tickets/details"
+                  element={<TicketsDetailsPage />}
+                />
+                <Route path="/tickets/review" element={<TicketsReviewPage />} />
+              </Route>
               <Route
-                key={path}
-                path={`/${path}`}
-                element={<Placeholder title={title} />}
+                path="/bookings/:reference"
+                element={<BookingConfirmationPage />}
               />
-            ))}
-            <Route path="*" element={<Placeholder title="Page not found" />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+              <Route path="/membership" element={<MembershipsPage />} />
+              {Object.entries({
+                visit: 'Plan your visit',
+                accessibility: 'Accessibility',
+                login: 'Log in',
+                contact: 'Contact us',
+                shop: 'Museum shop',
+                privacy: 'Privacy & Legal',
+              }).map(([path, title]) => (
+                <Route
+                  key={path}
+                  path={`/${path}`}
+                  element={<Placeholder title={title} />}
+                />
+              ))}
+              <Route
+                path="*"
+                element={<Placeholder title="Page not found" />}
+              />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </BookingDraftProvider>
     </BrowserRouter>
   )
 }
