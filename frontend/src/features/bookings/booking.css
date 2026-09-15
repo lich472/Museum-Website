@@ -81,70 +81,6 @@
   background: #e5ddca;
   flex: 1;
 }
-.calendar-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0 22px;
-}
-.calendar-toolbar h3 {
-  font-size: 25px;
-  font-weight: 400;
-}
-.calendar-toolbar button {
-  background: none;
-  border: 0;
-  color: var(--color-primary);
-  padding: 10px;
-}
-.calendar {
-  border: 1px solid #cfc9bc;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.calendar-weekdays,
-.calendar-days {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-}
-.calendar-weekdays span {
-  padding: 20px 5px;
-  text-align: center;
-  background: #eee9dd;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-.calendar-days > * {
-  min-height: 102px;
-  border: 0;
-  border-top: 1px solid #d6d0c5;
-  border-right: 1px solid #d6d0c5;
-}
-.calendar-days button {
-  background: white;
-  text-align: left;
-  padding: 18px;
-  color: var(--color-text);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.calendar-days button:nth-child(7n) {
-  border-right: 0;
-}
-.calendar-days button[aria-pressed='true'] {
-  background: var(--color-primary);
-  color: white;
-}
-.calendar-days button:disabled {
-  background: #f0eee8;
-}
-.calendar-days button:focus-visible {
-  outline-offset: -4px;
-}
-.calendar-days small {
-  margin-top: 12px;
-}
 .selected-date {
   font-size: 21px;
 }
@@ -152,17 +88,14 @@
   color: #6d655a;
   font-size: 13px;
 }
-.time-options,
 .resident-options {
   border: 0;
   padding: 15px 0;
   margin: 20px 0;
 }
-.time-options legend,
 .resident-options legend {
   font-size: 18px;
 }
-.time-options label,
 .resident-options label {
   display: inline-flex;
   align-items: center;
@@ -233,6 +166,11 @@
 }
 .booking-total {
   border-top: 1px solid #becdd0;
+}
+.booking-gst {
+  display: block;
+  text-align: right;
+  font-size: 11px;
 }
 .booking-navigation {
   display: flex;
@@ -377,25 +315,6 @@
     gap: 24px;
     font-size: 14px;
   }
-  .calendar-toolbar h3 {
-    font-size: 18px;
-  }
-  .calendar-toolbar button {
-    font-size: 12px;
-    padding: 5px;
-  }
-  .calendar-weekdays span {
-    font-size: 10px;
-  }
-  .calendar-days > * {
-    min-height: 73px;
-  }
-  .calendar-days button {
-    padding: 8px 4px;
-  }
-  .calendar-days small {
-    font-size: 9px;
-  }
   .selected-date {
     font-size: 17px;
   }
@@ -408,4 +327,9 @@
   .quantity-control {
     gap: 8px;
   }
+}
+
+.booking-date-field {
+  max-width: 480px;
+  margin-inline: auto;
 }

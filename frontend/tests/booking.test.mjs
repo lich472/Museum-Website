@@ -2,17 +2,18 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   emptyDraft,
+  latestBookingDate,
   detailErrors,
   validTickets,
   totalCents,
   todayInAdelaide,
 } from '../src/features/bookings/bookingModel.ts'
 
-test('mixed ticket quantities calculate in cents and require a valid single date and time', () => {
+test('mixed ticket quantities calculate in cents and require a valid single date without a time', () => {
   const draft = emptyDraft()
+  assert.equal('time' in draft, false)
   assert.equal(validTickets(draft), false)
   draft.date = todayInAdelaide()
-  draft.time = '11:30'
   draft.quantities = { adult: 2, child: 1, concession: 1, infant: 1 }
   assert.equal(validTickets(draft), true)
   assert.equal(totalCents(draft), 6500)
@@ -51,4 +52,18 @@ test('details validate matching email, Australian postcode, phone and explicit t
       .postcode,
     undefined,
   )
+})
+
+test('six-month limit handles year rollover, month ends and leap years', () => {
+  assert.equal(latestBookingDate('2026-09-15'), '2027-03-15')
+  assert.equal(latestBookingDate('2026-08-31'), '2027-02-28')
+  assert.equal(latestBookingDate('2023-08-31'), '2024-02-29')
+  const draft = emptyDraft()
+  draft.quantities.adult = 1
+  draft.date = latestBookingDate()
+  assert.equal(validTickets(draft), true)
+  const nextDay = new Date(`${draft.date}T12:00:00Z`)
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1)
+  draft.date = nextDay.toISOString().slice(0, 10)
+  assert.equal(validTickets(draft), false)
 })

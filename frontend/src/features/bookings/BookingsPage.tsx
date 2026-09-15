@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import './booking.css'
+
 export default function BookingsPage() {
   return (
     <div className="booking-landing">

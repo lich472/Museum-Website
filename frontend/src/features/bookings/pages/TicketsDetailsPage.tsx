@@ -4,14 +4,18 @@ import { useBooking } from '../useBooking'
 import { detailErrors, validTickets } from '../bookingModel'
 import type { Details } from '../bookingModel'
 import BookingSummary from '../components/BookingSummary'
+
 export default function TicketsDetailsPage() {
   const { draft, setDraft } = useBooking()
   const navigate = useNavigate()
   const [errors, setErrors] = useState<Partial<Record<keyof Details, string>>>(
     {},
   )
-  if (!validTickets(draft)) return <Navigate to="/tickets" replace />
+  if (!validTickets(draft))
+    return <Navigate to="/tickets" replace />
+  
   const details = draft.details
+  
   function update<K extends keyof Details>(key: K, value: Details[K]) {
     setDraft({ ...draft, details: { ...details, [key]: value } })
   }
@@ -195,11 +199,7 @@ export default function TicketsDetailsPage() {
           <details className="demo-terms">
             <summary>Demo booking terms &amp; conditions</summary>
             <p>
-              This is a student prototype. Sample prices and ticket eligibility
-              are provisional. No payment, admission entitlement, email or
-              marketing subscription is created. Details are saved only in this
-              browser session for demonstrating the booking flow. Use fictional
-              contact information.
+              This is a prototype booking system for demonstration purposes only.
             </p>
           </details>
           <label className="booking-checkbox">

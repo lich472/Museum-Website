@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 import { readBookings } from '../bookingService'
 import BookingSummary from '../components/BookingSummary'
 import '../booking.css'
+
 export default function BookingConfirmationPage() {
   const { reference } = useParams()
   const booking = readBookings().find((item) => item.reference === reference)
@@ -28,20 +29,15 @@ export default function BookingConfirmationPage() {
         ✓
       </span>
       <h1>Your demo booking is confirmed</h1>
-      <p>We look forward to welcoming you.</p>
-      <p className="demo-note">
-        Prototype confirmation only. No valid ticket, payment or email has been
-        issued.
-      </p>
+      <p>Email confirmation has been sent to {booking.details.email}. We look forward to welcoming you.</p>
       <div className="confirmation-reference">
         <span>Booking reference</span>
         <strong>{booking.reference}</strong>
       </div>
       <BookingSummary draft={booking} />
       <p>
-        Contact: {booking.details.firstName} {booking.details.lastName}
+        If you have any questions, please contact us at: assist@muesum.com
         <br />
-        {booking.details.email}
       </p>
       <div className="booking-navigation">
         <Link to="/">Back to home</Link>

@@ -4,17 +4,17 @@ export const ticketTypes = [
   {
     id: 'concession',
     label: 'Concession',
-    description: 'Eligible concession card holders; bring your card',
+    description:
+      'Eligible concession card holders and it must be presented on entry',
     cents: 1500,
   },
   {
     id: 'infant',
-    label: 'Infant',
-    description: 'Ages 0–3; please include in your booking',
+    label: 'Child (0-3 years)',
+    description: 'Ages 0 – 3',
     cents: 0,
   },
 ] as const
-export const times = ['10:00', '11:30', '14:00']
 export type TicketType = (typeof ticketTypes)[number]['id']
 export type Details = {
   firstName: string
@@ -30,7 +30,6 @@ export type Details = {
 }
 export type Draft = {
   date: string
-  time: string
   quantities: Record<TicketType, number>
   details: Details
   requestId: string
@@ -39,7 +38,6 @@ export type Booking = Draft & { reference: string; totalCents: number }
 export function emptyDraft(): Draft {
   return {
     date: '',
-    time: '',
     quantities: { adult: 0, child: 0, concession: 0, infant: 0 },
     details: {
       firstName: '',
@@ -56,6 +54,7 @@ export function emptyDraft(): Draft {
     requestId: crypto.randomUUID(),
   }
 }
+
 export function todayInAdelaide() {
   const parts = new Intl.DateTimeFormat('en-AU', {
     timeZone: 'Australia/Adelaide',
@@ -66,6 +65,18 @@ export function todayInAdelaide() {
   const get = (type: string) => parts.find((part) => part.type === type)?.value
   return `${get('year')}-${get('month')}-${get('day')}`
 }
+
+// Six calendar months, clamped to the final day when the target month is shorter.
+export function latestBookingDate(today = todayInAdelaide()) {
+  const [year, month, day] = today.split('-').map(Number)
+  const target = new Date(Date.UTC(year, month - 1 + 6, 1))
+  const lastDay = new Date(
+    Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0),
+  ).getUTCDate()
+  target.setUTCDate(Math.min(day, lastDay))
+  return target.toISOString().slice(0, 10)
+}
+
 export function validTickets(draft: Draft) {
   const date = new Date(`${draft.date}T12:00:00`)
   return (
@@ -75,7 +86,7 @@ export function validTickets(draft: Draft) {
     date.getMonth() + 1 === Number(draft.date.slice(5, 7)) &&
     date.getDate() === Number(draft.date.slice(8, 10)) &&
     draft.date >= todayInAdelaide() &&
-    times.includes(draft.time) &&
+    draft.date <= latestBookingDate() &&
     ticketTypes.every(
       (t) =>
         Number.isInteger(draft.quantities[t.id]) &&
@@ -85,6 +96,7 @@ export function validTickets(draft: Draft) {
     Object.values(draft.quantities).reduce((a, b) => a + b, 0) > 0
   )
 }
+
 export function detailErrors(
   details: Details,
 ): Partial<Record<keyof Details, string>> {
@@ -108,15 +120,18 @@ export function detailErrors(
   if (details.australianResident && !/^\d{4}$/.test(details.postcode))
     errors.postcode = 'Enter a four-digit Australian postcode.'
   if (!details.acceptedTerms)
-    errors.acceptedTerms = 'Please agree to the demo booking terms.'
+    errors.acceptedTerms = 'Please agree to the booking terms.'
   return errors
 }
+
 export const totalCents = (draft: Draft) =>
   ticketTypes.reduce((sum, t) => sum + t.cents * draft.quantities[t.id], 0)
+
 export const money = (cents: number) =>
   new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(
     cents / 100,
   )
+
 export const formatDate = (date: string) =>
   date
     ? new Date(`${date}T12:00:00`).toLocaleDateString('en-AU', {

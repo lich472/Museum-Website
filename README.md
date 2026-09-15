@@ -49,10 +49,10 @@ npm run build            # 生产构建检查
 
 ```bash
 npm run build
-npm run preview -- --port 4173 --strictPort --open
+npm run preview -- --port 5173 --strictPort --open
 ```
 
-Preview URL: [http://localhost:4173](http://localhost:4173)
+Preview URL: [http://localhost:5173](http://localhost:5173)
 
 构建输出：`frontend/dist/`。`Ctrl+C` 停止本地服务。
 

@@ -13,7 +13,6 @@ export function BookingDraftProvider({ children }: { children: ReactNode }) {
       if (
         saved &&
         typeof saved.date === 'string' &&
-        typeof saved.time === 'string' &&
         typeof saved.requestId === 'string' &&
         saved.quantities &&
         saved.details &&
@@ -24,7 +23,12 @@ export function BookingDraftProvider({ children }: { children: ReactNode }) {
           ([key, value]) => typeof saved.details[key] === typeof value,
         )
       )
-        return saved
+        return {
+          date: saved.date,
+          quantities: saved.quantities,
+          details: saved.details,
+          requestId: saved.requestId,
+        }
     } catch {
       /* An unavailable or invalid saved draft starts a fresh booking. */
     }

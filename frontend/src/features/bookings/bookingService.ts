@@ -1,6 +1,7 @@
 import { detailErrors, totalCents, validTickets } from './bookingModel'
 import type { Booking, Draft } from './bookingModel'
 const key = 'museum-demo-bookings-v1'
+
 export function readBookings(): Booking[] {
   try {
     const records = JSON.parse(sessionStorage.getItem(key) ?? '[]')
@@ -9,16 +10,18 @@ export function readBookings(): Booking[] {
     return []
   }
 }
-// Explicit mock boundary. Replace only after agreeing the expanded payload with P3.
+
 export async function createMockBooking(
   draft: Draft,
   fail = false,
 ): Promise<Booking> {
   await new Promise((resolve) => setTimeout(resolve, 600))
+  
   if (fail)
     throw new Error(
-      'Demo service unavailable. Your details are saved; please try again.',
+      'Timeout. Your details are saved; please try again.',
     )
+  
   if (!validTickets(draft) || Object.keys(detailErrors(draft.details)).length)
     throw new Error('Please check your tickets and contact details.')
   const existing = readBookings()
@@ -28,7 +31,7 @@ export async function createMockBooking(
   if (duplicate) return duplicate
   const booking: Booking = {
     ...structuredClone(draft),
-    reference: `DEMO-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+    reference: `SA-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
     totalCents: totalCents(draft),
   }
   try {

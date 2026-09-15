@@ -1,11 +1,11 @@
 import { formatDate, money, ticketTypes, totalCents } from '../bookingModel'
 import type { Draft } from '../bookingModel'
+
 export default function BookingSummary({ draft }: { draft: Draft }) {
   return (
     <aside className="booking-summary">
-      <h2>Your visit</h2>
+      <h2><strong>Your visit</strong></h2>
       <p>{formatDate(draft.date)}</p>
-      <p>{draft.time || 'Choose a time'} · Adelaide time</p>
       <ul>
         {ticketTypes
           .filter((t) => draft.quantities[t.id] > 0)
@@ -22,7 +22,7 @@ export default function BookingSummary({ draft }: { draft: Draft }) {
         <strong>Total (AUD)</strong>
         <strong>{money(totalCents(draft))}</strong>
       </div>
-      <small>Sample prices for this prototype.</small>
+      <small className="booking-gst">include GST</small>
     </aside>
   )
 }

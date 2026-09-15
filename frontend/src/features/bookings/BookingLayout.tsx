@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { useBooking } from './useBooking'
 import { detailErrors, validTickets } from './bookingModel'
 import './booking.css'
+
 export default function BookingLayout() {
   const { pathname } = useLocation()
   const { draft, storageWarning } = useBooking()
@@ -25,10 +26,6 @@ export default function BookingLayout() {
       <h1 className="booking-title" ref={heading} tabIndex={-1}>
         Book your museum visit
       </h1>
-      <p className="demo-note">
-        Demo booking · AUD sample prices · No payment is collected or email
-        sent.
-      </p>
       <nav className="booking-steps" aria-label="Booking progress">
         {steps.map((step, index) => (
           <span key={step.to}>
@@ -41,7 +38,7 @@ export default function BookingLayout() {
               </Link>
             ) : (
               <span aria-disabled="true">
-                {index + 1}. {step.label}
+                {index + 1}. {step.label} 
               </span>
             )}
           </span>

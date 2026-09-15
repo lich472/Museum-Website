@@ -4,6 +4,7 @@ import { useBooking } from '../useBooking'
 import { detailErrors, validTickets } from '../bookingModel'
 import { createMockBooking } from '../bookingService'
 import BookingSummary from '../components/BookingSummary'
+
 export default function TicketsReviewPage() {
   const { draft } = useBooking()
   const navigate = useNavigate()
