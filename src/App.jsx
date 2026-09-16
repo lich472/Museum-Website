@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import EventManagement from './components/EventManagement'
 
 function App() {
  const [exhibitions, setExhibitions] = useState([
@@ -174,6 +175,7 @@ function App() {
           })}
         </tbody>
       </table>
+      <EventManagement />
     </div>
   )
 }
