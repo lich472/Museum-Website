@@ -144,6 +144,77 @@ const events = [
   },
 ];
 
+
+// ---------- Visitor Info (contract: one object, museum-wide) ----------
+const visitorInfo = {
+  openingHours: {
+    monday: '10:00–17:00',
+    tuesday: '10:00–17:00',
+    wednesday: '10:00–17:00',
+    thursday: '10:00–17:00',
+    friday: '10:00–17:00',
+    saturday: '10:00–17:00',
+    sunday: 'Closed',
+    closedDates: ['2026-12-25'],
+  },
+  location: {
+    address: '123 Main St, Adelaide SA',
+    lat: -34.9285,
+    lng: 138.6007,
+  },
+  accessibility: {
+    wheelchairAccess: true,
+    parking: 'Free onsite parking, 2 accessible bays',
+    sensoryFriendlyHours: 'First Tuesday of the month, 9:00–10:00',
+  },
+  facilities: ['Café', 'Gift Shop', 'Restrooms', 'Cloakroom'],
+  // 可选扩展（P3 若采纳契约变更后由后端提供）
+  facilityLocations: [
+    { name: 'Café',      mapX: 160, mapY: 300, icon: 'cafe'  },
+    { name: 'Gift Shop', mapX: 160, mapY: 420, icon: 'shop'  },
+    { name: 'Restrooms', mapX: 600, mapY: 300, icon: 'wc'    },
+    { name: 'Cloakroom', mapX: 640, mapY: 420, icon: 'cloak' },
+  ],
+  accessibilityPoints: [
+{
+    id: 'accessible-entrance',
+    name: 'Accessible Entrance',
+    mapX: 400, mapY: 440,
+    icon: 'entrance',
+    description: 'Step-free entry at the main entrance. Automatic doors with a level threshold.',
+  },
+  {
+    id: 'elevator',
+    name: 'Elevator',
+    mapX: 330, mapY: 140,
+    icon: 'elevator',
+    description: 'Serves all public floors. Located in the central lobby.',
+  },
+  {
+    id: 'wheelchair-loan',
+    name: 'Wheelchair Loan',
+    mapX: 480, mapY: 140,
+    icon: 'wheelchair',
+    description: 'Complimentary wheelchairs available at the front desk.',
+  },
+  {
+    id: 'quiet-room',
+    name: 'Quiet Room',
+    mapX: 400, mapY: 300,
+    icon: 'quiet',
+    description: 'Low-stimulation space with dimmed lighting for sensory breaks.',
+  },
+  {
+    id: 'accessible-restroom',
+    name: 'Accessible Restroom',
+    mapX: 660, mapY: 300,
+    icon: 'wheelchair',
+    description: 'Wheelchair-accessible restroom on the ground floor.',
+  },
+  ],
+};
+
+
 // 用于模拟注册记录自增ID
 let nextRegistrationId = 501;
 
@@ -209,6 +280,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ---------- GET /api/visitor-info ----------
+app.get('/api/visitor-info', (req, res) => {
+  setTimeout(() => ok(res, visitorInfo), 200);
+});
+
+// ---------- PUT /api/visitor-info (staff only, used by P4) ----------
+app.put('/api/visitor-info', (req, res) => {
+  Object.assign(visitorInfo, req.body);
+  ok(res, visitorInfo);
+});
 
 // ---------- Events API ----------
 
@@ -268,6 +349,11 @@ app.post('/api/events/:id/register', (req, res) => {
   setTimeout(() => {
     res.json({ success: true, registrationId });
   }, 400);
+
+  ////Resend · Email for developers
+
+
+  
 });
 
 // ---------- Start server ----------
