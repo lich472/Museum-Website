@@ -356,29 +356,6 @@ button:disabled {
   margin-top: 16px;
 }
 
-.facility-icon-card {
-  padding: 16px;
-  text-align: center;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface);
-  transition: box-shadow 0.15s, transform 0.15s;
-}
-
-.facility-icon-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
-}
-
-.facility-icon-card .icon {
-  font-size: 1.5rem;
-  margin-bottom: 6px;
-}
-
-.facility-icon-card .label {
-  font-size: 0.95rem;
-  font-weight: 500;
-}
 
 /* ============================================================
    Accessibility commitment footer block
@@ -656,4 +633,113 @@ button:disabled {
   margin: 0;
   color: var(--color-text-muted);
   font-style: italic;
+}
+
+/* ============================================================
+   Map wrapper — max 900px, centered
+   ============================================================ */
+.map-wrapper {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 20px;
+}
+
+.map-wrapper svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ============================================================
+   Facility / point-of-interest cards (clickable buttons)
+   ============================================================ */
+.facility-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.facility-icon-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px 20px;
+  text-align: center;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s,
+              box-shadow 0.15s, transform 0.15s;
+}
+
+.facility-icon-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.facility-icon-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.facility-icon-card.is-selected {
+  border-color: var(--color-accent);
+  background-color: #fdf2e9;
+}
+
+.facility-icon-card .icon {
+  font-size: 1.75rem;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.facility-icon-card .label {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* 左上角编号徽章，与地图上的数字对应 */
+.facility-icon-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background-color: #3498db;
+  border-radius: 50%;
+  transition: background-color 0.15s;
+}
+
+.facility-icon-card.is-selected .facility-icon-badge {
+  background-color: var(--color-accent);
+}
+
+@media (max-width: 480px) {
+  .facility-icon-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  .facility-icon-card {
+    padding: 20px 12px 16px;
+  }
+  .facility-icon-card .icon {
+    font-size: 1.5rem;
+  }
+  .facility-icon-card .label {
+    font-size: 0.9rem;
+  }
 }

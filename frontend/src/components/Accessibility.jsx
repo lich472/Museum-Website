@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FloorMap from './FloorMap';
-import FloorMapLabels from './FloorMapLabels';
-import { DEFAULT_ACCESSIBILITY_POINTS } from '../data/facilityMap';
+import { DEFAULT_ACCESSIBILITY_POINTS, POINT_ICONS } from '../data/facilityMap';
 
 function Accessibility() {
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState(null);
-
   const detailRef = useRef(null);
 
   useEffect(() => {
@@ -29,11 +27,9 @@ function Accessibility() {
 
   useEffect(() => {
     if (!selected || !detailRef.current) return;
-
     const prefersReducedMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
     ).matches;
-
     detailRef.current.scrollIntoView({
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
       block: 'nearest',
@@ -41,8 +37,8 @@ function Accessibility() {
   }, [selected]);
 
   if (loading) return <div className="state-loading">⏳ Loading…</div>;
-  if (error)   return <div className="state-error">❌ {error}</div>;
-  if (!info)   return <div className="state-error">No data available.</div>;
+  if (error) return <div className="state-error">❌ {error}</div>;
+  if (!info) return <div className="state-error">No data available.</div>;
 
   const acc = info.accessibility || {};
   const mapPoints = info.accessibilityPoints?.length
@@ -56,7 +52,6 @@ function Accessibility() {
 
       <section aria-labelledby="key-info-heading" className="page-section">
         <h2 id="key-info-heading">Key Information</h2>
-
         <div className="info-card-stack">
           <InfoCard
             title="Wheelchair Access"
@@ -75,20 +70,16 @@ function Accessibility() {
       <section aria-labelledby="map-heading" className="page-section">
         <h2 id="map-heading">Ground Floor Map</h2>
         <p className="page-hint">
-          Select a marker on the map or a name below to see details.
+          Select a point of interest below to highlight it on the map.
         </p>
 
-        <FloorMap
-          highlights={mapPoints}
-          selectedId={selected?.id}
-          onSelect={setSelected}
-        />
-
-        <FloorMapLabels
-          points={mapPoints}
-          selectedId={selected?.id}
-          onSelect={setSelected}
-        />
+        <div className="map-wrapper">
+          <FloorMap
+            highlights={mapPoints}
+            selectedId={selected?.id}
+            onSelect={setSelected}
+          />
+        </div>
 
         <div
           ref={detailRef}
@@ -99,7 +90,9 @@ function Accessibility() {
           {selected ? (
             <>
               <div className="selection-detail-header">
-                <span className="selection-detail-icon" aria-hidden="true">♿</span>
+                <span className="selection-detail-icon" aria-hidden="true">
+                  {POINT_ICONS[selected.icon] || '♿'}
+                </span>
                 <h3 className="selection-detail-title">{selected.name}</h3>
               </div>
               <p className="selection-detail-body">{selected.description}</p>
@@ -109,6 +102,30 @@ function Accessibility() {
               Select a point of interest to see more information.
             </p>
           )}
+        </div>
+      </section>
+
+      <section aria-labelledby="points-list-heading" className="page-section">
+        <h2 id="points-list-heading">Points of Interest</h2>
+        <div className="facility-icon-grid">
+          {mapPoints.map((p, index) => {
+            const isSelected = selected?.id === p.id;
+            return (
+              <button
+                key={p.id || p.name}
+                type="button"
+                onClick={() => setSelected(p)}
+                className={`facility-icon-card${isSelected ? ' is-selected' : ''}`}
+                aria-pressed={isSelected}
+              >
+                <span className="facility-icon-badge">{index + 1}</span>
+                <span className="icon" aria-hidden="true">
+                  {POINT_ICONS[p.icon] || '♿'}
+                </span>
+                <span className="label">{p.name}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
