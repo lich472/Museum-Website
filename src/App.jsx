@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import EventManagement from './components/EventManagement'
 import VisitorInfoEditor from './components/VisitorInfoEditor'
+import DashboardOverview from './components/DashboardOverview'
 
 function App() {
  const [exhibitions, setExhibitions] = useState([
@@ -93,7 +94,9 @@ function App() {
     <div className="admin-page">
       <h1>Museum Admin Dashboard</h1>
       <p>Manage museum exhibitions and events.</p>
-
+      
+      <DashboardOverview />
+      
       <h2>Exhibition Management</h2>
 <form onSubmit={addExhibition}>
   <h3>

@@ -141,3 +141,37 @@ form input[type='checkbox'] {
   height: 20px;
   margin-right: 10px;
 }
+
+.dashboard-overview {
+  margin: 40px 0;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.summary-card {
+  background-color: white;
+  border: 1px solid #d7dce1;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.summary-card p {
+  margin: 0 0 12px;
+  color: #666;
+}
+
+.summary-card strong {
+  font-size: 32px;
+  color: #39638f;
+}
+
+@media (max-width: 800px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
