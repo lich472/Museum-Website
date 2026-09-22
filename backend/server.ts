@@ -20,8 +20,8 @@ app.use(cookieParser());
 
 // TODO: Add more routes here such as exhibitions, event, membership, etc.
 app.use("/api/auth", authRoutes);
-app.use("/api/event", eventRoutes);
-app.use("/api/exhibition", exhibitionRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/exhibitions", exhibitionRoutes);
 
 
 
