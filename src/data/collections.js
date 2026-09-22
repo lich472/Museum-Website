@@ -1,7 +1,11 @@
+import vesselImage from "../assets/images/collections/ceremonial-vessel.jpg";
+import landscapeImage from "../assets/images/collections/regional-landscape.jpg";
+import wovenImage from "../assets/images/collections/woven-object.jpg";
 const collections = [
   {
     id: 1,
     title: "Ceremonial Vessel",
+    image: vesselImage,
     category: "Archaeology",
     period: "c. 1200–1000 BCE",
     origin: "Ancient Mediterranean",
@@ -12,6 +16,7 @@ const collections = [
     id: 2,
     title: "Regional Landscape",
     category: "Fine Art",
+    image: landscapeImage,
     period: "c. 1890",
     origin: "Regional Australia",
     description:
@@ -21,6 +26,7 @@ const collections = [
     id: 3,
     title: "Woven Cultural Object",
     category: "Cultural Heritage",
+    image: wovenImage,
     period: "20th Century",
     origin: "Regional Collection",
     description:

@@ -1,13 +1,22 @@
+
+import { Link } from "react-router-dom";
+
 function CollectionCard({ item, number }) {
   return (
     <article className="collection-card">
-
       <div className="collection-image">
-        <span>{number}</span>
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.title}
+            className="collection-photo"
+          />
+        ) : (
+          <span>{number}</span>
+        )}
       </div>
 
       <div className="collection-card-content">
-
         <p className="collection-category">
           {item.category}
         </p>
@@ -23,8 +32,13 @@ function CollectionCard({ item, number }) {
           {item.description}
         </p>
 
+        <Link
+          to={`/collections/${item.id}`}
+          className="discover-link"
+        >
+          Discover Object →
+        </Link>
       </div>
-
     </article>
   );
 }

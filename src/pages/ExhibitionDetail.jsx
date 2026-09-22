@@ -1,3 +1,4 @@
+
 import { useParams, Link } from "react-router-dom";
 import exhibitions from "../data/exhibitions";
 
@@ -36,6 +37,16 @@ function ExhibitionDetail() {
           </p>
         </div>
       </section>
+
+      {exhibition.image && (
+        <section className="detail-image-section">
+          <img
+            src={exhibition.image}
+            alt={exhibition.title}
+            className="detail-image"
+          />
+        </section>
+      )}
 
       <section className="detail-content">
         <div className="detail-main">

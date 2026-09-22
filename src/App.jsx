@@ -1,3 +1,4 @@
+
 import "./App.css";
 
 import {
@@ -11,6 +12,9 @@ import Home from "./pages/Home";
 import Exhibitions from "./pages/Exhibitions";
 import ExhibitionDetail from "./pages/ExhibitionDetail";
 import Collections from "./pages/Collections";
+import CollectionDetail from "./pages/CollectionDetail";
+import Visit from "./pages/Visit";
+import Footer from "./components/Footer";
 
 function App() {
   return (
@@ -21,9 +25,12 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/exhibitions" element={<Exhibitions />} />
         <Route path="/exhibitions/:id" element={<ExhibitionDetail />} />
-        <Route path="/collections" element={<Collections />}
-/>
+        <Route path="/collections" element={<Collections />} />
+        <Route path="/collections/:id" element={<CollectionDetail />} />
+        <Route path="/visit" element={<Visit />} />
       </Routes>
+
+      <Footer />
     </BrowserRouter>
   );
 }
