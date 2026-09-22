@@ -5,7 +5,7 @@
 .booking-title {
   font-size: clamp(30px, 4vw, 46px);
 }
-.demo-note {
+.booking-note {
   text-align: center;
   color: #665a4c;
   font-size: 13px;
@@ -237,17 +237,17 @@
   display: block;
   margin-top: 8px;
 }
-.demo-fill {
+.test-fill {
   background: #eee7d9;
   padding: 10px 15px;
   border: 1px dashed #998770;
   border-radius: 4px;
   margin-bottom: 28px;
 }
-.demo-terms {
+.booking-terms {
   margin: 16px 0;
 }
-.demo-terms summary {
+.booking-terms summary {
   cursor: pointer;
   text-decoration: underline;
 }
@@ -332,4 +332,40 @@
 .booking-date-field {
   max-width: 480px;
   margin-inline: auto;
+}
+
+.confirmation-qr {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.confirmation-qr > img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+.confirmation-email {
+  padding: 24px 0;
+  overflow-wrap: anywhere;
+}
+.confirmation-email button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.ticket-image-preview {
+  margin-top: 22px;
+}
+.ticket-image-preview summary {
+  cursor: pointer;
+  text-decoration: underline;
+}
+.ticket-image-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 20px;
+  border: 1px solid var(--color-border);
 }

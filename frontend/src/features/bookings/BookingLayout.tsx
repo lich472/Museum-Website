@@ -38,7 +38,7 @@ export default function BookingLayout() {
               </Link>
             ) : (
               <span aria-disabled="true">
-                {index + 1}. {step.label} 
+                {index + 1}. {step.label}
               </span>
             )}
           </span>

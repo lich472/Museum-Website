@@ -1,0 +1,409 @@
+.member-intro {
+  text-align: center;
+  margin-bottom: 46px;
+}
+.comparison-scroll-hint {
+  display: none;
+  font-size: 12px;
+  color: #6d655a;
+  text-align: right;
+}
+@media (max-width: 825px) {
+  .comparison-scroll-hint {
+    display: block;
+  }
+}
+.member-intro h1 {
+  font-size: clamp(36px, 4.5vw, 56px);
+}
+.member-intro p,
+.member-footnote {
+  color: #6d655a;
+}
+.comparison-wrap {
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  overflow: auto;
+  background: white;
+}
+.member-comparison {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  min-width: 760px;
+}
+.member-comparison th,
+.member-comparison td {
+  padding: 20px 22px;
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+}
+.member-comparison th:first-child {
+  width: 28%;
+  text-align: left;
+}
+.member-comparison thead th {
+  padding-top: 32px;
+  vertical-align: top;
+}
+.member-comparison thead h2 {
+  font-size: 25px;
+  margin: 16px 0 6px;
+}
+.member-comparison tbody th {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.member-comparison .member-highlight {
+  background: #e5edf0;
+}
+.comparison-label,
+.comparison-unit,
+.comparison-price {
+  display: block;
+}
+.comparison-label {
+  color: #6d655a;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  min-height: 28px;
+}
+.comparison-price {
+  font-family: Georgia, serif;
+  font-size: 44px;
+  color: var(--color-primary);
+  padding: 9px 0;
+  font-weight: 400;
+}
+.comparison-unit {
+  font-size: 12px;
+  font-weight: 400;
+}
+.benefit-yes,
+.benefit-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+.benefit-yes {
+  color: #426458;
+}
+.benefit-no {
+  color: #918b82;
+}
+.member-comparison tbody tr:last-child th,
+.member-comparison tbody tr:last-child td {
+  border-bottom: 0;
+}
+.member-comparison .comparison-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  margin-top: 24px;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.member-footnote {
+  font-size: 12px;
+  text-align: center;
+  margin-top: 22px;
+}
+.member-secondary {
+  display: inline-block;
+  padding: 14px 22px;
+  border: 1px solid #c9bda9;
+  background: transparent;
+  border-radius: 6px;
+  font: inherit;
+  text-align: center;
+}
+.member-link {
+  color: var(--color-primary);
+  background: none;
+  padding: 0;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font: inherit;
+}
+.member-heading {
+  font-size: 34px;
+  margin-top: 0;
+}
+.member-plan-card,
+.member-white-panel {
+  padding: 32px;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.member-plan-card {
+  border: 2px solid var(--color-primary);
+  margin-top: 30px;
+}
+.member-plan-card h2 {
+  font-size: 32px;
+}
+.member-plan-price {
+  font:
+    48px Georgia,
+    serif;
+  color: var(--color-primary);
+  margin: 24px 0;
+}
+.member-plan-price small {
+  font:
+    15px system-ui,
+    sans-serif;
+  color: var(--color-text);
+}
+.member-tag {
+  display: inline-block;
+  padding: 8px 12px;
+  background: #f2eee5;
+  color: #79513c;
+  font-size: 11px;
+  letter-spacing: 1px;
+  border-radius: 4px;
+}
+.member-summary li {
+  font-size: 14px;
+  padding-block: 8px;
+}
+.member-summary {
+  position: sticky;
+  top: 24px;
+}
+.member-summary h2 {
+  margin-top: 14px;
+}
+.member-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+.member-details > p {
+  margin-bottom: 28px;
+}
+.member-inline-note {
+  background: #eee7d9;
+  border-radius: 6px;
+  padding: 18px;
+  font-size: 14px;
+}
+.member-register {
+  max-width: 760px;
+  margin: auto;
+}
+.member-payment-method {
+  border: 0;
+  padding: 0;
+  margin: 32px 0;
+}
+.member-payment-method legend {
+  font-size: 20px;
+  padding: 0 0 16px;
+}
+.member-payment-method label {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #a34f35;
+  border-radius: 8px;
+  background: white;
+  padding: 24px;
+}
+.member-payment-method small {
+  display: block;
+  margin-top: 8px;
+  color: #6d655a;
+}
+.card-brand {
+  margin-left: auto;
+  font-style: italic;
+  color: #264b75;
+  font-weight: 800;
+}
+.member-pass {
+  text-align: left;
+  background: #e5edf0;
+  padding: 38px;
+  border-radius: 14px;
+  border-top: 5px solid var(--color-primary);
+}
+.member-pass h2 {
+  font-size: 34px;
+  overflow-wrap: anywhere;
+}
+.member-pass p {
+  overflow-wrap: anywhere;
+}
+.member-pass .booking-button {
+  margin-top: 16px;
+}
+.member-confirmation .member-pass {
+  margin-top: 32px;
+}
+.member-center-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+.member-account-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+.member-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--color-border);
+  margin: 24px 0 36px;
+}
+.member-tabs button {
+  border: 0;
+  background: none;
+  padding: 16px 0;
+  color: var(--color-text);
+}
+.member-tabs [aria-current] {
+  border-bottom: 3px solid var(--color-primary);
+  color: var(--color-primary);
+}
+.member-profile {
+  max-width: 760px;
+}
+.member-history-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.member-history-row > div {
+  flex: 1;
+}
+.member-history-row p {
+  font-size: 13px;
+}
+.member-dialog {
+  width: min(500px, calc(100% - 32px));
+  max-height: calc(100dvh - 40px);
+  padding: 38px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  color: var(--color-text);
+  background: var(--color-background);
+}
+.member-dialog::backdrop {
+  background: #25221c88;
+}
+.member-dialog h2 {
+  font-size: 31px;
+}
+.dialog-close {
+  position: absolute;
+  right: 14px;
+  top: 10px;
+  background: none;
+  border: 0;
+  font-size: 28px;
+}
+.member-dialog button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.utility-login {
+  background: none;
+  border: 0;
+  color: inherit;
+  padding-block: 0;
+}
+.member-account-entry {
+  font-size: 14px;
+  color: var(--color-primary);
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.membership-flow .booking-steps [aria-current] {
+  padding-bottom: 10px;
+}
+@media (max-width: 700px) {
+  .member-intro {
+    margin-bottom: 30px;
+  }
+  .member-form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .member-summary {
+    position: static;
+  }
+  .member-white-panel,
+  .member-plan-card,
+  .member-pass {
+    padding: 24px;
+  }
+  .member-dialog {
+    padding: 30px 22px;
+  }
+  .member-tabs {
+    gap: 20px;
+    font-size: 13px;
+  }
+  .member-account-heading {
+    align-items: start;
+  }
+  .member-history-row {
+    flex-wrap: wrap;
+  }
+  .member-history-row > div {
+    flex-basis: 100%;
+  }
+  .member-comparison {
+    min-width: 710px;
+  }
+  .member-comparison th,
+  .member-comparison td {
+    padding-inline: 14px;
+  }
+}
+.member-test-fill {
+  margin-bottom: 24px;
+}
+.member-test-fill .test-fill {
+  margin-bottom: 0;
+}
+.member-test-fill p {
+  margin: 12px 0 0;
+}
+.ticket-status {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ticket-status-pending {
+  color: #805b1e;
+  background: #f8eed8;
+}
+.ticket-status-confirmed {
+  color: #365d4b;
+  background: #e3eee7;
+}

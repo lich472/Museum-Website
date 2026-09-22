@@ -11,11 +11,10 @@ export default function TicketsDetailsPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof Details, string>>>(
     {},
   )
-  if (!validTickets(draft))
-    return <Navigate to="/tickets" replace />
-  
+  if (!validTickets(draft)) return <Navigate to="/tickets" replace />
+
   const details = draft.details
-  
+
   function update<K extends keyof Details>(key: K, value: Details[K]) {
     setDraft({ ...draft, details: { ...details, [key]: value } })
   }
@@ -49,7 +48,7 @@ export default function TicketsDetailsPage() {
         >
           {import.meta.env.DEV && (
             <button
-              className="demo-fill"
+              className="test-fill"
               type="button"
               onClick={() => {
                 setDraft({
@@ -196,10 +195,11 @@ export default function TicketsDetailsPage() {
             />
             Yes, I’d like museum news, events and special offers (optional).
           </label>
-          <details className="demo-terms">
-            <summary>Demo booking terms &amp; conditions</summary>
+          <details className="booking-terms">
+            <summary>Booking terms &amp; conditions</summary>
             <p>
-              This is a prototype booking system for demonstration purposes only.
+              Please check your visit date, ticket quantities and contact
+              details before confirming your booking.
             </p>
           </details>
           <label className="booking-checkbox">
@@ -216,7 +216,7 @@ export default function TicketsDetailsPage() {
                 errors.acceptedTerms ? 'acceptedTerms-error' : undefined
               }
             />
-            I agree to the demo booking terms &amp; conditions. *
+            I agree to the booking terms &amp; conditions. *
           </label>
           {errors.acceptedTerms && (
             <p id="acceptedTerms-error" className="booking-error" role="alert">

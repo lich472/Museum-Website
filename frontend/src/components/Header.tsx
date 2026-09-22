@@ -1,10 +1,15 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { defaultHeader, museumName, pageHeaders } from '../config/site'
+import { useMembership } from '../features/memberships/useMembership'
 
 export default function Header() {
   const { pathname } = useLocation()
-  const config = pageHeaders[pathname] ?? defaultHeader
+  const { account, openLogin } = useMembership()
+  const config =
+    pageHeaders[
+      pathname.startsWith('/membership') ? '/membership' : pathname
+    ] ?? defaultHeader
   const [menuPath, setMenuPath] = useState<string | null>(null)
   const menuOpen = menuPath === pathname
   return (
@@ -17,10 +22,15 @@ export default function Header() {
         <div className="site-container utility-inner">
           <Link className="brand-link" to="/" aria-label={`${museumName} home`}>
             <span className="logo-placeholder" aria-hidden="true">
-              LOGO        {/* Muesum LOGO here */}
+              LOGO {/* Muesum LOGO here */}
             </span>
           </Link>
-          
+          {account && (
+            <Link className="member-account-entry" to="/account">
+              My account
+            </Link>
+          )}
+
           <Link className="visit-link" to="/visit">
             Plan your visit
           </Link>
@@ -35,7 +45,13 @@ export default function Header() {
               Language: English
             </span>
             {/* Login */}
-            <Link to="/login">Log in</Link>
+            {account ? (
+              <Link to="/account">Hello, {account.firstName}</Link>
+            ) : (
+              <button className="utility-login" onClick={openLogin}>
+                Log in
+              </button>
+            )}
           </nav>
         </div>
       </div>
@@ -88,7 +104,6 @@ export default function Header() {
           ))}
         </nav>
       )}
-
     </header>
   )
 }

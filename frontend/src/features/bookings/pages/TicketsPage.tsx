@@ -52,7 +52,7 @@ export default function TicketsPage() {
           {formatDate(latestDate)} (inclusive).
         </p>
       </div>
-      
+
       <h2 className="section-heading">Select your tickets</h2>
       <div className="booking-columns">
         <div className="ticket-list">

@@ -4,7 +4,9 @@ import type { Draft } from '../bookingModel'
 export default function BookingSummary({ draft }: { draft: Draft }) {
   return (
     <aside className="booking-summary">
-      <h2><strong>Your visit</strong></h2>
+      <h2>
+        <strong>Your visit</strong>
+      </h2>
       <p>{formatDate(draft.date)}</p>
       <ul>
         {ticketTypes

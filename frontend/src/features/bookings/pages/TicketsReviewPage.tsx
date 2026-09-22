@@ -64,9 +64,7 @@ export default function TicketsReviewPage() {
             )}
             <dt>News and offers</dt>
             <dd>
-              {draft.details.marketingConsent
-                ? 'Opted in (demo only)'
-                : 'Not subscribed'}
+              {draft.details.marketingConsent ? 'Opted in' : 'Not subscribed'}
             </dd>
           </dl>
           <div className="review-edit">
@@ -97,7 +95,7 @@ export default function TicketsReviewPage() {
         </p>
       )}
       <div className="booking-navigation">
-        <span>No payment required for this demo.</span>
+        <span>No payment is collected at this step.</span>
         <button className="booking-button" disabled={pending} onClick={submit}>
           {pending ? 'Creating booking…' : 'Confirm booking →'}
         </button>
