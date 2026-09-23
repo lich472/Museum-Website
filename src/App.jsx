@@ -5,7 +5,8 @@ import VisitorInfoEditor from './components/VisitorInfoEditor'
 import DashboardOverview from './components/DashboardOverview'
 
 function App() {
- const [exhibitions, setExhibitions] = useState([
+  // fake data for now, will come from the API later
+  const [exhibitions, setExhibitions] = useState([
     {
       id: 1,
       title: 'Dinosaur Exhibition',
@@ -22,129 +23,154 @@ function App() {
       description: 'Learn about the history of the local community.',
       imageUrl: '/favicon.svg'
     }
-      ])
-        const [title, setTitle] = useState('')
-        const [date, setDate] = useState('')
-        const [status, setStatus] = useState('Upcoming')
-        const [description, setDescription] = useState('')
-        const [imageUrl, setImageUrl] = useState('')
-        const [editingId, setEditingId] = useState(null)
-    function deleteExhibition(id) {
-    const updatedExhibitions = exhibitions.filter(function (exhibition) {
-      return exhibition.id !== id
-    })
+  ])
 
-    setExhibitions(updatedExhibitions)
-  }
-  function startEdit(exhibition) {
-  setTitle(exhibition.title)
-  setDate(exhibition.date)
-  setStatus(exhibition.status)
-  setDescription(exhibition.description)
-  setImageUrl(exhibition.imageUrl)
-  setEditingId(exhibition.id)
-}
- function addExhibition(event) {
-  event.preventDefault()
+const [eventStats, setEventStats] = useState({
+  totalEvents: 2,
+  totalCapacity: 60,
+  availableSpots: 32
+})
 
-  if (title === '' || date === '') {
-    alert('Please enter the exhibition name and date.')
-    return
-  }
+  const [title, setTitle] = useState('')
+  const [date, setDate] = useState('')
+  const [status, setStatus] = useState('Upcoming')
+  const [description, setDescription] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [editingId, setEditingId] = useState(null)
 
-  if (editingId !== null) {
-    const updatedExhibitions = exhibitions.map(function (exhibition) {
-      if (exhibition.id === editingId) {
-        return {
-          id: exhibition.id,
-          title: title,
-          date: date,
-          status: status,
-          description: description,
-          imageUrl: imageUrl
-}
+  function deleteExhibition(id) {
+    // keep everything except the one we clicked delete on
+    let newList = []
+
+    for (let i = 0; i < exhibitions.length; i++) {
+      if (exhibitions[i].id !== id) {
+        newList.push(exhibitions[i])
       }
-
-      return exhibition
-    })
-
-    setExhibitions(updatedExhibitions)
-    setEditingId(null)
-  } else {
-    const newExhibition = {
-      id: Date.now(),
-      title: title,
-      date: date,
-      status: status,
-      description: description,
-      imageUrl: imageUrl
     }
 
-    const updatedExhibitions = exhibitions.concat(newExhibition)
-    setExhibitions(updatedExhibitions)
+    setExhibitions(newList)
   }
 
-  setTitle('')
-  setDate('')
-  setStatus('Upcoming')
-  setDescription('')
-  setImageUrl('')
-}
+  function startEdit(item) {
+    setTitle(item.title)
+    setDate(item.date)
+    setStatus(item.status)
+    setDescription(item.description)
+    setImageUrl(item.imageUrl)
+    setEditingId(item.id)
+  }
+
+  function addExhibition(e) {
+    e.preventDefault()
+
+    // only the name + date are required
+    if (title === '' || date === '') {
+      alert('Please enter the exhibition name and date.')
+      return
+    }
+
+    if (editingId !== null) {
+      // put the edited values back into the list
+      let newList = []
+
+      for (let i = 0; i < exhibitions.length; i++) {
+        if (exhibitions[i].id === editingId) {
+          let edited = {
+            id: exhibitions[i].id,
+            title: title,
+            date: date,
+            status: status,
+            description: description,
+            imageUrl: imageUrl
+          }
+
+          newList.push(edited)
+        } else {
+          newList.push(exhibitions[i])
+        }
+      }
+
+      setExhibitions(newList)
+      setEditingId(null)
+    } else {
+      let newExhibition = {
+        id: Date.now(),
+        title: title,
+        date: date,
+        status: status,
+        description: description,
+        imageUrl: imageUrl
+      }
+
+      let newList = exhibitions.slice()
+      newList.push(newExhibition)
+      setExhibitions(newList)
+    }
+
+    // clear the form after saving
+    setTitle('')
+    setDate('')
+    setStatus('Upcoming')
+    setDescription('')
+    setImageUrl('')
+  }
+
   return (
     <div className="admin-page">
       <h1>Museum Admin Dashboard</h1>
       <p>Manage museum exhibitions and events.</p>
-      
-      <DashboardOverview />
-      
+
+      <DashboardOverview
+  totalExhibitions={exhibitions.length}
+  totalEvents={eventStats.totalEvents}
+  totalCapacity={eventStats.totalCapacity}
+  availableSpots={eventStats.availableSpots}
+/>
+
       <h2>Exhibition Management</h2>
-<form onSubmit={addExhibition}>
-  <h3>
-  {editingId === null ? 'Add Exhibition' : 'Edit Exhibition'}
-</h3>
 
-  <input
-    type="text"
-    placeholder="Exhibition name"
-    value={title}
-    onChange={(event) => setTitle(event.target.value)}
-  />
+      <form onSubmit={addExhibition}>
+        <h3>{editingId === null ? 'Add Exhibition' : 'Edit Exhibition'}</h3>
 
-  <input
-    type="date"
-    value={date}
-    onChange={(event) => setDate(event.target.value)}
-  />
-  <textarea
-    placeholder="Exhibition description"
-    value={description}
-    onChange={(event) => setDescription(event.target.value)}
-  />
-  <input
-    type="text"
-    placeholder="Image URL"
-    value={imageUrl}
-    onChange={(event) => setImageUrl(event.target.value)}
-  />
-  <select
-    value={status}
-    onChange={(event) => setStatus(event.target.value)}
-  >
-    <option value="Upcoming">Upcoming</option>
-    <option value="Live">Live</option>
-    <option value="Archived">Archived</option>
-  </select>
+        <input
+          type="text"
+          placeholder="Exhibition name"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+        <textarea
+          placeholder="Exhibition description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Image URL"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+        />
+        <select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <option value="Upcoming">Upcoming</option>
+          <option value="Live">Live</option>
+          <option value="Archived">Archived</option>
+        </select>
 
-  <button type="submit">
-  {editingId === null ? 'Add Exhibition' : 'Save Changes'}
-</button>
-</form>
+        <button type="submit">
+          {editingId === null ? 'Add Exhibition' : 'Save Changes'}
+        </button>
+      </form>
+
       <table>
         <thead>
           <tr>
             <th>Exhibition Name</th>
             <th>Date</th>
-            <th>Status</th> 
+            <th>Status</th>
             <th>Description</th>
             <th>Image</th>
             <th>Actions</th>
@@ -152,34 +178,33 @@ function App() {
         </thead>
 
         <tbody>
-          {exhibitions.map(function (exhibition) {
+          {exhibitions.map(function (item) {
             return (
-              <tr key={exhibition.id}>
-                <td>{exhibition.title}</td>
-                <td>{exhibition.date}</td>
-                <td>{exhibition.status}</td>
-                <td>{exhibition.description}</td>
+              <tr key={item.id}>
+                <td>{item.title}</td>
+                <td>{item.date}</td>
+                <td>{item.status}</td>
+                <td>{item.description}</td>
                 <td>
-                 <img
-                  src={exhibition.imageUrl}
-                  alt={exhibition.title}
-                  className="exhibition-image"
-                 />
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="exhibition-image"
+                  />
                 </td>
                 <td>
-                  <button onClick={() => startEdit(exhibition)}>
-  Edit
-</button>
-                  <button onClick={() => deleteExhibition(exhibition.id)}>
-  Delete
-</button>
+                  <button onClick={() => startEdit(item)}>Edit</button>
+                  <button onClick={() => deleteExhibition(item.id)}>
+                    Delete
+                  </button>
                 </td>
               </tr>
             )
           })}
         </tbody>
       </table>
-      <EventManagement />
+
+      <EventManagement onStatsChange={setEventStats} />
       <VisitorInfoEditor />
     </div>
   )

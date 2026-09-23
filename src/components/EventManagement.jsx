@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-function EventManagement() {
+function EventManagement({ onStatsChange }) {
+  // still hardcoded, swap for GET /api/events later
   const [events, setEvents] = useState([
     {
       id: 1,
@@ -24,142 +25,164 @@ function EventManagement() {
     }
   ])
 
-const [title, setTitle] = useState('')
-const [description, setDescription] = useState('')
-const [date, setDate] = useState('')
-const [time, setTime] = useState('')
-const [capacity, setCapacity] = useState('')
-const [location, setLocation] = useState('')
-const [editingId, setEditingId] = useState(null)
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('')
+  const [capacity, setCapacity] = useState('')
+  const [location, setLocation] = useState('')
+  const [editingId, setEditingId] = useState(null)
 
-function saveEvent(event) {
-  event.preventDefault()
+useEffect(function () {
+  let totalCapacity = 0
+  let availableSpots = 0
 
-  if (
-    title === '' ||
-    date === '' ||
-    time === '' ||
-    capacity === '' ||
-    location === ''
-  ) {
-    alert('Please complete all required event fields.')
-    return
+  for (let i = 0; i < events.length; i++) {
+    totalCapacity = totalCapacity + events[i].capacity
+    availableSpots = availableSpots + events[i].spotsRemaining
   }
 
-  if (editingId !== null) {
-    const updatedEvents = events.map(function (currentEvent) {
-      if (currentEvent.id === editingId) {
-        return {
-          id: currentEvent.id,
-          title: title,
-          description: description,
-          date: date,
-          time: time,
-          capacity: Number(capacity),
-          spotsRemaining: currentEvent.spotsRemaining,
-          location: location
+  onStatsChange({
+    totalEvents: events.length,
+    totalCapacity: totalCapacity,
+    availableSpots: availableSpots
+  })
+}, [events, onStatsChange])
+
+  function saveEvent(e) {
+    e.preventDefault()
+
+    if (
+      title === '' ||
+      date === '' ||
+      time === '' ||
+      capacity === '' ||
+      location === ''
+    ) {
+      alert('Please complete all required event fields.')
+      return
+    }
+
+    if (editingId !== null) {
+      // build the list again, with the edited event swapped in
+      let newList = []
+
+      for (let i = 0; i < events.length; i++) {
+        if (events[i].id === editingId) {
+          let edited = {
+            id: events[i].id,
+            title: title,
+            description: description,
+            date: date,
+            time: time,
+            capacity: Number(capacity),
+            spotsRemaining: events[i].spotsRemaining,
+            location: location
+          }
+
+          newList.push(edited)
+        } else {
+          newList.push(events[i])
         }
       }
 
-      return currentEvent
-    })
+      setEvents(newList)
+      setEditingId(null)
+    } else {
+      let newEvent = {
+        id: Date.now(),
+        title: title,
+        description: description,
+        date: date,
+        time: time,
+        capacity: Number(capacity),
+        // a new event starts with all its spots free
+        spotsRemaining: Number(capacity),
+        location: location
+      }
 
-    setEvents(updatedEvents)
-    setEditingId(null)
-  } else {
-    const newEvent = {
-      id: Date.now(),
-      title: title,
-      description: description,
-      date: date,
-      time: time,
-      capacity: Number(capacity),
-      spotsRemaining: Number(capacity),
-      location: location
+      let newList = events.slice()
+      newList.push(newEvent)
+      setEvents(newList)
     }
 
-    setEvents(events.concat(newEvent))
+    // clear the form
+    setTitle('')
+    setDescription('')
+    setDate('')
+    setTime('')
+    setCapacity('')
+    setLocation('')
   }
 
-  setTitle('')
-  setDescription('')
-  setDate('')
-  setTime('')
-  setCapacity('')
-  setLocation('')
-}
+  function startEdit(ev) {
+    setTitle(ev.title)
+    setDescription(ev.description)
+    setDate(ev.date)
+    setTime(ev.time)
+    setCapacity(ev.capacity)
+    setLocation(ev.location)
+    setEditingId(ev.id)
+  }
 
-function startEdit(currentEvent) {
-  setTitle(currentEvent.title)
-  setDescription(currentEvent.description)
-  setDate(currentEvent.date)
-  setTime(currentEvent.time)
-  setCapacity(currentEvent.capacity)
-  setLocation(currentEvent.location)
-  setEditingId(currentEvent.id)
-}
+  function deleteEvent(id) {
+    let newList = []
 
-function deleteEvent(id) {
-  const updatedEvents = events.filter(function (currentEvent) {
-    return currentEvent.id !== id
-  })
+    for (let i = 0; i < events.length; i++) {
+      if (events[i].id !== id) {
+        newList.push(events[i])
+      }
+    }
 
-  setEvents(updatedEvents)
-}
+    setEvents(newList)
+  }
 
   return (
     <section className="management-section">
       <h2>Event Management</h2>
 
-<form onSubmit={saveEvent}>
-  <h3>
-    {editingId === null ? 'Add Event' : 'Edit Event'}
-  </h3>
+      <form onSubmit={saveEvent}>
+        <h3>{editingId === null ? 'Add Event' : 'Edit Event'}</h3>
 
-  <input
-    type="text"
-    placeholder="Event name"
-    value={title}
-    onChange={(event) => setTitle(event.target.value)}
-  />
+        <input
+          type="text"
+          placeholder="Event name"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <textarea
+          placeholder="Event description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+        />
+        <input
+          type="number"
+          min="1"
+          placeholder="Capacity"
+          value={capacity}
+          onChange={(e) => setCapacity(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
 
-  <textarea
-    placeholder="Event description"
-    value={description}
-    onChange={(event) => setDescription(event.target.value)}
-  />
-
-  <input
-    type="date"
-    value={date}
-    onChange={(event) => setDate(event.target.value)}
-  />
-
-  <input
-    type="time"
-    value={time}
-    onChange={(event) => setTime(event.target.value)}
-  />
-
-  <input
-    type="number"
-    min="1"
-    placeholder="Capacity"
-    value={capacity}
-    onChange={(event) => setCapacity(event.target.value)}
-  />
-
-  <input
-    type="text"
-    placeholder="Location"
-    value={location}
-    onChange={(event) => setLocation(event.target.value)}
-  />
-
-  <button type="submit">
-    {editingId === null ? 'Add Event' : 'Save Changes'}
-  </button>
-</form>
+        <button type="submit">
+          {editingId === null ? 'Add Event' : 'Save Changes'}
+        </button>
+      </form>
 
       <table>
         <thead>
@@ -176,19 +199,19 @@ function deleteEvent(id) {
         </thead>
 
         <tbody>
-          {events.map(function (event) {
+          {events.map(function (ev) {
             return (
-              <tr key={event.id}>
-                <td>{event.title}</td>
-                <td>{event.date}</td>
-                <td>{event.time}</td>
-                <td>{event.capacity}</td>
-                <td>{event.spotsRemaining}</td>
-                <td>{event.location}</td>
-                <td>{event.description}</td>
+              <tr key={ev.id}>
+                <td>{ev.title}</td>
+                <td>{ev.date}</td>
+                <td>{ev.time}</td>
+                <td>{ev.capacity}</td>
+                <td>{ev.spotsRemaining}</td>
+                <td>{ev.location}</td>
+                <td>{ev.description}</td>
                 <td>
-                  <button onClick={() => startEdit(event)}>Edit</button>
-                  <button onClick={() => deleteEvent(event.id)}>Delete</button>
+                  <button onClick={() => startEdit(ev)}>Edit</button>
+                  <button onClick={() => deleteEvent(ev.id)}>Delete</button>
                 </td>
               </tr>
             )
