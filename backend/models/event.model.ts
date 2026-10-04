@@ -1,13 +1,16 @@
 import mongoose from "mongoose";
 
+// TODO: adjust the API contract: replace "date" and "time" with "startDate", "endDate", adding "type" + DONT NEED 3.Visitor Info
 export type IEvent = {
     title: string,
     description: string,
-    image: string,
-    start_date: Date,
-    end_date: Date,
+    imageUrl: string,
+    startDate: Date,
+    endDate: Date,
+    spotRemaining: number,
     type: string,
-    capacity: number
+    capacity: number,
+    location: string
 }
 
 const eventSchema = new mongoose.Schema<IEvent>(
@@ -20,15 +23,15 @@ const eventSchema = new mongoose.Schema<IEvent>(
             type: String,
             required: [true, "Description is required"],
         },
-        image: {
+        imageUrl: {
             type: String,
             required: [true, "Image is required"],
         },
-        start_date: {
+        startDate: {
             type: Date,
             required: true,
         },
-        end_date: {
+        endDate: {
             type: Date,
             required: true,
         },
@@ -39,6 +42,10 @@ const eventSchema = new mongoose.Schema<IEvent>(
         capacity: {
             type: Number,
             required: true,
+        },
+        location: {
+            type: String,
+            required: true
         }
     },
     {

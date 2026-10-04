@@ -3,10 +3,12 @@ import mongoose from "mongoose";
 export type IExhibition = {
     title: string,
     description: string,
-    image: string,
-    start_date: Date,
-    end_date: Date,
+    imageUrl: string,
+    startDate: Date,
+    endDate: Date,
     status: string,
+    room: string,
+    tags: string[],
     isHighlight: boolean
 }
 
@@ -20,15 +22,15 @@ const exhibitionSchema = new mongoose.Schema<IExhibition>(
             type: String,
             required: [true, "Description is required"],
         },
-        image: {
+        imageUrl: {
             type: String,
 			required: [true, "Image is required"],
         },
-        start_date: {
+        startDate: {
             type: Date,
             required: true,
         },
-        end_date: {
+        endDate: {
             type: Date,
             required: true,
         },
@@ -37,6 +39,13 @@ const exhibitionSchema = new mongoose.Schema<IExhibition>(
 			enum: ["current", "upcoming", "past"],
 			default: "current",
         },
+        room: {
+            type: String,
+            required: true,
+        },
+        tags: [{
+            type: String,
+        }],
         isHighlight: {
 			type: Boolean,
 			default: false,
