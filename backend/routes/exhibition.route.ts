@@ -4,9 +4,9 @@ import { adminRoute, protectRoute } from "../middleware/auth.middleware.ts";
 
 const router = express.Router();
 
+router.get("/", getAllExhibition); 
 router.post("/createExhibition", createExhibition);
-router.get("/getAllExhibition", protectRoute, getAllExhibition);
-router.get("/:id", protectRoute, getExhibitionById);
+router.get("/:id", getExhibitionById);
 router.delete("/:id", protectRoute, adminRoute, deleteExhibition);
 
 export default router;

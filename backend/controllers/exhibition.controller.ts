@@ -15,15 +15,17 @@ export const getAllExhibition = async (req: Request, res: Response) => {
 
 export const createExhibition = async (req: Request, res: Response) => {
 	try {
-		const { title, description, image, start_date, end_date, status, isHighlight } = req.body;
+		const { title, description, imageUrl, startDate, endDate, status, room, tags, isHighlight } = req.body;
 
 		const exhibition = await Exhibition.create({
 			title,
 			description,
-			image,
-			start_date,
-			end_date,
+			imageUrl,
+			startDate,
+			endDate,
             status, 
+			room,
+			tags,
             isHighlight,
 		});
 

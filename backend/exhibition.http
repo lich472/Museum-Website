@@ -1,6 +1,6 @@
 ### Variables
 @baseUrl = http://localhost:6000/api/exhibitions
-@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YWE5ZWM4MTJiZWYxMjNkYWZkODdmM2YiLCJpYXQiOjE3ODk1MjEwMjUsImV4cCI6MTc4OTUyMTkyNX0.U4k7st0GObWLBlOPD-t0sHt97hIiB9ku5foCB9dad8s
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YWMxZjljMWU0ZGQ1YzU1YmZjMzRlMzciLCJpYXQiOjE3OTEwOTcyODIsImV4cCI6MTc5MTA5ODE4Mn0.3u3A6tij56empZ0FYOVxHRs3PGzADHbu8lToAOF0q8M
 
 ### Create a New Exhibition
 POST {{baseUrl}}/createExhibition
