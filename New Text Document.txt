@@ -1,6 +1,0 @@
-
-backend/
-node server.js
-
-forntend/
-npm run dev
