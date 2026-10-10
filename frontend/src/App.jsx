@@ -1,5 +1,7 @@
 
 import "./App.css";
+// Styles for the features carried over from the Jason_P5 branch.
+import "./styles/p5-features.css";
 
 import {
   BrowserRouter,
@@ -16,6 +18,13 @@ import CollectionDetail from "./pages/CollectionDetail";
 import Visit from "./pages/Visit";
 import Footer from "./components/Footer";
 
+// Carried over from the Jason_P5 branch.
+import EventsList from "./components/EventsList";
+import EventDetail from "./components/EventDetail";
+import EventRegister from "./components/EventRegister";
+import Accessibility from "./components/Accessibility";
+import Facilities from "./components/Facilities";
+
 function App() {
   return (
     <BrowserRouter>
@@ -28,6 +37,13 @@ function App() {
         <Route path="/collections" element={<Collections />} />
         <Route path="/collections/:id" element={<CollectionDetail />} />
         <Route path="/visit" element={<Visit />} />
+
+        {/* Jason_P5 features */}
+        <Route path="/events" element={<EventsList />} />
+        <Route path="/events/:id" element={<EventDetail />} />
+        <Route path="/events/:id/register" element={<EventRegister />} />
+        <Route path="/accessibility" element={<Accessibility />} />
+        <Route path="/facilities" element={<Facilities />} />
       </Routes>
 
       <Footer />

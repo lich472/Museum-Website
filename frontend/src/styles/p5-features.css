@@ -1,0 +1,713 @@
+/* ---------------------------------------------------------------------------
+   P5 (Jason) feature styles: events, event registration, accessibility,
+   facilities and the floor map.
+
+   Extracted from the Jason_P5 branch App.css during the main<->Jason_P5
+   merge. P5's global reset (*), body and anchor rules were deliberately
+   dropped so the site keeps the main-branch visual design; only the CSS
+   custom properties and the feature-specific rules are carried over.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --color-primary: #2c3e50;
+  --color-accent: #e67e22;
+  --color-link: #2980b9;
+  --color-success: #27ae60;
+  --color-warning: #e67e22;
+  --color-danger: #c0392b;
+  --color-text: #2c3e50;
+  --color-text-muted: #666;
+  --color-text-subtle: #888;
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-border: #e0e0e0;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+/* ============================================================
+   Header & navigation
+   ============================================================ */
+header {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 20px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+nav {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+nav a {
+  color: #ecf0f1;
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+nav a:hover,
+nav a:focus {
+  color: #ffffff;
+  border-bottom-color: var(--color-accent);
+  outline: none;
+}
+
+nav a.active {
+  border-bottom-color: var(--color-accent);
+}
+
+/* ============================================================
+   Layout helpers
+   ============================================================ */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-narrow {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-medium {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+button {
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.15s, opacity 0.15s;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-primary {
+  padding: 14px;
+  width: 100%;
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: white;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-md);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #1a252f;
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  background-color: white;
+  color: var(--color-text);
+  border: 1px solid #ccc;
+  border-radius: var(--radius-sm);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #f5f5f5;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.95rem;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   Forms
+   ============================================================ */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+
+.form-hint {
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+}
+
+.form-error {
+  padding: 12px;
+  background-color: #fdecea;
+  color: var(--color-danger);
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+/* ============================================================
+   Cards & grids
+   ============================================================ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.info-card {
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: white;
+  white-space: nowrap;
+}
+
+.status-badge.success { background-color: var(--color-success); }
+.status-badge.warning { background-color: var(--color-warning); }
+.status-badge.danger  { background-color: var(--color-danger); }
+
+/* ============================================================
+   Floor map (SVG)
+   ============================================================ */
+.map-wrapper {
+  margin-top: 16px;
+}
+
+.map-point {
+  cursor: pointer;
+  outline: none; /* 用下面的 focus ring 替代默认 outline */
+}
+
+.map-point .map-point-focus-ring {
+  transition: stroke 0.15s;
+}
+
+/* 键盘焦点：显示可见的橙色焦点环 */
+.map-point:focus .map-point-focus-ring {
+  stroke: var(--color-accent);
+}
+
+/* 鼠标悬停 / 键盘焦点时按钮色的补充高亮（由 JS 控制 r 与 fill） */
+.map-point:hover circle:not(.map-point-focus-ring) {
+  filter: brightness(1.05);
+}
+
+.map-point text {
+  user-select: none;
+}
+
+/* 选中详情条 */
+.map-selection {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #fdf2e9;
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+.map-selection.facility {
+  background-color: #eaf4fc;
+  border-left-color: #3498db;
+}
+
+.map-selection strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.map-selection p {
+  color: var(--color-text-muted);
+  margin: 6px 0 0;
+}
+
+/* 文字备选列表（details/summary） */
+.map-text-fallback {
+  margin-top: 16px;
+}
+
+.map-text-fallback summary {
+  cursor: pointer;
+  color: var(--color-primary);
+  font-weight: 500;
+  padding: 6px 0;
+}
+
+.map-text-fallback summary:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.map-text-fallback ul {
+  margin-top: 12px;
+  padding-left: 20px;
+  line-height: 1.9;
+}
+
+.map-text-fallback button {
+  background: none;
+  border: none;
+  color: var(--color-link);
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.map-text-fallback button:focus {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ============================================================
+   Facility icon grid (Facilities page bottom)
+   ============================================================ */
+.facility-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+
+/* ============================================================
+   Accessibility commitment footer block
+   ============================================================ */
+.commitment-block {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: var(--radius-md);
+}
+
+.commitment-block h2 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.commitment-block p {
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+   Loading / error states
+   ============================================================ */
+.state-loading,
+.state-error,
+.state-empty {
+  padding: 40px;
+  text-align: center;
+}
+
+.state-error {
+  color: var(--color-danger);
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 768px) {
+  header {
+    padding: 16px;
+  }
+
+  nav {
+    gap: 12px;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .facility-icon-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  /* SVG 缩放后文字可读性 */
+  .map-point text {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container,
+  .page-narrow,
+  .page-medium {
+    padding: 16px;
+  }
+
+  header h1 {
+    font-size: 1.25rem;
+  }
+}
+
+/* ============================================================
+   "减少动效"
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+/* ============================================================
+   Site-wide layout — full width with responsive padding
+   ============================================================ */
+.site-main {
+  width: 100%;
+  max-width: 1600px;      /* 放宽，大屏下几乎铺满 */
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+}
+
+@media (max-width: 768px) {
+  .site-main {
+    padding: 16px 16px 32px;
+  }
+}
+
+/* 页面通用容器：撑满 main */
+.page {
+  width: 100%;
+}
+
+.page-subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: 32px;
+}
+
+.page-section {
+  margin-bottom: 40px;
+}
+
+.page-hint {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+/* ============================================================
+   Info cards (Accessibility key information)
+   ============================================================ */
+.info-card-stack {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.info-card-icon {
+  font-size: 1.2rem;
+}
+
+.info-card-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.info-card-header .status-badge {
+  margin-left: auto;
+}
+
+.info-card-detail {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+   Floor map wrapper — make it use full available width
+   ============================================================ */
+.page-section svg {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ============================================================
+   Facility icon grid — bigger cards now that we have width
+   ============================================================ */
+.facility-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 480px) {
+  .facility-icon-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+/* ============================================================
+   Map selection bar (Accessibility)
+   ============================================================ */
+.map-selection {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #fdf2e9;
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+.map-selection.facility {
+  background-color: #eaf4fc;
+  border-left-color: #3498db;
+}
+
+.map-selection strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.map-selection p {
+  color: var(--color-text-muted);
+  margin: 6px 0 0;
+}
+
+/* ============================================================
+   Commitment block (Accessibility)
+   ============================================================ */
+.commitment-block {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: var(--radius-md);
+}
+
+.commitment-block h2 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.commitment-block p {
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+   Selection detail block (Facilities & Accessibility)
+   ============================================================ */
+.selection-detail {
+  margin-top: 20px;
+  padding: 20px 24px;
+  border-radius: var(--radius-md);
+  background-color: #f8f9fa;
+  border: 1px solid var(--color-border);
+  border-left: 4px solid transparent;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.selection-detail.is-visible {
+  background-color: #eaf4fc;
+  border-left-color: #3498db;
+}
+
+.selection-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.selection-detail-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.selection-detail-title {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--color-text);
+}
+
+.selection-detail-body {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.selection-detail-meta {
+  margin: 12px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.selection-detail-placeholder {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ============================================================
+   Map wrapper — max 900px, centered
+   ============================================================ */
+.map-wrapper {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 20px;
+}
+
+.map-wrapper svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ============================================================
+   Facility / point-of-interest cards (clickable buttons)
+   ============================================================ */
+.facility-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.facility-icon-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px 20px;
+  text-align: center;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s,
+              box-shadow 0.15s, transform 0.15s;
+}
+
+.facility-icon-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.facility-icon-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.facility-icon-card.is-selected {
+  border-color: var(--color-accent);
+  background-color: #fdf2e9;
+}
+
+.facility-icon-card .icon {
+  font-size: 1.75rem;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.facility-icon-card .label {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* 左上角编号徽章，与地图上的数字对应 */
+.facility-icon-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background-color: #3498db;
+  border-radius: 50%;
+  transition: background-color 0.15s;
+}
+
+.facility-icon-card.is-selected .facility-icon-badge {
+  background-color: var(--color-accent);
+}
+
+@media (max-width: 480px) {
+  .facility-icon-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  .facility-icon-card {
+    padding: 20px 12px 16px;
+  }
+  .facility-icon-card .icon {
+    font-size: 1.5rem;
+  }
+  .facility-icon-card .label {
+    font-size: 0.9rem;
+  }
+}

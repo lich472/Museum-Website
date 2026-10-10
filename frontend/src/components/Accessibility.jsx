@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FloorMap from './FloorMap';
 import { DEFAULT_ACCESSIBILITY_POINTS, POINT_ICONS } from '../data/facilityMap';
+import { DEFAULT_VISITOR_INFO } from '../data/visitorInfo';
+import { apiFetch } from '../api/client';
 
 function Accessibility() {
   const [info, setInfo] = useState(null);
@@ -12,12 +14,16 @@ function Accessibility() {
   useEffect(() => {
     const fetchInfo = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/visitor-info');
+        const res = await apiFetch('/visitor-info');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         setInfo(json.data ?? json);
+        setError(null);
       } catch (err) {
-        setError(err.message);
+        // Neither backend answered: fall back to the visitor information
+        // bundled with the frontend so the page still renders.
+        console.warn(`[accessibility] using bundled visitor info: ${err.message}`);
+        setInfo(DEFAULT_VISITOR_INFO);
       } finally {
         setLoading(false);
       }

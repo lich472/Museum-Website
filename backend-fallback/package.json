@@ -1,0 +1,16 @@
+{
+  "name": "museum-backend-fallback",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Jason_P5's standalone JS backend (hardcoded data). Fallback only: the authoritative backend is the TypeScript/MongoDB one in ../backend.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}

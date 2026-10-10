@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { apiFetch } from '../api/client';
 
 function EventRegister() {
   const { id } = useParams();
@@ -20,7 +21,7 @@ function EventRegister() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/events/${id}`);
+        const res = await apiFetch(`/events/${id}`);
         if (!res.ok) throw new Error('Failed to load event');
         setEvent(await res.json());
       } catch (err) {
@@ -63,7 +64,7 @@ function EventRegister() {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/events/${id}/register`, {
+      const response = await apiFetch(`/events/${id}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

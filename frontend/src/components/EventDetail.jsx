@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { apiFetch } from '../api/client';
 
 function EventDetail() {
   const { id } = useParams();
@@ -12,7 +13,7 @@ function EventDetail() {
     const fetchEvent = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:5000/api/events/${id}`);
+        const response = await apiFetch(`/events/${id}`);
         if (!response.ok) {
           if (response.status === 404) throw new Error('Event not found');
           throw new Error('Failed to load event');

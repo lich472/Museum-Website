@@ -26,6 +26,19 @@ function Navbar() {
           <Link to="/visit">
             Plan Your Visit
           </Link>
+
+          {/* Carried over from the Jason_P5 branch */}
+          <Link to="/events">
+            Events
+          </Link>
+
+          <Link to="/accessibility">
+            Accessibility
+          </Link>
+
+          <Link to="/facilities">
+            Facilities
+          </Link>
         </div>
 
       </nav>

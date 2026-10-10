@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FloorMap from './FloorMap';
 import { DEFAULT_FACILITY_LOCATIONS, FACILITY_CARD_ICONS } from '../data/facilityMap';
+import { DEFAULT_VISITOR_INFO } from '../data/visitorInfo';
+import { apiFetch } from '../api/client';
 
 function Facilities() {
   const [info, setInfo] = useState(null);
@@ -10,13 +12,21 @@ function Facilities() {
   const detailRef = useRef(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/visitor-info')
+    apiFetch('/visitor-info')
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((json) => setInfo(json.data ?? json))
-      .catch((err) => setError(err.message))
+      .then((json) => {
+        setInfo(json.data ?? json);
+        setError(null);
+      })
+      .catch((err) => {
+        // Neither backend answered: fall back to the visitor information
+        // bundled with the frontend so the floor map still renders.
+        console.warn(`[facilities] using bundled visitor info: ${err.message}`);
+        setInfo(DEFAULT_VISITOR_INFO);
+      })
       .finally(() => setLoading(false));
   }, []);
 
