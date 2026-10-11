@@ -1,3 +1,4 @@
+// @ts-check
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, Outlet, useLocation } from 'react-router'
 import Navbar from './components/Navbar'
@@ -61,7 +62,8 @@ function FeatureLayout() {
     </div>
   )
 }
-function Placeholder({ title }: { title: string }) {
+/** @param {{ title: string }} props */
+function Placeholder({ title }) {
   return (
     <section className="placeholder-page">
       <h1>{title}</h1>
