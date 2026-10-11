@@ -1,50 +1,41 @@
-import { Link } from 'react-router'
-import { museumName } from '../config/site'
+import { Link } from "react-router";
 
-export default function Footer() {
+function Footer() {
   return (
-    <footer className="site-footer">
-      <div className="site-container">
-        <div className="footer-top">
-          <Link className="footer-brand" to="/">
-            <span className="logo-placeholder" aria-hidden="true">
-              LOGO
-            </span>
-            <span>{museumName}</span>
-          </Link>
+    <footer className="footer">
+      <div className="footer-container">
 
-          <div className="footer-bookings">
-            <Link to="/booking">Tickets &amp; Bookings</Link>
-            <small>Your next discovery starts here</small>
-          </div>
-
-          <nav className="footer-actions" aria-label="Contact and account">
-            <Link to="/contact">Contact Us</Link>
-            <Link to="/login">Login</Link>
-            <Link to="/shop">Museum Shop</Link>
-          </nav>
-
-          <a className="back-to-top" href="#page-top">
-            ↑ Back to top
-          </a>
+        <div className="footer-brand">
+          <h2>Regional Museum</h2>
+          <p>
+            Connecting people with history, culture and stories
+            through meaningful museum experiences.
+          </p>
         </div>
 
-        <div className="footer-middle">
-          <nav className="legal-links" aria-label="Legal information">
-            <Link to="/privacy">Privacy &amp; Legal</Link>
-            <Link to="/accessibility">Accessibility</Link>
-          </nav>
-          <Link to="/membership">A year of discovery · Membership</Link>
+        <div className="footer-links">
+          <h3>Explore</h3>
+
+          <Link to="/">Home</Link>
+          <Link to="/exhibitions">Exhibitions</Link>
+          <Link to="/collections">Collections</Link>
+          <Link to="/visit">Plan Your Visit</Link>
         </div>
 
-        <div className="footer-bottom">
-          <span>History, culture &amp; community</span>
-
-          <span>
-            © {new Date().getFullYear()} {museumName}
-          </span>
+        <div className="footer-info">
+          <h3>Visit</h3>
+          <p>Open daily</p>
+          <p>10:00 AM – 5:00 PM</p>
+          <p>Free general admission</p>
         </div>
+
+      </div>
+
+      <div className="footer-bottom">
+        <p>© 2026 Regional Museum. All rights reserved.</p>
       </div>
     </footer>
-  )
+  );
 }
+
+export default Footer;

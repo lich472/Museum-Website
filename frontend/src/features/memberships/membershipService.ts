@@ -1,4 +1,6 @@
 import { presetMember, presetMemberVersion } from './presetMember.ts'
+import { paymentSummary } from './paymentModel.ts'
+import type { CardDetails, PaymentSummary } from './paymentModel.ts'
 
 // Local mock adapter; replace with authenticated endpoints for production.
 export const annualPlan = { name: 'Annual membership', cents: 3500 }
@@ -16,6 +18,7 @@ export type Profile = {
   postcode: string
 }
 export type MembershipOrder = {
+  payment?: PaymentSummary
   id: string
   requestId: string
   paidAt: string
@@ -23,6 +26,7 @@ export type MembershipOrder = {
   cents: number
 }
 export type TicketOrder = {
+  payment?: PaymentSummary
   id: string
   purchasedAt: string
   visitDate: string
@@ -56,6 +60,8 @@ function read(): Database {
         )
       )
         memory = parsed
+    } else {
+      memory = { accounts: [], session: null }
     }
   } catch {
     /* Keep the in-memory session if storage is restricted. */
@@ -84,6 +90,7 @@ function read(): Database {
           paidAt: now.toISOString(),
           expiresAt: nextExpiry('', now),
           cents: annualPlan.cents,
+          payment: { brand: 'Visa', lastFour: '4242' },
         },
       ],
     }
@@ -216,9 +223,10 @@ export function nextExpiry(existing: string, now = new Date()) {
   start.setUTCDate(Math.min(day, endOfMonth))
   return start.toISOString()
 }
-export async function purchase(requestId: string) {
+export async function purchase(requestId: string, card: CardDetails) {
   const session = currentAccount()?.id
   if (!session) throw new Error('Please log in to complete your purchase.')
+  const payment = paymentSummary(card)
   await new Promise((resolve) => setTimeout(resolve, 650))
   const db = read()
   const account = db.accounts.find((a) => a.id === db.session)
@@ -233,8 +241,21 @@ export async function purchase(requestId: string) {
     paidAt: now.toISOString(),
     expiresAt: nextExpiry(membershipExpiry(account), now),
     cents: annualPlan.cents,
+    payment,
   }
   account.orders.push(order)
   write(db)
   return order
+}
+
+export function resetTestData() {
+  for (const storage of [localStorage, sessionStorage]) {
+    const keys = Array.from({ length: storage.length }, (_, index) =>
+      storage.key(index),
+    )
+    for (const name of keys) {
+      if (name?.startsWith('museum-')) storage.removeItem(name)
+    }
+  }
+  memory = { accounts: [], session: null }
 }

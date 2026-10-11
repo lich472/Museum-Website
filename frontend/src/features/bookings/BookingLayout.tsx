@@ -2,7 +2,6 @@ import { Link, Outlet, useLocation } from 'react-router'
 import { useEffect, useRef } from 'react'
 import { useBooking } from './useBooking'
 import { detailErrors, validTickets } from './bookingModel'
-import './booking.css'
 
 export default function BookingLayout() {
   const { pathname } = useLocation()

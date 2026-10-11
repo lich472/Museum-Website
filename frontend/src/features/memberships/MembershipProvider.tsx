@@ -4,8 +4,7 @@ import { Link, useLocation } from 'react-router'
 import { currentAccount, login, logout } from './membershipService'
 import { MembershipContext as Context } from './useMembership'
 import { presetMember } from './presetMember'
-import '../bookings/booking.css'
-import './membership.css'
+import ResetTestData from './ResetTestData'
 
 export default function MembershipProvider({
   children,
@@ -65,6 +64,7 @@ export default function MembershipProvider({
       }}
     >
       {children}
+      <ResetTestData />
       <dialog
         ref={dialog}
         className="member-dialog"
@@ -141,6 +141,7 @@ export default function MembershipProvider({
             Create an account
           </Link>
         </p>
+        <ResetTestData />
       </dialog>
     </Context.Provider>
   )

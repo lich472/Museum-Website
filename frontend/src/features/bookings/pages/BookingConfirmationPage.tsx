@@ -1,10 +1,10 @@
+import StatusIcon from '../../../components/StatusIcon'
 import { useEffect, useState } from 'react'
 import { useBooking } from '../useBooking'
 import { Link, useParams } from 'react-router'
 import { readBookings, resendMockBookingEmail } from '../bookingService'
 import { createTicketImage } from '../ticketImage'
 import BookingSummary from '../components/BookingSummary'
-import '../booking.css'
 
 export default function BookingConfirmationPage() {
   const { reference } = useParams()
@@ -89,7 +89,7 @@ export default function BookingConfirmationPage() {
   return (
     <section className="booking-confirmation">
       <span className="confirmation-check" aria-hidden="true">
-        ✓
+        <StatusIcon />
       </span>
       <h1>Your booking is confirmed</h1>
       <p>Save your booking image for easy access on your phone.</p>

@@ -1,3 +1,4 @@
+import StatusIcon from '../../components/StatusIcon'
 import { Link } from 'react-router'
 import { useMembership } from './useMembership'
 import { annualPlan, isMember, money } from './membershipService'
@@ -19,11 +20,12 @@ export default function MembershipsPage() {
     <section className="membership-page">
       <div className="member-intro">
         <span className="eyebrow">YOUR MUSEUM, ALL YEAR ROUND</span>
-        <h1>
-          One visit. One connection.
-        </h1>
-        <p>If you plan to visit any of our museums two times or more in the next year
-           <br />it's cheaper to become a member.
+        <h1>One visit. One connection.</h1>
+        <p>
+          If you plan to visit any of our museums two times or more in the next
+          year
+          <br />
+          it's cheaper to become a member.
         </p>
       </div>
       <p className="comparison-scroll-hint">
@@ -49,7 +51,10 @@ export default function MembershipsPage() {
                 <span className="comparison-label">Single visit</span>
                 <span className="comparison-price">$20</span>
                 <span className="comparison-unit">per adult visit</span>
-                <Link className="member-secondary comparison-action" to="/tickets">
+                <Link
+                  className="member-secondary comparison-action"
+                  to="/tickets"
+                >
                   Book a visit →
                 </Link>
               </th>
@@ -94,24 +99,7 @@ export default function MembershipsPage() {
                       role="img"
                       aria-label={value ? 'Included' : 'Not included'}
                     >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        {value ? (
-                          <path d="M5 12l4 4L19 6" />
-                        ) : (
-                          <path d="M6 6l12 12M18 6L6 18" />
-                        )}
-                      </svg>
+                      <StatusIcon included={value} />
                     </span>
                   </td>
                 ))}

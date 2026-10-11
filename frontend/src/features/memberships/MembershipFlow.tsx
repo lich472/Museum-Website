@@ -22,6 +22,8 @@ import {
 } from './membershipService'
 import type { Profile } from './membershipService'
 import { testDetails } from './membershipMockData'
+import CardPaymentFields from './CardPaymentFields'
+import StatusIcon from '../../components/StatusIcon'
 
 const date = (value: string) =>
   new Date(value).toLocaleDateString('en-AU', {
@@ -412,11 +414,19 @@ export function MemberPaymentPage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (locked.current || !requestId) return
+    const form = event.currentTarget
+    const values = new FormData(form)
     locked.current = true
     setBusy(true)
     setError('')
     try {
-      const order = await purchase(requestId)
+      const order = await purchase(requestId, {
+        cardholder: String(values.get('cardholder') ?? ''),
+        number: String(values.get('cardNumber') ?? ''),
+        expiry: String(values.get('cardExpiry') ?? ''),
+        securityCode: String(values.get('securityCode') ?? ''),
+      })
+      form.reset()
       refresh()
       navigate(`/membership/confirmation/${order.id}`, { replace: true })
     } catch (e) {
@@ -441,20 +451,10 @@ export function MemberPaymentPage() {
             Edit details
           </Link>
         </div>
-        <fieldset className="member-payment-method">
-          <legend>Payment method</legend>
-          <label>
-            <input type="radio" name="payment" defaultChecked required />{' '}
-            <span>
-              <strong>Visa ending in 4242</strong>
-              <small>Card payment · AUD</small>
-            </span>
-            <span className="card-brand">VISA</span>
-          </label>
-        </fieldset>
+        <CardPaymentFields disabled={busy} />
         <p>
-          Valid until {date(nextExpiry(membershipExpiry(account)))}. No
-          automatic renewal.
+          Membership valid until {date(nextExpiry(membershipExpiry(account)))}
+          {' '}after payment. No automatic renewal.
         </p>
         <label className="booking-checkbox">
           <input type="checkbox" required disabled={busy} />I confirm my annual
@@ -490,7 +490,7 @@ export function MemberConfirmationPage() {
   return (
     <section className="booking-confirmation member-confirmation">
       <span className="confirmation-check" aria-hidden="true">
-        √
+        <StatusIcon />
       </span>
       <p className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p>
       <h1>Welcome to a year of discovery.</h1>
@@ -509,7 +509,12 @@ export function MemberConfirmationPage() {
       </div>
       <div className="confirmation-reference">
         <span>Payment received · {money(order.cents)} AUD</span>
-        <span>{date(order.paidAt)} · Visa ending in 4242</span>
+        <span>{date(order.paidAt)}</span>
+        {order.payment && (
+          <span>
+            {order.payment.brand} · Ending in {order.payment.lastFour}
+          </span>
+        )}
       </div>
       <div className="member-center-actions">
         <Link className="booking-button" to="/account">
@@ -626,11 +631,22 @@ export function AccountPage() {
                     Visit: {date(order.visitDate)} · {order.id}
                   </p>
                   <p>Ordered: {date(order.purchasedAt)}</p>
+                  {order.payment && (
+                    <p>
+                      {order.payment.brand} · Ending in {order.payment.lastFour}
+                    </p>
+                  )}
                 </div>
                 <strong>{money(order.cents)}</strong>
                 <span className={`ticket-status ticket-status-${order.status}`}>
                   {order.status === 'pending' ? 'Pending' : 'Confirmed'}
                 </span>
+                <Link
+                  className="member-link"
+                  to={`/account/tickets/${order.id}`}
+                >
+                  View receipt →
+                </Link>
               </div>
             ))
           ) : (
@@ -645,6 +661,11 @@ export function AccountPage() {
                   <p>
                     {date(order.paidAt)} · {order.id}
                   </p>
+                  {order.payment && (
+                    <p>
+                      {order.payment.brand} · Ending in {order.payment.lastFour}
+                    </p>
+                  )}
                 </div>
                 <strong>{money(order.cents)}</strong>
                 <Link
@@ -683,6 +704,65 @@ export function LoginPage() {
           Create an account
         </Link>
       </p>
+    </section>
+  )
+}
+
+export function TicketReceiptPage() {
+  const { account } = useMembership()
+  const { reference } = useParams()
+  const order = account?.ticketOrders.find((ticket) => ticket.id === reference)
+  if (!account || !order) return <Navigate to="/account" replace />
+  const confirmed = order.status === 'confirmed'
+  return (
+    <section className="booking-confirmation member-confirmation">
+      {confirmed && (
+        <span className="confirmation-check" aria-hidden="true">
+          <StatusIcon />
+        </span>
+      )}
+      <p className="eyebrow">YOUR MUSEUM VISIT</p>
+      <h1>{confirmed ? 'Your ticket receipt' : 'Your ticket order'}</h1>
+      <p>
+        {confirmed
+          ? 'Your booking is confirmed.'
+          : 'Payment is pending. This order has not been confirmed.'}
+      </p>
+      <div className="member-white-panel ticket-receipt-details">
+        <span className={`ticket-status ticket-status-${order.status}`}>
+          {confirmed ? 'Confirmed' : 'Pending'}
+        </span>
+        <h2>{order.ticketName}</h2>
+        <dl>
+          <dt>Booking reference</dt>
+          <dd>{order.id}</dd>
+          <dt>Visitor</dt>
+          <dd>
+            {account.firstName} {account.lastName}
+          </dd>
+          <dt>Visit date</dt>
+          <dd>{date(order.visitDate)}</dd>
+          <dt>Quantity</dt>
+          <dd>{order.quantity}</dd>
+          <dt>Order date</dt>
+          <dd>{date(order.purchasedAt)}</dd>
+          <dt>{confirmed ? 'Amount paid' : 'Amount due'}</dt>
+          <dd>{money(order.cents)} AUD</dd>
+          {order.payment && (
+            <>
+              <dt>Payment card</dt>
+              <dd>
+                {order.payment.brand} · Ending in {order.payment.lastFour}
+              </dd>
+            </>
+          )}
+        </dl>
+      </div>
+      <div className="member-center-actions">
+        <Link className="booking-button" to="/account">
+          Back to my account →
+        </Link>
+      </div>
     </section>
   )
 }

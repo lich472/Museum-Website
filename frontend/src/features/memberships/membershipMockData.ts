@@ -1,6 +1,6 @@
 import type { Profile } from './membershipService'
 
-// ONLY FOR TESTING PURPOSES
+// only for testing purpose
 
 export function testDetails(): Profile & {
   password: string

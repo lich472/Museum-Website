@@ -201,35 +201,6 @@
   max-width: 760px;
   margin: auto;
 }
-.member-payment-method {
-  border: 0;
-  padding: 0;
-  margin: 32px 0;
-}
-.member-payment-method legend {
-  font-size: 20px;
-  padding: 0 0 16px;
-}
-.member-payment-method label {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border: 1px solid #a34f35;
-  border-radius: 8px;
-  background: white;
-  padding: 24px;
-}
-.member-payment-method small {
-  display: block;
-  margin-top: 8px;
-  color: #6d655a;
-}
-.card-brand {
-  margin-left: auto;
-  font-style: italic;
-  color: #264b75;
-  font-weight: 800;
-}
 .member-pass {
   text-align: left;
   background: #e5edf0;
@@ -406,4 +377,39 @@
 .ticket-status-confirmed {
   color: #365d4b;
   background: #e3eee7;
+}
+.member-card-fields {
+  border: 0;
+  padding: 0;
+  margin: 32px 0;
+}
+.member-card-fields legend {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+.confirmation-check svg {
+  width: 32px;
+  height: 32px;
+  color: #426458;
+}
+.test-reset {
+  padding: 20px;
+  text-align: center;
+  border-top: 1px solid var(--color-border);
+}
+.member-dialog .test-reset {
+  margin-top: 24px;
+  padding-inline: 0;
+}
+.ticket-receipt-details {
+  text-align: left;
+  margin: 28px 0;
+}
+.ticket-receipt-details dt {
+  color: #6d655a;
+  font-size: 13px;
+  margin-top: 20px;
+}
+.ticket-receipt-details dd {
+  margin: 6px 0 0;
 }

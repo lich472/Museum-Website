@@ -1,7 +1,6 @@
 import type { Profile, TicketOrder } from './membershipService'
 
-
-export const presetMemberVersion = 2
+export const presetMemberVersion = 3
 export const presetMember = {
   id: 'login-membership',
   profile: {
@@ -32,6 +31,7 @@ export const presetMember = {
       quantity: 1,
       cents: 2000,
       status: 'confirmed',
+      payment: { brand: 'Visa', lastFour: '4242' },
     },
   ] satisfies TicketOrder[],
 }

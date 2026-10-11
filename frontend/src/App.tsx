@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router'
-import Header from './components/Header'
+import { BrowserRouter, Routes, Route, Link, Outlet, useLocation } from 'react-router'
+import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import BookingsPage from './features/bookings/BookingsPage'
 import MembershipsPage from './features/memberships/MembershipsPage'
@@ -14,8 +14,24 @@ import {
   RegisterPage,
   AccountPage,
   LoginPage,
+  TicketReceiptPage,
 } from './features/memberships/MembershipFlow'
-import './App.css'
+import './main-content.css'
+import featureBase from './feature-base.css?inline'
+import featureShell from './App.css?inline'
+import bookingStyles from './features/bookings/booking.css?inline'
+import membershipStyles from './features/memberships/membership.css?inline'
+
+// Keep existing feature styles inside their routes; main retains its own cascade.
+const featureStyles = '@scope (.feature-shell) {' +
+  featureBase.replaceAll(':root', ':scope').replace(/\bbody\s*\{/g, ':scope {') +
+  featureShell + bookingStyles + membershipStyles + '}'
+import Home from './pages/Home'
+import Exhibitions from './pages/Exhibitions'
+import ExhibitionDetail from './pages/ExhibitionDetail'
+import Collections from './pages/Collections'
+import CollectionDetail from './pages/CollectionDetail'
+import Visit from './pages/Visit'
 import { BookingDraftProvider } from './features/bookings/BookingDraftProvider'
 import BookingLayout from './features/bookings/BookingLayout'
 import TicketsPage from './features/bookings/pages/TicketsPage'
@@ -30,27 +46,18 @@ function PagePosition() {
   }, [pathname])
   return null
 }
-function IndexPage() {
+function FeatureLayout() {
   return (
-    <div className="home-intro">
-      <span className="eyebrow">HISTORY · CULTURE · COMMUNITY</span>
-      <h1>
-        A little discovery.
-        <br />A day to remember.
-      </h1>
-      <p>
-        Explore stories, discover exhibitions, and make time for something new.
-      </p>
-      <Link className="text-link" to="/visit">
-        Plan your visit →
-      </Link>
-      <section className="highlights">
-        <span className="highlight-mark" aria-hidden="true">
-          ✳
-        </span>
-        <h2>Highlights</h2>
-        <p>Exhibitions, activities and stories will appear here.</p>
-      </section>
+    <div className="feature-shell">
+      <style>{featureStyles}</style>
+      <PagePosition />
+      <MembershipProvider>
+        <BookingDraftProvider>
+          <main id="main-content" className="site-container main-content" tabIndex={-1}>
+            <Outlet />
+          </main>
+        </BookingDraftProvider>
+      </MembershipProvider>
     </div>
   )
 }
@@ -66,76 +73,75 @@ function Placeholder({ title }: { title: string }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <PagePosition />
-      <MembershipProvider>
-        <BookingDraftProvider>
-          <div className="site-shell">
-            <Header />
-            <main
-              id="main-content"
-              className="site-container main-content"
-              tabIndex={-1}
-            >
-              <Routes>
-                <Route path="/" element={<IndexPage />} />
-                <Route path="/booking" element={<BookingsPage />} />
-                <Route element={<BookingLayout />}>
-                  <Route path="/tickets" element={<TicketsPage />} />
-                  <Route
-                    path="/tickets/details"
-                    element={<TicketsDetailsPage />}
-                  />
-                  <Route
-                    path="/tickets/review"
-                    element={<TicketsReviewPage />}
-                  />
-                </Route>
-                <Route
-                  path="/bookings/:reference"
-                  element={<BookingConfirmationPage />}
-                />
-                <Route path="/membership" element={<MembershipsPage />} />
-                <Route element={<MembershipLayout />}>
-                  <Route path="/membership/plan" element={<MemberPlanPage />} />
-                  <Route
-                    path="/membership/checkout"
-                    element={<MemberCheckoutPage />}
-                  />
-                  <Route
-                    path="/membership/payment"
-                    element={<MemberPaymentPage />}
-                  />
-                </Route>
-                <Route
-                  path="/membership/confirmation/:reference"
-                  element={<MemberConfirmationPage />}
-                />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/account" element={<AccountPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                {Object.entries({
-                  visit: 'Plan your visit',
-                  accessibility: 'Accessibility',
-                  contact: 'Contact us',
-                  shop: 'Museum shop',
-                  privacy: 'Privacy & Legal',
-                }).map(([path, title]) => (
-                  <Route
-                    key={path}
-                    path={`/${path}`}
-                    element={<Placeholder title={title} />}
-                  />
-                ))}
-                <Route
-                  path="*"
-                  element={<Placeholder title="Page not found" />}
-                />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </BookingDraftProvider>
-      </MembershipProvider>
+      <Navbar />
+      <Routes>
+        <Route>
+          <Route path="/" element={<Home />} />
+          <Route path="/exhibitions" element={<Exhibitions />} />
+          <Route path="/exhibitions/:id" element={<ExhibitionDetail />} />
+          <Route path="/collections" element={<Collections />} />
+          <Route path="/collections/:id" element={<CollectionDetail />} />
+          <Route path="/visit" element={<Visit />} />
+        </Route>
+        <Route element={<FeatureLayout />}>
+          <Route path="/booking" element={<BookingsPage />} />
+          <Route element={<BookingLayout />}>
+            <Route path="/tickets" element={<TicketsPage />} />
+            <Route
+              path="/tickets/details"
+              element={<TicketsDetailsPage />}
+            />
+            <Route
+              path="/tickets/review"
+              element={<TicketsReviewPage />}
+            />
+          </Route>
+          <Route
+            path="/bookings/:reference"
+            element={<BookingConfirmationPage />}
+          />
+          <Route path="/membership" element={<MembershipsPage />} />
+          <Route element={<MembershipLayout />}>
+            <Route path="/membership/plan" element={<MemberPlanPage />} />
+            <Route
+              path="/membership/checkout"
+              element={<MemberCheckoutPage />}
+            />
+            <Route
+              path="/membership/payment"
+              element={<MemberPaymentPage />}
+            />
+          </Route>
+          <Route
+            path="/membership/confirmation/:reference"
+            element={<MemberConfirmationPage />}
+          />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route
+            path="/account/tickets/:reference"
+            element={<TicketReceiptPage />}
+          />
+          <Route path="/login" element={<LoginPage />} />
+          {Object.entries({
+            accessibility: 'Accessibility',
+            contact: 'Contact us',
+            shop: 'Museum shop',
+            privacy: 'Privacy & Legal',
+          }).map(([path, title]) => (
+            <Route
+              key={path}
+              path={`/${path}`}
+              element={<Placeholder title={title} />}
+            />
+          ))}
+          <Route
+            path="*"
+            element={<Placeholder title="Page not found" />}
+          />
+        </Route>
+      </Routes>
+      <Footer />
     </BrowserRouter>
   )
 }
