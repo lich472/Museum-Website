@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { IExhibition } from "../types"; // Import the type matching your MongoDB Schema
+import { formatDateRange } from "../utils/date";
 
 // Explicitly type the component's incoming props for TypeScript safety
 interface ExhibitionCardProps {
@@ -8,9 +9,8 @@ interface ExhibitionCardProps {
 }
 
 function ExhibitionCard({ exhibition, number }: ExhibitionCardProps) {
-  // Format MongoDB date strings into human-friendly strings to display instead of the old mock .date field
-  const formattedStartDate = new Date(exhibition.startDate).toLocaleDateString();
-  const formattedEndDate = new Date(exhibition.endDate).toLocaleDateString();
+  // Exhibition start/end are date-only values, so they render as dd/mm/yyyy.
+  const dateRange = formatDateRange(exhibition.startDate, exhibition.endDate);
 
   return (
     <article className="exhibition-card">
@@ -37,10 +37,8 @@ function ExhibitionCard({ exhibition, number }: ExhibitionCardProps) {
 
         <h3>{exhibition.title}</h3>
 
-        {/* Dynamic localized date span strings matching your layout grid expectations */}
-        <p className="exhibition-date">
-          {formattedStartDate} – {formattedEndDate}
-        </p>
+        {/* dd/mm/yyyy; hidden entirely when the source has no dates */}
+        {dateRange && <p className="exhibition-date">{dateRange}</p>}
 
         <p className="exhibition-description">
           {exhibition.description}

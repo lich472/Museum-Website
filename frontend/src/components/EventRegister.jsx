@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { eventDate, eventTime } from '../utils/date';
 
 function EventRegister() {
   const { id } = useParams();
@@ -109,7 +110,7 @@ function EventRegister() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ color: '#666' }}>Date & Time</span>
-            <strong>{event?.date} · {event?.time}</strong>
+            <strong>{eventDate(event)} · {eventTime(event)}</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ color: '#666' }}>Location</span>

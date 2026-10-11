@@ -7,6 +7,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.route.ts";
 import eventRoutes from "./routes/event.route.ts";
 import exhibitionRoutes from "./routes/exhibition.route.ts";
+import recommendationRoutes from "./routes/recommendation.route.ts";
 import { connectDB } from "./lib/db.ts";
 
 if (process.env.NODE_ENV !== "production") {
@@ -34,6 +35,7 @@ if (process.env.NODE_ENV !== "production") {
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/exhibitions", exhibitionRoutes);
+app.use("/api/recommendations", recommendationRoutes);
 
 
 

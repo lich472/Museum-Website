@@ -255,22 +255,35 @@ app.get('/api/recommendations', (req, res) => {
   const current = exhibitions.find((e) => e.id === exhibitionId);
   if (!current) return fail(res, 404, 'Exhibition not found');
 
-  const recommendations = exhibitions
+  const MAX_RECOMMENDATIONS = 4;
+
+  // Step 1: topic matches first, best match first.
+  const matching = exhibitions
     .filter((e) => e.id !== current.id)
     .map((e) => {
-      const shared = e.tags.filter((t) => current.tags.includes(t));
-      return { exhibition: e, sharedCount: shared.length, sharedTags: shared };
+      const sharedTags = e.tags.filter((t) => current.tags.includes(t));
+      return { ...e, sharedTags, sharedCount: sharedTags.length };
     })
     .filter((item) => item.sharedCount > 0)
     .sort((a, b) => b.sharedCount - a.sharedCount)
-    .slice(0, 3)
-    .map((item) => ({
-      id: item.exhibition.id,
-      title: item.exhibition.title,
-      imageUrl: item.exhibition.imageUrl,
-      tags: item.exhibition.tags,
-      reason: `Shares ${item.sharedCount} topic${item.sharedCount > 1 ? 's' : ''} with this exhibition`,
-    }));
+    .slice(0, MAX_RECOMMENDATIONS);
+
+  // Step 2: top up with the lowest ids that are not already listed and are not
+  // the exhibition being viewed, so the section is always full while there are
+  // enough exhibitions.
+  const recommendations = matching.slice();
+  const alreadyListed = new Set([
+    current.id,
+    ...recommendations.map((item) => item.id),
+  ]);
+
+  if (recommendations.length < MAX_RECOMMENDATIONS) {
+    exhibitions
+      .filter((e) => !alreadyListed.has(e.id))
+      .sort((a, b) => a.id - b.id)
+      .slice(0, MAX_RECOMMENDATIONS - recommendations.length)
+      .forEach((e) => recommendations.push({ ...e }));
+  }
 
   ok(res, recommendations);
 });

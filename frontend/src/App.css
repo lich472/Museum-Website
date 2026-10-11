@@ -42,6 +42,96 @@
   opacity: 0.7;
 }
 
+/* ---------- Language switcher ---------- */
+
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.language-switcher-label {
+  font-size: 15px;
+  opacity: 0.85;
+}
+
+.language-switcher select {
+  background-color: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.language-switcher select:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.language-switcher select:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* The option list is drawn by the OS, so give it readable colours. */
+.language-switcher select option {
+  color: #1d2925;
+  background-color: white;
+}
+
+/* ---------- Google Translate ---------- */
+/*
+   The site supplies its own language dropdown, so Google's own top bar and
+   hover balloon are hidden. `body { top: 0 }` is required because the
+   translator otherwise pushes the whole page down to make room for its bar.
+
+   The `VIpgJd-…` names below are build-hashed and DO change between Google
+   releases (these were read off build TE_20261007), so they are only the first
+   line of defence: utils/googleTranslateBanner.js additionally removes the bar
+   by its layout, which survives a rename. Keep both.
+*/
+body {
+  top: 0 !important;
+}
+
+/* Legacy widget markup */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+/* Current widget markup: the top bar, its fixed menu panel, hover balloon */
+.VIpgJd-ZVi9od-ORHb,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+.VIpgJd-ZVi9od-xl07Ob-OEVmcd,
+.VIpgJd-yAWNEb-L7lbkb {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/*
+   Kept rendered but off-screen rather than display:none, because the translator
+   needs its mount point to be laid out before it will initialise.
+*/
+#google_translate_element {
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .hero {
   min-height: 600px;
   display: flex;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { eventDate, eventTime } from '../utils/date';
 
 function EventDetail() {
   const { id } = useParams();
@@ -43,14 +44,6 @@ function EventDetail() {
   if (!event) return null;
 
   const isFull = event.spotsRemaining === 0;
-  const formatDate = (dateStr) =>
-    new Date(dateStr).toLocaleDateString('en-AU', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <button
@@ -63,8 +56,8 @@ function EventDetail() {
       <h1 style={{ marginBottom: '12px' }}>{event.title}</h1>
 
       <div style={{ display: 'flex', gap: '16px', color: '#666', marginBottom: '24px', flexWrap: 'wrap' }}>
-        <span>📅 {formatDate(event.date)}</span>
-        <span>🕐 {event.time}</span>
+        <span>📅 {eventDate(event)}</span>
+        <span>🕐 {eventTime(event)}</span>
         <span>📍 {event.location}</span>
       </div>
 

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 function Navbar() {
   return (
@@ -39,6 +40,8 @@ function Navbar() {
           <Link to="/facilities">
             Facilities
           </Link>
+
+          <LanguageSwitcher />
         </div>
 
       </nav>

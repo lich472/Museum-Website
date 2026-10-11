@@ -2,10 +2,46 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { IExhibition } from "../types"; // Make sure your types file matches the MongoDB schema fields
+import ExhibitionCard from "../components/ExhibitionCard";
+import { apiFetch } from "../api/client";
+import { formatDateRange } from "../utils/date";
+
+/** An exhibition suggested as similar, plus why it was suggested. */
+type Recommendation = IExhibition & {
+  sharedTags?: string[];
+  sharedCount?: number;
+};
+
+/**
+ * Both backends can serve recommendations but wrap and shape them differently:
+ * the TypeScript backend answers `{ recommendations: [...] }` with full
+ * exhibition documents, while `backend-fallback/` answers
+ * `{ success, data: [...] }` with a slimmer item that carries `id` instead of
+ * `_id`. Normalise both into `IExhibition` plus the optional explainer fields.
+ */
+function readRecommendations(payload: unknown): Recommendation[] {
+  const container = payload as {
+    recommendations?: unknown;
+    data?: unknown;
+  } | null;
+
+  const list = Array.isArray(payload)
+    ? payload
+    : Array.isArray(container?.recommendations)
+      ? container!.recommendations
+      : Array.isArray(container?.data)
+        ? container!.data
+        : [];
+
+  return (list as Array<Partial<IExhibition> & { id?: string | number }>).map(
+    (item) => ({ ...item, _id: item._id ?? String(item.id ?? "") }) as Recommendation
+  );
+}
 
 function ExhibitionDetail() {
   const { id } = useParams(); // MongoDB uses string ObjectIds (no type assertion required)
   const [exhibition, setExhibition] = useState<IExhibition | null>(null);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,6 +63,30 @@ function ExhibitionDetail() {
     if (id) fetchExhibition();
   }, [id]);
 
+  // Recommendations are a nice-to-have, so they are fetched separately: if this
+  // request fails the exhibition itself still renders.
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+
+    const fetchRecommendations = async () => {
+      try {
+        const response = await apiFetch(`/recommendations?exhibitionId=${id}`);
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (!cancelled) setRecommendations(readRecommendations(payload));
+      } catch (err) {
+        console.error("Error fetching recommendations:", err);
+      }
+    };
+
+    fetchRecommendations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
   // Keep your exact original "not found" or loading template structure
   if (loading) {
     return (
@@ -45,9 +105,8 @@ function ExhibitionDetail() {
     );
   }
 
-  // Format MongoDB date strings into human-friendly formats to replace the old mock .date field
-  const formattedStartDate = new Date(exhibition.startDate).toLocaleDateString();
-  const formattedEndDate = new Date(exhibition.endDate).toLocaleDateString();
+  // dd/mm/yyyy, replacing the mock .date field
+  const dateRange = formatDateRange(exhibition.startDate, exhibition.endDate);
 
   return (
     <main>
@@ -66,9 +125,7 @@ function ExhibitionDetail() {
 
           <h1>{exhibition.title}</h1>
 
-          <p className="detail-date">
-            {formattedStartDate} – {formattedEndDate}
-          </p>
+          <p className="detail-date">{dateRange}</p>
         </div>
       </section>
 
@@ -115,7 +172,7 @@ function ExhibitionDetail() {
 
           <div className="info-item">
             <span>Opening Hours</span>
-            <strong>10:00 AM – 5:00 PM</strong>
+            <strong>10:00 – 17:00</strong>
           </div>
 
           <Link to="/visit" className="primary-button detail-button">
@@ -123,6 +180,32 @@ function ExhibitionDetail() {
           </Link>
         </aside>
       </section>
+
+      {/* Similar exhibitions, matched on shared tags by GET /api/recommendations */}
+      {recommendations.length > 0 && (
+        <section className="related-exhibitions">
+          <div className="related-exhibitions-heading">
+            <p className="section-label">CONTINUE EXPLORING</p>
+
+            <h2>You Might Also Like</h2>
+
+            <p>
+              Based on the topics this exhibition shares with others in the
+              museum.
+            </p>
+          </div>
+
+          <div className="related-exhibitions-grid">
+            {recommendations.map((recommendation, index) => (
+              <ExhibitionCard
+                key={recommendation._id}
+                exhibition={recommendation}
+                number={String(index + 1).padStart(2, "0")}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api/client';
+import { eventDate, eventTime } from '../utils/date';
 
 function EventsList() {
   const [events, setEvents] = useState([]);
@@ -24,16 +25,6 @@ function EventsList() {
     };
     fetchEvents();
   }, []);
-
-  const formatDate = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-AU', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>⏳ Loading events...</div>;
   if (error) return <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>❌ {error}</div>;
@@ -105,7 +96,7 @@ function EventsList() {
               </div>
 
               <div style={{ fontSize: '0.85rem', color: '#555', marginTop: '12px' }}>
-                <div>📅 {formatDate(event.date)} · {event.time}</div>
+                <div>📅 {eventDate(event)} · {eventTime(event)}</div>
                 <div style={{ marginTop: '4px' }}>📍 {event.location}</div>
               </div>
             </div>
