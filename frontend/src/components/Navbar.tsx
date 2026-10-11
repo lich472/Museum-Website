@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import "./NavbarActions.css";
 
 function Navbar() {
   return (
@@ -28,6 +29,10 @@ function Navbar() {
           </Link>
         </div>
 
+        <div className="nav-visitor-actions" role="group" aria-label="Tickets and membership">
+          <Link className="nav-buy-tickets" to="/booking">Buy Tickets</Link>
+          <Link className="nav-membership" to="/membership">Membership</Link>
+        </div>
       </nav>
     </header>
   );
