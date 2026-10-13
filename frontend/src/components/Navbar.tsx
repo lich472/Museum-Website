@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
-import { UserPlus, LogIn, LogOut } from "lucide-react";
+import { Lock, UserPlus, LogIn, LogOut } from "lucide-react";
 
 
 function Navbar() {
@@ -32,35 +32,47 @@ function Navbar() {
             Plan Your Visit
           </Link>
 
-          {user ? (
-							<button
-								className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 
+		  	{isAdmin && (
+				<Link
+					className='bg-black hover:bg-gray-500 text-white px-3 py-1 rounded-md font-medium
+						transition duration-300 ease-in-out flex items-center'
+					to={"/admin"}
+				>
+					<Lock className='inline-block mr-1' size={18} />
+					<span className='hidden sm:inline'>Dashboard</span>
+				</Link>
+			)}
+
+          	{user ? (
+				<button
+					className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 
+				rounded-md flex items-center transition duration-300 ease-in-out'
+					onClick={logout}
+				>
+					<LogOut size={18} />
+					<span className='hidden sm:inline ml-2'>Log Out</span>
+				</button>
+				) : (
+				<>
+					<Link
+						to={"/signup"}
+						className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 
 						rounded-md flex items-center transition duration-300 ease-in-out'
-								onClick={logout}
-							>
-								<LogOut size={18} />
-								<span className='hidden sm:inline ml-2'>Log Out</span>
-							</button>
-						) : (
-							<>
-								<Link
-									to={"/signup"}
-									className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 
-									rounded-md flex items-center transition duration-300 ease-in-out'
-								>
-									<UserPlus className='mr-2' size={18} />
-									Sign Up
-								</Link>
-								<Link
-									to={"/login"}
-									className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 
-									rounded-md flex items-center transition duration-300 ease-in-out'
-								>
-									<LogIn className='mr-2' size={18} />
-									Login
-								</Link>
-							</>
-						)}
+					>
+						<UserPlus className='mr-2' size={18} />
+						Sign Up
+					</Link>
+					<Link
+						to={"/login"}
+						className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 
+						rounded-md flex items-center transition duration-300 ease-in-out'
+					>
+						<LogIn className='mr-2' size={18} />
+						Login
+					</Link>
+				</>
+			)}
+
         </div>
 
       </nav>

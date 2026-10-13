@@ -13,6 +13,8 @@ import Visit from "./pages/Visit";
 import Footer from "./components/Footer";
 import SignupPage from './pages/SignupPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import AdminDashboard from "./pages/AdminDashboard.jsx"; 
+
 
 import LoadingSpinner from "./components/LoadingSpinner.jsx";
 import { useUserStore } from "./stores/useUserStore.js";
@@ -27,6 +29,8 @@ function App() {
     checkAuth();
   },[checkAuth])
 
+  console.log("Current Authenticated User Object Structure:", user);
+
   if(checkingAuth) return <LoadingSpinner />
 
   return (
@@ -37,6 +41,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to={"/"} />} />
         <Route path="/login" element={!user ? <LoginPage /> : <Navigate to={"/"} />} />
+        <Route path="/admin" element={user?.role?.toLowerCase() === "admin" ? <AdminDashboard /> : <Navigate to={"/login"} />} />
         <Route path="/exhibitions" element={<Exhibitions />} />
         <Route path="/exhibitions/:id" element={<ExhibitionDetail />} />
         <Route path="/collections" element={<Collections />} />
