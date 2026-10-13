@@ -64,7 +64,7 @@ export default function MembershipProvider({
       }}
     >
       {children}
-      <ResetTestData />
+      <div className="feature-shell">
       <dialog
         ref={dialog}
         className="member-dialog"
@@ -143,6 +143,7 @@ export default function MembershipProvider({
         </p>
         <ResetTestData />
       </dialog>
+      </div>
     </Context.Provider>
   )
 }

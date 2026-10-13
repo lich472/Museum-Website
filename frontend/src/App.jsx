@@ -6,6 +6,7 @@ import Footer from './components/Footer'
 import BookingsPage from './features/bookings/BookingsPage'
 import MembershipsPage from './features/memberships/MembershipsPage'
 import MembershipProvider from './features/memberships/MembershipProvider'
+import ResetTestData from './features/memberships/ResetTestData'
 import {
   MembershipLayout,
   MemberPlanPage,
@@ -50,15 +51,14 @@ function PagePosition() {
 function FeatureLayout() {
   return (
     <div className="feature-shell">
-      <style>{featureStyles}</style>
       <PagePosition />
-      <MembershipProvider>
+
         <BookingDraftProvider>
           <main id="main-content" className="site-container main-content" tabIndex={-1}>
             <Outlet />
           </main>
         </BookingDraftProvider>
-      </MembershipProvider>
+      <ResetTestData />
     </div>
   )
 }
@@ -75,6 +75,8 @@ function Placeholder({ title }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <style>{featureStyles}</style>
+      <MembershipProvider>
       <Navbar />
       <Routes>
         <Route>
@@ -144,6 +146,7 @@ export default function App() {
         </Route>
       </Routes>
       <Footer />
+      </MembershipProvider>
     </BrowserRouter>
   )
 }

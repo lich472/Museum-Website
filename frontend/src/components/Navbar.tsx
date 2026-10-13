@@ -1,7 +1,9 @@
 import { Link } from "react-router";
+import { useMembership } from "../features/memberships/useMembership";
 import "./NavbarActions.css";
 
 function Navbar() {
+  const { account, openLogin } = useMembership();
   return (
     <header className="navbar">
       <nav className="nav-container">
@@ -33,6 +35,15 @@ function Navbar() {
           <Link className="nav-buy-tickets" to="/booking">Buy Tickets</Link>
           <Link className="nav-membership" to="/membership">Membership</Link>
         </div>
+        {account ? (
+          <Link className="nav-account-link" to="/account" title="My account">
+            {account.firstName}
+          </Link>
+        ) : (
+          <button className="nav-account-link" type="button" onClick={openLogin}>
+            Log in
+          </button>
+        )}
       </nav>
     </header>
   );
