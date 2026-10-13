@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useBooking } from '../useBooking'
+import { useBooking } from '../extraBooking/useBooking'
 import {
   formatDate,
   latestBookingDate,
@@ -8,7 +8,7 @@ import {
   ticketTypes,
   todayInAdelaide,
   validTickets,
-} from '../bookingModel'
+} from '../extraBooking/bookingModel'
 import BookingSummary from '../components/BookingSummary'
 
 export default function TicketsPage() {

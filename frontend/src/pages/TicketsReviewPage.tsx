@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
-import { useBooking } from '../useBooking'
-import { detailErrors, validTickets } from '../bookingModel'
-import { createMockBooking } from '../bookingService'
+import { useBooking } from '../extraBooking/useBooking'
+import { detailErrors, validTickets } from '../extraBooking/bookingModel'
+import { createMockBooking } from '../extraBooking/bookingService'
 import BookingSummary from '../components/BookingSummary'
 
 export default function TicketsReviewPage() {

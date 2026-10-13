@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
-import { useBooking } from '../useBooking'
-import { detailErrors, validTickets } from '../bookingModel'
-import type { Details } from '../bookingModel'
+import { useBooking } from '../extraBooking/useBooking'
+import { detailErrors, validTickets } from '../extraBooking/bookingModel'
+import type { Details } from '../extraBooking/bookingModel'
 import BookingSummary from '../components/BookingSummary'
 
 export default function TicketsDetailsPage() {
