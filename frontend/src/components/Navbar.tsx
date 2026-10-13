@@ -32,6 +32,9 @@ function Navbar() {
             Plan Your Visit
           </Link>
 
+          <Link className="nav-buy-tickets" to="/booking">Buy Tickets</Link>
+          <Link className="nav-membership" to="/membership">Membership</Link>
+
 		  	{isAdmin && (
 				<Link
 					className='bg-black hover:bg-gray-500 text-white px-3 py-1 rounded-md font-medium
