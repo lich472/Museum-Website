@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
+import { useUserStore } from "../stores/useUserStore";
+import { UserPlus, LogIn, LogOut } from "lucide-react";
+
 
 function Navbar() {
+  const { user, logout } = useUserStore();
+	const isAdmin = user?.role === "admin";
   return (
     <header className="navbar">
       <nav className="nav-container">
@@ -26,6 +31,36 @@ function Navbar() {
           <Link to="/visit">
             Plan Your Visit
           </Link>
+
+          {user ? (
+							<button
+								className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 
+						rounded-md flex items-center transition duration-300 ease-in-out'
+								onClick={logout}
+							>
+								<LogOut size={18} />
+								<span className='hidden sm:inline ml-2'>Log Out</span>
+							</button>
+						) : (
+							<>
+								<Link
+									to={"/signup"}
+									className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 
+									rounded-md flex items-center transition duration-300 ease-in-out'
+								>
+									<UserPlus className='mr-2' size={18} />
+									Sign Up
+								</Link>
+								<Link
+									to={"/login"}
+									className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 
+									rounded-md flex items-center transition duration-300 ease-in-out'
+								>
+									<LogIn className='mr-2' size={18} />
+									Login
+								</Link>
+							</>
+						)}
         </div>
 
       </nav>
