@@ -7,6 +7,25 @@ import Registration from "../models/registration.model.ts";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
+ * Same mapping as `collection.controller.ts`, kept in this file's `{ success }`
+ * response shape: ValidationError/CastError are the caller's mistake (400 with
+ * a generic message), anything else is logged and answered with a generic 500
+ * instead of leaking the Mongoose message through a public endpoint.
+ */
+function handleError(res: Response, error: any, label: string) {
+	if (error?.name === "ValidationError") {
+		return res.status(400).json({ success: false, message: error.message });
+	}
+	if (error?.name === "CastError") {
+		return res
+			.status(400)
+			.json({ success: false, message: "That is not a valid event id" });
+	}
+	console.error(`${label} error:`, error);
+	return res.status(500).json({ success: false, message: "Server error" });
+}
+
+/**
  * POST /api/events/:id/register
  *
  * Public on purpose: the api-contract describes event registration as something
@@ -106,12 +125,7 @@ export const registerForEvent = async (req: Request, res: Response) => {
 			spotRemaining: event.spotRemaining,
 		});
 	} catch (error) {
-		if (error instanceof Error) {
-			console.log("Error in registerForEvent controller", error.message);
-			res
-				.status(500)
-				.json({ success: false, message: "Server error", error: error.message });
-		}
+		handleError(res, error, "registerForEvent");
 	}
 };
 
@@ -147,11 +161,6 @@ export const getEventRegistrations = async (req: Request, res: Response) => {
 			registrations,
 		});
 	} catch (error) {
-		if (error instanceof Error) {
-			console.log("Error in getEventRegistrations controller", error.message);
-			res
-				.status(500)
-				.json({ success: false, message: "Server error", error: error.message });
-		}
+		handleError(res, error, "getEventRegistrations");
 	}
 };

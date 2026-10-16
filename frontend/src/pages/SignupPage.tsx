@@ -3,8 +3,11 @@ import { Link } from "react-router-dom";
 import { UserPlus, Mail, Lock, User, ArrowRight, Loader, MapPin } from "lucide-react";
 import { motion } from "framer-motion"; // for animation
 import { useUserStore } from "../stores/useUserStore";
+import usePageTitle from "../utils/usePageTitle";
 
 const SignupPage = () => {
+
+  usePageTitle("Sign up");
 
   const [formData, setFormData] = useState({
 		name: "",
@@ -27,7 +30,9 @@ const SignupPage = () => {
       animate={{ opacity: 1, y:0 }}
       transition={{ duration: 0.8, delay: 0.2 }}
       >
-        <h2 className='mt-6 text-center text-3xl font-extrabold text-black'>Create your account</h2>
+        {/* Was an <h2>: the page had no <h1> at all (a browser audit measured
+            h1=[]). Same classes, so it looks unchanged. */}
+        <h1 className='mt-6 text-center text-3xl font-extrabold text-black'>Create your account</h1>
       </motion.div>
 
       <motion.div

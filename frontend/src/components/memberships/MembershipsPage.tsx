@@ -2,6 +2,7 @@ import StatusIcon from '../../components/StatusIcon'
 import { Link } from 'react-router'
 import { useMembership } from './useMembership'
 import { annualPlan, isMember, money } from './membershipService'
+import usePageTitle from '../../utils/usePageTitle'
 
 const benefits = [
   ['Single-day museum entry', true, false, true],
@@ -14,6 +15,8 @@ const benefits = [
 ] as const
 
 export default function MembershipsPage() {
+  usePageTitle('Membership')
+
   const { account } = useMembership()
 
   return (

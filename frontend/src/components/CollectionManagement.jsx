@@ -115,15 +115,18 @@ export default function CollectionManagement({ onCountChange }) {
       </form>
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <caption className="visually-hidden">
+          Collection items, with category, period, origin and row actions
+        </caption>
         <thead>
           <tr style={{ textAlign: 'left', borderBottom: '2px solid #ccc' }}>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Period</th>
-            <th>Origin</th>
-            <th>Description</th>
-            <th>Image</th>
-            <th>Actions</th>
+            <th scope="col">Title</th>
+            <th scope="col">Category</th>
+            <th scope="col">Period</th>
+            <th scope="col">Origin</th>
+            <th scope="col">Description</th>
+            <th scope="col">Image</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -145,8 +148,8 @@ export default function CollectionManagement({ onCountChange }) {
                 )}
               </td>
               <td>
-                <button type="button" onClick={() => startEdit(item)} style={{ marginRight: '0.5rem' }}>Edit</button>
-                <button type="button" onClick={() => deleteCollection(item._id)}>Delete</button>
+                <button type="button" onClick={() => startEdit(item)} aria-label={`Edit ${item.title}`} style={{ marginRight: '0.5rem' }}>Edit</button>
+                <button type="button" onClick={() => deleteCollection(item._id)} aria-label={`Delete ${item.title}`}>Delete</button>
               </td>
             </tr>
           ))}

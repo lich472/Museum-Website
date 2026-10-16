@@ -28,6 +28,7 @@ import Visit from "./pages/Visit";
 import SignupPage from "./pages/SignupPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
+import NotFound from "./pages/NotFound.tsx";
 
 import BookingsPage from "./extraBooking/BookingsPage.js";
 import { BookingDraftProvider } from "./extraBooking/BookingDraftProvider.js";
@@ -44,6 +45,13 @@ import {
   MemberCheckoutPage,
   MemberPaymentPage,
   MemberConfirmationPage,
+  /* The membership journey's account pages. MembershipProvider links to
+     /register and MembershipFlow links to /account, /register and
+     /account/tickets/:id, but none of the three were routed, so the journey
+     dead-ended after payment. */
+  AccountPage,
+  RegisterPage,
+  TicketReceiptPage,
 } from "./components/memberships/MembershipFlow";
 import MembershipProvider from "./components/memberships/MembershipProvider";
 import EventDetail from "./pages/EventDetail.tsx";
@@ -76,12 +84,15 @@ function FeatureLayout() {
 
       <BookingDraftProvider>
         {/*
-          The wrapper in App() below owns id="main-content", so every route
-          shares one skip-link target. Repeating the id here would be invalid
-          and would break the skip link, so this element keeps only the class.
+          The wrapper in App() below owns both id="main-content" and the
+          .site-container class that carries the page's 20px inset, so every
+          route shares one skip-link target and one inset. Repeating the id here
+          would be invalid and would break the skip link; repeating
+          .site-container would double the inset, so this element keeps only a
+          marker class.
         */}
         <main
-          className="site-container main-content"
+          className="main-content"
           tabIndex={-1}
         >
           <Outlet />
@@ -116,7 +127,11 @@ function App() {
 
       <Navbar />
 
-      <div id="main-content" tabIndex={-1}>
+      {/* `.site-container` is defined in App.css and owns the 20px page inset
+          that used to sit on <body>; keeping it here (and only here) is what
+          lets the navbar and footer run edge to edge while the page content
+          keeps its spacing. id="main-content" stays the skip-link target. */}
+      <div id="main-content" className="site-container" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<Home />} />
 
@@ -203,8 +218,22 @@ function App() {
                 path="/membership/confirmation/:reference"
                 element={<MemberConfirmationPage />}
               />
+
+              {/* Reachable again: the provider renders its own nested routes
+                  through <Outlet />, and these three read its context. */}
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/account" element={<AccountPage />} />
+              <Route
+                path="/account/tickets/:reference"
+                element={<TicketReceiptPage />}
+              />
             </Route>
           </Route>
+
+          {/* Last route on purpose: anything the routes above do not match
+              renders a real 404 page instead of an empty page under the
+              navbar. */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
 

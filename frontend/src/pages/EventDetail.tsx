@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import { IEvent } from "../types";
 import { formatDateLong, eventTime } from "../utils/date";
+import usePageTitle from "../utils/usePageTitle";
 
 const badgeStyles: Record<string, string> = {
   workshop: "bg-blue-100 text-blue-800",
@@ -10,29 +11,45 @@ const badgeStyles: Record<string, string> = {
   tour: "bg-green-100 text-green-800",
 };
 
+/** A load failure: a real 404, or anything else (network, 500, timeout). */
+type LoadError = "not-found" | "failed";
+
+/** Only an HTTP 404 means the event is missing; everything else is an outage. */
+function isNotFound(err: unknown): boolean {
+  return (err as { response?: { status?: number } } | null)?.response?.status === 404;
+}
+
 function EventDetail() {
   const { id } = useParams();
   const [event, setEvent] = useState<IEvent | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LoadError | null>(null);
+  const [attempt, setAttempt] = useState<number>(0);
+
+  // The event's own name once it loads; the placeholder covers the fetch and
+  // the missing/unavailable states.
+  usePageTitle(event ? event.title : "Event");
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
         setLoading(true);
+        setError(null);
         const response = await axios.get<{ event: IEvent } | IEvent>(`/events/${id}`);
         setEvent("event" in response.data ? response.data.event : response.data);
-        setError(null);
       } catch (err) {
         console.error("Error fetching event detail:", err);
-        setError("Event not found");
+        setEvent(null);
+        // "Not found" is reserved for a 404; any other failure is retryable and
+        // must not claim the event does not exist.
+        setError(isNotFound(err) ? "not-found" : "failed");
       } finally {
         setLoading(false);
       }
     };
 
     if (id) fetchEvent();
-  }, [id]);
+  }, [id, attempt]);
 
   if (loading) {
     return (
@@ -42,7 +59,26 @@ function EventDetail() {
     );
   }
 
-  if (error || !event) {
+  if (error === "failed") {
+    return (
+      <main className="state-error" role="alert">
+        <h1>Event Unavailable</h1>
+        <p>We couldn't load this event right now. Please try again.</p>
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() => setAttempt((current) => current + 1)}
+        >
+          Try again
+        </button>
+        <p>
+          <Link to="/events">← Back to events</Link>
+        </p>
+      </main>
+    );
+  }
+
+  if (error === "not-found" || !event) {
     return (
       <main className="not-found">
         <h1>Event not found</h1>
@@ -60,11 +96,13 @@ function EventDetail() {
   // Ported from the Jason_P5 detail page: main did not surface the start time.
   const time = eventTime(event);
 
-  // `spotRemaining` is a real field on the Event schema, so this shows the
-  // stored value. It is set by an admin rather than recalculated, so once event
-  // registration is implemented it should be kept in step with
-  // `capacity - registrations`.
-  const spotsLeft = event.spotRemaining ?? event.capacity;
+  // Events reach the frontend in two shapes: the TypeScript backend sends
+  // `spotRemaining` (with an ObjectId `_id`), while backend-fallback/server.js
+  // sends `spotsRemaining` (with a numeric `id`). Read both, and only fall back
+  // to `capacity` when neither is present — reading capacity alone made a
+  // sold-out fallback event look fully available.
+  const data = event as IEvent & { spotsRemaining?: number; id?: string | number };
+  const spotsLeft = data.spotRemaining ?? data.spotsRemaining ?? data.capacity;
   const soldOut = spotsLeft <= 0;
   const spotsColor = soldOut
     ? "text-red-600"
@@ -164,7 +202,7 @@ function EventDetail() {
             </button>
           ) : (
             <Link
-              to={`/events/${event._id}/register`}
+              to={`/events/${data._id ?? data.id}/register`}
               className="primary-button detail-button"
             >
               Register for this event

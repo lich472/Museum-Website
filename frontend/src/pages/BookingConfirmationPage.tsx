@@ -5,8 +5,11 @@ import { Link, useParams } from 'react-router'
 import { readBookings, resendMockBookingEmail } from '../extraBooking/bookingService'
 import { createTicketImage } from '../extraBooking/ticketImage'
 import BookingSummary from '../components/BookingSummary'
+import usePageTitle from '../utils/usePageTitle'
 
 export default function BookingConfirmationPage() {
+  usePageTitle('Booking confirmation')
+
   const { reference } = useParams()
   const [bookings] = useState(readBookings)
   const booking = bookings.find((item) => item.reference === reference)

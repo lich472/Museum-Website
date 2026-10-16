@@ -3,14 +3,23 @@ import { useEffect, useState } from "react";
 import axios from "../lib/axios"; 
 import ExhibitionCard from "../components/ExhibitionCard";
 import { IExhibition } from "../types"; 
+import usePageTitle from "../utils/usePageTitle";
 
 function Home() {
+  usePageTitle("Home");
+
   const [exhibitions, setExhibitions] = useState<IExhibition[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  // A failed request is not the same as "no exhibitions are on": the failure
+  // gets its own state so the empty copy can never stand in for an outage.
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState<number>(0);
 
   useEffect(() => {
     const fetchExhibitions = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const response = await axios.get<{ exhibitions: IExhibition[] }>("/exhibitions");
         
         const rawExhibitions = response.data?.exhibitions || [];
@@ -24,13 +33,14 @@ function Home() {
         }
       } catch (err) {
         console.error("Error fetching homepage exhibitions:", err);
+        setError("We couldn't load the featured exhibitions.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchExhibitions();
-  }, []);
+  }, [attempt]);
 
   return (
     <main>
@@ -70,6 +80,19 @@ function Home() {
 
         {loading ? (
           <div className="loading"><p>Loading featured exhibits...</p></div>
+        ) : error ? (
+          /* Distinct failure state: only reached when the request failed, never
+             for an empty result. */
+          <div className="state-error" role="alert">
+            <p>{error}</p>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => setAttempt((current) => current + 1)}
+            >
+              Try again
+            </button>
+          </div>
         ) : (
           <div className="exhibition-grid">
             {exhibitions && exhibitions.length > 0 ? (

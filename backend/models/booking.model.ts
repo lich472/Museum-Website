@@ -1,11 +1,10 @@
-import { Timestamp } from "mongodb";
 import mongoose from "mongoose"; 
 
 type IBooking = {
     userId: mongoose.Schema.Types.ObjectId,
     eventId: mongoose.Schema.Types.ObjectId,
     date: Date,
-    time: Timestamp,
+    time: Date,
     numVisitor: number
 }
 
@@ -27,7 +26,12 @@ const bookingSchema = new mongoose.Schema<IBooking>(
             required: true
         },
         time: {
-            type: Timestamp,
+            // Was the BSON Timestamp class from "mongodb", which is not a
+            // Mongoose SchemaType: compiling the model threw "Invalid schema
+            // configuration" and nothing that imported Booking could load.
+            // The "time" of a booking is a clock value, so Date is the type
+            // that actually fits.
+            type: Date,
             required: true
         },
         numVisitor: {

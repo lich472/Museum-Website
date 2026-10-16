@@ -19,14 +19,26 @@ import exhibitionRoutes from "./routes/exhibition.route.ts";
 import collectionRoutes from "./routes/collection.route.ts";
 // Carried over from the Jason_P5 branch.
 import recommendationRoutes from "./routes/recommendation.route.ts";
+// Museum-wide visitor information (api-contract.md §3), owned by P4.
+import visitorInfoRoutes from "./routes/visitorInfo.route.ts";
 import { connectDB } from "./lib/db.ts";
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// With `credentials: true` the browser only accepts a response whose
+// Access-Control-Allow-Origin matches the page's origin exactly, so the single
+// hardcoded origin below made every signed-in request fail from any other dev
+// port or deployed host. CORS_ORIGINS is a comma-separated list; when it is not
+// set we keep the one local dev origin as the default.
+const allowedOrigins = (process.env.CORS_ORIGINS ?? "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 // 1. Place CORS right at the top so it intercepts every request
 app.use(cors({
-  origin: "http://localhost:5173", 
+  origin: allowedOrigins.length > 0 ? allowedOrigins : "http://localhost:5173",
   credentials: true,               
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -42,6 +54,7 @@ app.use("/api/exhibitions", exhibitionRoutes);
 app.use("/api/collections", collectionRoutes);
 // Tag-based "you might also like", from the Jason_P5 branch.
 app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/visitor-info", visitorInfoRoutes);
 
 
 

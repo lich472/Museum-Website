@@ -224,7 +224,10 @@ body {
   font-size: 13px;
   font-weight: bold;
   letter-spacing: 3px;
-  color: #7b6044;
+  /* #7b6044 on the hero's #e8e0d3 is 4.46:1 — just under the 4.5:1 this small
+     bold text needs. #75593d is 4.93:1 here and stays above 5.29:1 on every
+     other background this label colour is used on. */
+  color: #75593d;
   margin-bottom: 20px;
 }
 
@@ -297,7 +300,11 @@ body {
 
 .section-label {
   margin: 0 0 10px;
-  color: #7b6044;
+  /* Same value as .hero-label above: #7b6044 measures 4.46:1 on the hero's
+     #e8e0d3, below the 4.5:1 that 12px bold text needs. Measured on the
+     backgrounds this label actually sits on: 6.46:1 on white, 5.89:1 on the
+     body fill #f7f4ef. */
+  color: #75593d;
   font-size: 12px;
   font-weight: bold;
   letter-spacing: 3px;
@@ -348,12 +355,18 @@ body {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
 }
 
+/* One rule only. The later duplicate further down (under "Exhibition
+   photography") overrode `padding: 25px` with `padding: 0` and added
+   `overflow: hidden`; those two later values are folded in here so the
+   placeholder renders exactly as it did, including the fallback number's
+   position flush to the bottom-left corner. */
 .exhibition-image-placeholder {
   height: 270px;
   background-color: #263832;
   display: flex;
   align-items: flex-end;
-  padding: 25px;
+  overflow: hidden;
+  padding: 0;
 }
 
 .exhibition-image-placeholder span {
@@ -473,7 +486,10 @@ body {
 .info-item span {
   display: block;
   margin-bottom: 7px;
-  color: #777;
+  /* #777 on the .detail-info fill #eee8de is only 3.67:1, under the 4.5:1 that
+     12px text needs. #6b6b6b would still be short at 4.37:1, so this is #666:
+     4.71:1 on #eee8de and 5.74:1 on white. */
+  color: #666666;
   font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -536,12 +552,17 @@ body {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
 }
 
+/* One rule only. The later duplicate further down (under "Exhibition
+   photography") overrode `padding: 25px` with `padding: 0` and added
+   `overflow: hidden`; both later values are folded in here so the image and the
+   fallback number render exactly as they did. */
 .collection-image {
   height: 330px;
   background-color: #b8aa94;
   display: flex;
   align-items: flex-end;
-  padding: 25px;
+  overflow: hidden;
+  padding: 0;
 }
 
 .collection-image span {
@@ -743,11 +764,6 @@ body {
 
 /* Exhibition photography */
 
-.exhibition-image-placeholder {
-  overflow: hidden;
-  padding: 0;
-}
-
 .exhibition-photo {
   width: 100%;
   height: 100%;
@@ -760,18 +776,9 @@ body {
   transform: scale(1.05);
 }
 
-.collection-photo {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.collection-image {
-  overflow: hidden;
-  padding: 0;
-}
-
+/* The only .collection-photo rule: the copy that used to follow it was
+   byte-identical (and the .collection-image override that sat between them is
+   merged into the .collection-image rule above). */
 .collection-photo {
   display: block;
   width: 100%;
@@ -876,11 +883,27 @@ body {
   left: 0;
 }
 
-/* Focus is moved here programmatically by the skip link. The content's own
-   headings provide the orientation, so a ring around the whole page adds
-   nothing. */
-#main-content:focus {
-  outline: none;
+/* Focus is moved here by the skip link, so a keyboard user needs to see where
+   focus landed. The ring is drawn INSIDE the wrapper (negative offset) because
+   an outside ring at the top of the page would sit under the navbar. */
+#main-content:focus-visible {
+  outline: 2px solid #1d2925;
+  outline-offset: -2px;
+}
+
+/* ---------- Page inset (was a <body> margin) ---------- */
+/*
+   The 20px spacing that used to be `body { margin: 20px }` lives here now (see
+   index.css). It applies to the single wrapper that owns id="main-content" in
+   App.jsx, so the page content keeps exactly the inset it had while the dark
+   navbar and the footer can run to the viewport edges.
+
+   The class is applied once, on the outer wrapper only: the nested <main>
+   inside FeatureLayout deliberately does not repeat it, because two lots of
+   20px would push the booking and membership pages out of line.
+*/
+.site-container {
+  padding: 20px;
 }
 
 /* ---------- Headings and lists flattened by Tailwind's preflight ---------- */

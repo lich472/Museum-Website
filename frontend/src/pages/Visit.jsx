@@ -1,4 +1,8 @@
+import usePageTitle from "../utils/usePageTitle";
+
 function Visit() {
+  usePageTitle("Plan Your Visit");
+
   return (
     <main>
       <section className="page-header">

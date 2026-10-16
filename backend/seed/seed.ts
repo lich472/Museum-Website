@@ -17,7 +17,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 
 import Exhibition from "../models/exhibition.model.ts";
-import Event, { type IEvent } from "../models/event.model.ts";
+import Event from "../models/event.model.ts";
 import { exhibitionSeed, eventSeed } from "./data.ts";
 
 // Resolve .env from the repository root, so this works no matter which
@@ -63,21 +63,17 @@ async function seedEvents(): Promise<Outcome> {
   for (const fixture of eventSeed) {
     // `title` + `startDate`: the same event title can legitimately recur on a
     // different date, and only the pair is unique.
-    //
-    // The cast is needed because `IEvent` declares `spotRemaining`, which
-    // `eventSchema` does not contain — a pre-existing type/schema mismatch.
-    // `EventSeed` therefore omits it. The cast goes away once they agree.
     const existing = await Event.findOne({
       title: fixture.title,
       startDate: fixture.startDate,
     });
 
     if (existing) {
-      existing.set(fixture as Partial<IEvent>);
+      existing.set(fixture);
       await existing.save();
       outcome.updated += 1;
     } else {
-      await Event.create(fixture as unknown as IEvent);
+      await Event.create(fixture);
       outcome.created += 1;
     }
   }

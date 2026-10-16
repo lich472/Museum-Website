@@ -1,15 +1,29 @@
 import Exhibition from "../models/exhibition.model.ts";
 import { Request, Response } from "express";
 
+/**
+ * Same mapping as `collection.controller.ts`: caller mistakes (ValidationError,
+ * CastError) become 400 with a generic message; anything else is logged and
+ * reported as a generic 500 instead of leaking the Mongoose message to
+ * unauthenticated callers.
+ */
+function handleError(res: Response, error: any, label: string) {
+	if (error?.name === "ValidationError") {
+		return res.status(400).json({ message: error.message });
+	}
+	if (error?.name === "CastError") {
+		return res.status(400).json({ message: "Invalid exhibition id" });
+	}
+	console.error(`${label} error:`, error);
+	return res.status(500).json({ message: "Server error" });
+}
+
 export const getAllExhibition = async (req: Request, res: Response) => {
 	try {
 		const exhibitions = await Exhibition.find({}); // find all exhibition
 		res.json({ exhibitions });
 	} catch (error) {
-		if(error instanceof Error){
-			console.log("Error in getAllExhibitions controller", error.message);
-			res.status(500).json({ message: "Server error", error: error.message });
-		}
+		handleError(res, error, "getAllExhibition");
 	}
 };
 
@@ -31,10 +45,7 @@ export const createExhibition = async (req: Request, res: Response) => {
 
 		res.status(201).json(exhibition);
 	} catch (error) {
-		if(error instanceof Error){
-			console.log("Error in createExhibition controller", error.message);
-			res.status(500).json({ message: "Server error", error: error.message });
-		}
+		handleError(res, error, "createExhibition");
 	}
 };
 
@@ -50,10 +61,7 @@ export const deleteExhibition = async (req: Request, res: Response) => {
 
 		res.json({ message: "Exhibition deleted successfully" });
 	} catch (error) {
-		if(error instanceof Error){
-			console.log("Error in deleteExhibition controller", error.message);
-			res.status(500).json({ message: "Server error", error: error.message });
-		}
+		handleError(res, error, "deleteExhibition");
 	}
 };
 
@@ -67,10 +75,7 @@ export const getExhibitionById = async (req: Request, res: Response) => {
 
     res.status(200).json(exhibition);
   } catch (error) {
-	if(error instanceof Error){
-    	console.error("Error fetching exhibition:", error);
-    	res.status(500).json({ message: "Error fetching exhibition", error: error.message });
-	}
+	handleError(res, error, "getExhibitionById");
   }
 };
 
@@ -82,7 +87,11 @@ export const updateExhibition = async (req: Request, res: Response) => {
 		const updatedExhibition = await Exhibition.findByIdAndUpdate(
 			req.params.id,
 			{ title, description, imageUrl, startDate, endDate, status, room, tags, isHighlight },
-			{ new: true } // 'new: true' tells Mongoose to return the modified document instead of the original
+			// runValidators: without it Mongoose skipped enum/required checking on
+			// update, so the status values the admin UI sends ("Upcoming", "Live",
+			// "Archived") were stored even though the schema only allows
+			// "current"/"upcoming"/"past".
+			{ new: true, runValidators: true } // 'new: true' tells Mongoose to return the modified document instead of the original
 		);
 
 		if (!updatedExhibition) {
@@ -91,9 +100,6 @@ export const updateExhibition = async (req: Request, res: Response) => {
 
 		res.json(updatedExhibition);
 	} catch (error) {
-		if (error instanceof Error) {
-			console.log("Error in updateExhibition controller", error.message);
-			res.status(500).json({ message: "Server error", error: error.message });
-		}
+		handleError(res, error, "updateExhibition");
 	}
 };

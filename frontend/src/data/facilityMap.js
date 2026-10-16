@@ -16,6 +16,10 @@
  * to `FLOOR_ROOMS` by hand, and the same values are also served by
  * `backend-fallback/server.js` when that backend answers `/api/visitor-info`,
  * so update both places together.
+ *
+ * "In step" is not a nicety: the builders below let a field the API supplies
+ * win over the local one, so where the two files disagree it is the API's value
+ * that reaches the map.
  */
 
 // ---------- Building rooms (static layout; interaction lives in FloorMap) ----------
@@ -81,7 +85,15 @@ export const DEFAULT_ACCESSIBILITY_POINTS = [
     id: 'accessible-entrance',
     name: 'Accessible Entrance',
     roomId: 'lobby',
-    mapX: 400, mapY: 425,
+    // Inside the lobby (290–510 x 40–450) and clear of the "Main Entrance"
+    // label. The disc is r=26, or 32 when selected/hovered, plus a 1.5px
+    // stroke, so at y=400 it spans y 372.5–427.5 unselected and y 366.5–433.5
+    // selected; the focus ring adds r=38, i.e. down to y 439.5. All of those
+    // stay inside the room's y=450 bottom edge, and the label's glyphs start
+    // around y 445 (baseline 460, 20px bold, FloorMap.jsx), so nothing overlaps.
+    // At the old y=425 the disc reached y 452.5 unselected and y 458.5 when
+    // selected: outside the room it names and on top of the entrance label.
+    mapX: 400, mapY: 400,
     icon: 'entrance',
     description:
       'Step-free entry at the main entrance, opening directly into the central lobby. Automatic doors with a level threshold and tactile ground surface indicators.',
@@ -186,14 +198,26 @@ export function findRoomByLabel(label) {
  * Bucket exhibitions by the room they sit in, so the map can show how much is
  * in each gallery and the galleries panel can list it.
  *
- * Anything whose `room` has no place on the plan is collected in `unplaced`
- * instead of being dropped silently.
+ * An exhibition whose `room` has no place on the plan goes into `unplaced`
+ * instead of being counted against a room that does not hold it.
+ *
+ * `unplaced` is NOT rendered today: the two existing callers (Facilities and
+ * Accessibility) destructure `{ byRoomId, counts }` only, so an exhibition in
+ * an unmapped room is still invisible on those pages. It is returned for the
+ * page-level change that surfaces it — the exhibition pages' room list — and
+ * whoever reads it must decide what to say about a room the plan cannot show.
+ * Returning the bucket is not the same as having shown it.
+ *
+ * Also tolerates `null`/non-array input, so a caller that stores the `null`
+ * that `readExhibitionList` returns for an unknown payload gets an empty result
+ * rather than a crash.
  */
 export function groupExhibitionsByRoom(exhibitions = []) {
   const byRoomId = {};
   const unplaced = [];
+  const list = Array.isArray(exhibitions) ? exhibitions : [];
 
-  for (const exhibition of exhibitions) {
+  for (const exhibition of list) {
     const room = findRoomByLabel(exhibition?.room);
 
     if (!room) {
@@ -215,46 +239,105 @@ export function groupExhibitionsByRoom(exhibitions = []) {
  * Read the exhibition array out of whichever backend answered. The TypeScript
  * backend wraps it as `{ exhibitions }`; `backend-fallback/` uses
  * `{ success, data }`.
+ *
+ * Returns `null` — never `[]` — for a payload it does not recognise, because
+ * "we could not read the answer" is a different fact from "there are no
+ * exhibitions". Callers MUST keep the two apart: only `[]` may be rendered as
+ * an empty state; `null` means the list is unknown, so the page must say so
+ * (or say nothing) instead of showing "nothing on display".
+ *
+ * Note for the id: items from `backend-fallback/` carry a numeric `id`, while
+ * the TypeScript backend uses MongoDB's `_id`. A link built from one of these
+ * items has to accept either — the gallery links in Facilities/Accessibility
+ * still read `_id` only, so a fallback-served exhibition links to
+ * `/exhibitions/undefined` until that is fixed there.
  */
 export function readExhibitionList(payload) {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.exhibitions)) return payload.exhibitions;
   if (Array.isArray(payload?.data)) return payload.data;
-  return [];
+  return null;
 }
 
 // ---------- Builders ----------
 
+const FACILITY_DESCRIPTION_PLACEHOLDER =
+  'This facility is available on the ground floor. Ask our front desk staff for assistance.';
+
 /**
- * Turn the `facilities` list from visitor-info into map markers, filling in
- * position/icon/description from the local defaults when the API does not
- * supply them.
+ * Turn the `facilities` list from visitor-info into map markers.
+ *
+ * The curated entry in `DEFAULT_FACILITY_LOCATIONS` is the base and the API
+ * object only overrides the fields it actually supplies. Taking the API object
+ * wholesale (`loc = fromApi || fallback`) dropped every curated description as
+ * soon as the fallback backend answered `/api/visitor-info`, because its
+ * `facilityLocations` carry name/roomId/coords/icon and no `description` —
+ * so all four facilities fell through to the placeholder below while the two
+ * sources are required to stay in step.
  */
 export function buildFacilityPoints(facilities = [], apiLocations = []) {
+  const apiByName = new Map(
+    (Array.isArray(apiLocations) ? apiLocations : [])
+      .filter((location) => location && location.name)
+      .map((location) => [location.name, location])
+  );
+
   return facilities.map((name) => {
-    const fromApi = Array.isArray(apiLocations)
-      ? apiLocations.find((f) => f.name === name)
-      : null;
+    const fromApi = apiByName.get(name);
     const fallback = DEFAULT_FACILITY_LOCATIONS[name];
-    const loc = fromApi || fallback || {};
+    // Only a value the API really carries (not undefined, not null, not "")
+    // wins over the curated one.
+    const pick = (key) => {
+      const apiValue = fromApi?.[key];
+      if (apiValue !== undefined && apiValue !== null && apiValue !== '') {
+        return apiValue;
+      }
+      return fallback?.[key];
+    };
 
     return {
       id: name,
       name,
       // Which room this marker sits in, so selecting it can also highlight
       // that room on the plan.
-      roomId: loc.roomId ?? findRoomByLabel(name)?.id,
-      mapX: loc.mapX ?? 400,
-      mapY: loc.mapY ?? 250,
-      icon: loc.icon || 'facility',
-      description:
-        loc.description ||
-        'This facility is available on the ground floor. Ask our front desk staff for assistance.',
+      roomId: pick('roomId') ?? findRoomByLabel(name)?.id,
+      mapX: pick('mapX') ?? 400,
+      mapY: pick('mapY') ?? 250,
+      icon: pick('icon') || 'facility',
+      description: pick('description') || FACILITY_DESCRIPTION_PLACEHOLDER,
     };
   });
 }
 
+/**
+ * The accessibility points to draw, keyed the same way as the facilities above:
+ * the curated point is the base and the API only overrides the fields it
+ * supplies, matched by `id` first and `name` second. An API point that arrives
+ * without a `description` therefore keeps the curated text instead of rendering
+ * an empty panel; coordinates the API does supply still win, and they are
+ * verified identical to the local ones.
+ *
+ * An empty/absent API list still means "use the curated list as it stands".
+ */
 export function buildAccessibilityPoints(apiPoints = []) {
-  if (Array.isArray(apiPoints) && apiPoints.length > 0) return apiPoints;
-  return DEFAULT_ACCESSIBILITY_POINTS;
+  if (!Array.isArray(apiPoints) || apiPoints.length === 0) {
+    return DEFAULT_ACCESSIBILITY_POINTS;
+  }
+
+  return apiPoints.map((point) => {
+    const curated = DEFAULT_ACCESSIBILITY_POINTS.find(
+      (fallback) =>
+        (point?.id != null && fallback.id === point.id) ||
+        (point?.name != null && fallback.name === point.name)
+    );
+    if (!curated) return point;
+
+    const merged = { ...curated };
+    for (const [key, value] of Object.entries(point)) {
+      if (value !== undefined && value !== null && value !== '') {
+        merged[key] = value;
+      }
+    }
+    return merged;
+  });
 }

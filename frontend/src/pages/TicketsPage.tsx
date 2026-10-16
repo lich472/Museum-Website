@@ -10,8 +10,12 @@ import {
   validTickets,
 } from '../extraBooking/bookingModel'
 import BookingSummary from '../components/BookingSummary'
+import usePageTitle from '../utils/usePageTitle'
 
 export default function TicketsPage() {
+  // The step's own <h1> comes from BookingLayout; the title names the step.
+  usePageTitle('Tickets')
+
   const { draft, setDraft } = useBooking()
   const navigate = useNavigate()
   const today = todayInAdelaide()

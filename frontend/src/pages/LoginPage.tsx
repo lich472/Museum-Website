@@ -3,8 +3,11 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { LogIn, Mail, Lock, ArrowRight, Loader } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
+import usePageTitle from "../utils/usePageTitle";
 
 const LoginPage = () => {
+  usePageTitle("Log in");
+
   const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -23,7 +26,13 @@ const LoginPage = () => {
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.8 }}
 			>
-				<h2 className='mt-6 text-center text-3xl font-extrabold text-black'>Create your account</h2>
+				{/*
+					The page had no <h1> at all (a browser audit measured h1=[]).
+					This was an <h2> reading "Create your account", copied from the
+					sign-up page, which both skipped the top level and mislabelled
+					the form below it. Same classes, so it looks unchanged.
+				*/}
+				<h1 className='mt-6 text-center text-3xl font-extrabold text-black'>Log in to your account</h1>
 			</motion.div>
 
 			<motion.div

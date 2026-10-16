@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import axios from '../lib/axios'
+import { toast } from 'react-hot-toast'
 
 function VisitorInfoEditor() {
   const [monday, setMonday] = useState('10:00–17:00')
@@ -22,13 +24,59 @@ function VisitorInfoEditor() {
   const [facilities, setFacilities] = useState(
     'Café, Gift Shop, Restrooms, Cloakroom'
   )
+  const [saving, setSaving] = useState(false)
 
-  function saveVisitorInfo(e) {
+  // Comma-separated text boxes are stored as trimmed lists, matching the
+  // shapes in api-contract.md §3.
+  function toList(value) {
+    return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+  }
+
+  async function saveVisitorInfo(e) {
     e.preventDefault()
+    // Guard against a double submit before the request settles.
+    if (saving) return
+    setSaving(true)
 
-    // TODO: send this to the backend (PUT /api/visitor-info)
-    // for now we just show the message
-    alert('Visitor information saved successfully.')
+    const lat = Number(latitude)
+    const lng = Number(longitude)
+
+    try {
+      await axios.put('/visitor-info', {
+        openingHours: {
+          monday,
+          tuesday,
+          wednesday,
+          thursday,
+          friday,
+          saturday,
+          sunday,
+          closedDates: toList(closedDates),
+        },
+        location: {
+          address,
+          lat: Number.isFinite(lat) ? lat : null,
+          lng: Number.isFinite(lng) ? lng : null,
+        },
+        accessibility: {
+          wheelchairAccess,
+          parking,
+          sensoryFriendlyHours,
+        },
+        facilities: toList(facilities),
+      })
+      // Only reported once the server has accepted the change.
+      toast.success('Visitor information saved successfully.')
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || 'Failed to save visitor information'
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -179,7 +227,9 @@ function VisitorInfoEditor() {
           />
         </label>
 
-        <button type="submit">Save Visitor Information</button>
+        <button type="submit" disabled={saving}>
+          {saving ? 'Saving…' : 'Save Visitor Information'}
+        </button>
       </form>
     </section>
   )

@@ -9,7 +9,12 @@ html {
 }
 
 body {
-  margin: 20px;
+  /* Was `margin: 20px`, which inset the whole document: the dark navbar and
+     footer could never reach the viewport edges and every page showed a 20px
+     strip of body background on all four sides. That 20px now lives on the
+     content wrapper `<div id="main-content" class="site-container">` in App.jsx
+     (rule in App.css), so only the full-bleed bars change. */
+  margin: 0;
   font-family: Arial, Helvetica, sans-serif;
   background-color: #f7f4ef;
   color: #222222;

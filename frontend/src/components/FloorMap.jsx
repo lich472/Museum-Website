@@ -62,6 +62,14 @@ function FloorMap({
           const alignStart = room.kind === 'facility';
           const centreX = room.x + room.w / 2;
           const centreY = room.y + room.h / 2;
+          // Dimming when another room is highlighted used to be a 0.4 opacity on
+          // this whole group. That composited the room label (#2c3e50 on
+          // #e4ecf5) down to roughly 2.1:1 — below the 3:1 that even large bold
+          // text needs — even though the dimmed rooms stayed clickable. The
+          // group now keeps full opacity and only the rect's fill fades, so the
+          // label and the exhibition count stay readable; the stroke keeps its
+          // width so the room still reads as a selectable shape.
+          const dimFill = hasRoomFocus && !isHighlighted;
 
           return (
             <g
@@ -71,7 +79,6 @@ function FloorMap({
                 `${isHighlighted ? ' is-highlighted' : ''}` +
                 `${clickable ? ' is-clickable' : ''}`
               }
-              opacity={hasRoomFocus && !isHighlighted ? 0.4 : 1}
               role={clickable ? 'button' : undefined}
               tabIndex={clickable ? 0 : undefined}
               aria-pressed={clickable ? isHighlighted : undefined}
@@ -94,9 +101,10 @@ function FloorMap({
               <rect
                 x={room.x} y={room.y} width={room.w} height={room.h} rx="3"
                 fill={isHighlighted ? '#fdebd7' : (ROOM_FILL[room.kind] || '#eef2f6')}
+                fillOpacity={dimFill ? 0.45 : 1}
                 stroke={isHighlighted ? '#b35c07' : '#95a5a6'}
                 strokeWidth={isHighlighted ? 4 : 1.5}
-                style={{ transition: 'fill 0.15s, stroke 0.15s' }}
+                style={{ transition: 'fill 0.15s, stroke 0.15s, fill-opacity 0.15s' }}
               />
 
               <text

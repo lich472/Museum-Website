@@ -56,8 +56,14 @@ export const useUserStore = create<UserStore>((set, get) => ({
 			const response = await axios.get("/auth/profile");
 			set({ user: response.data, checkingAuth: false });
 		} catch (error) {
+			// A 401 here is the ordinary answer for a visitor who is not signed in,
+			// and this probe runs on every page — logging it put a console error on
+			// all 17 routes for every signed-out visitor. Anything else really is a
+			// fault worth reporting.
 			const axiosError = error as AxiosError<{ message: string }>
-			console.log(axiosError.message);
+			if (axiosError.response?.status !== 401) {
+				console.warn("checkAuth failed:", axiosError.message);
+			}
 			set({ checkingAuth: false, user: null });
 		}
 	},

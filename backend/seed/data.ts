@@ -10,19 +10,19 @@
  * not have at all are derived, and every derivation is marked with a `derived:`
  * comment so nobody mistakes it for source data.
  *
- * Deliberately NOT seeded: `spotsRemaining`. It is a response field in
- * `api-contract.md` (§2) and must be computed by the backend as
- * `capacity - sum(bookings.numVisitor)`; it is not part of the Event schema.
+ * `spotRemaining` IS part of the Event schema and is required, so it is seeded
+ * from `capacity`: nothing is booked yet, so every place is still available.
+ * The server decrements it as registrations arrive (registration.controller).
  */
 import type { IExhibition } from "../models/exhibition.model.ts";
 import type { IEvent } from "../models/event.model.ts";
 
 /**
- * The Event TS type declares `spotRemaining`, but `eventSchema` has no such
- * path, so it can never be persisted. The seed type drops it rather than
- * pretending to set it — see the report on the schema/type mismatch.
+ * The fixtures carry `capacity` and derive `spotRemaining` from it in the map
+ * below. Everything else matches the schema exactly, so no field is omitted and
+ * the call site needs no cast.
  */
-type EventSeed = Omit<IEvent, "spotRemaining">;
+type EventSeed = IEvent;
 
 /**
  * P5 stored a plain "YYYY-MM-DD" and the model wants a Date. Exhibition
@@ -260,6 +260,8 @@ export const eventSeed: EventSeed[] = rawEvents.map(
     const startDate = moment(date, time);
     return {
       ...rest,
+      // Nothing is booked yet, so every place is still available.
+      spotRemaining: rest.capacity,
       startDate,
       endDate: new Date(startDate.getTime() + durationMinutes * 60_000),
       imageUrl: `https://picsum.photos/seed/${imageSeed}/600/400`,

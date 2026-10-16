@@ -46,6 +46,11 @@ export default function MembershipProvider({
       setBusy(false)
     }
   }
+  // Development-only shortcut to the seeded test account. `import.meta.env.DEV`
+  // is replaced with `false` by Vite in a production build, so this is `null`
+  // there and the Autofill button below is not rendered: a shipped site must
+  // not carry preset test credentials (see presetMember.ts).
+  const devPreset = import.meta.env.DEV ? presetMember : null
   return (
     <Context.Provider
       value={{
@@ -84,18 +89,22 @@ export default function MembershipProvider({
         <p>Keep your visits and membership in one place.</p>
         {open && (
           <form onSubmit={submit}>
-            <button
-              type="button"
-              className="test-fill"
-              disabled={busy}
-              onClick={() => {
-                setEmail(presetMember.profile.email)
-                setPassword('login')
-                setError('')
-              }}
-            >
-              Autofill
-            </button>
+            {/* Dev-only: types the seeded test account's credentials into the
+                real form. Never rendered in a production build. */}
+            {devPreset && (
+              <button
+                type="button"
+                className="test-fill"
+                disabled={busy}
+                onClick={() => {
+                  setEmail(devPreset.profile.email)
+                  setPassword('login')
+                  setError('')
+                }}
+              >
+                Autofill
+              </button>
+            )}
             <div className="booking-field">
               <label htmlFor="login-email">Email address</label>
               <input

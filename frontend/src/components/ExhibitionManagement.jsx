@@ -24,7 +24,8 @@ export default function ExhibitionManagement({ onCountChange }) {
       setExhibitions(fetchedList);
       onCountChange(fetchedList.length);
     } catch (err) {
-      toast.error('Failed to load exhibitions');
+      console.error(err.response?.status, err.response?.data);
+      toast.error(err.response?.data?.message || 'Failed to load exhibitions');
     }
   }
 
@@ -47,19 +48,28 @@ export default function ExhibitionManagement({ onCountChange }) {
     try {
       if (editingId !== null) {
         const res = await axios.put(`/exhibitions/${editingId}`, payload);
-        
-        if (res && res.data) {
-          setExhibitions(exhibitions.map(item => item._id === editingId ? res.data : item));
-          toast.success('Exhibition updated successfully');
+        const saved = res.data?.exhibition ?? res.data;
+
+        if (saved && typeof saved === 'object' && saved._id) {
+          setExhibitions(exhibitions.map(item => item._id === editingId ? saved : item));
+        } else {
+          // 2xx but no saved record in the body: reload the server's truth
+          // rather than guessing.
+          await fetchExhibitions();
         }
+        toast.success('Exhibition updated successfully');
       } else {
         const res = await axios.post('/exhibitions', payload);
-        if (res && res.data) {
-          const updatedList = [...exhibitions, res.data];
+        const saved = res.data?.exhibition ?? res.data;
+
+        if (saved && typeof saved === 'object' && saved._id) {
+          const updatedList = [...exhibitions, saved];
           setExhibitions(updatedList);
           onCountChange(updatedList.length);
-          toast.success('Exhibition created successfully');
+        } else {
+          await fetchExhibitions();
         }
+        toast.success('Exhibition created successfully');
       }
 
       setTitle('');
@@ -69,10 +79,11 @@ export default function ExhibitionManagement({ onCountChange }) {
       setDescription('');
       setImageUrl('');
     } catch (err) {
-      console.error("Extension network interception bypassed:", err);
-      
-      fetchExhibitions();
-      toast.success('Exhibition updated (reloaded from database)');
+      // A rejected request is a failure: reload the real rows from the database
+      // and say so, rather than claiming the change was saved.
+      console.error('Failed to save exhibition:', err.response?.status, err.response?.data);
+      await fetchExhibitions();
+      toast.error(err.response?.data?.message || 'Failed to save exhibition');
     } finally {
       setEditingId(null);
     }
@@ -98,7 +109,7 @@ export default function ExhibitionManagement({ onCountChange }) {
       onCountChange(updatedList.length);
       toast.success('Exhibition removed successfully');
     } catch (err) {
-      toast.error('Failed to delete exhibition');
+      toast.error(err.response?.data?.message || 'Failed to delete exhibition');
     }
   }
 
@@ -126,15 +137,18 @@ export default function ExhibitionManagement({ onCountChange }) {
       </form>
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <caption className="visually-hidden">
+          Exhibitions, with start and end dates, status and row actions
+        </caption>
         <thead>
           <tr style={{ textAlign: 'left', borderBottom: '2px solid #ccc' }}>
-            <th>Name</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Status</th>
-            <th>Description</th>
-            <th>Image</th>
-            <th>Actions</th>
+            <th scope="col">Name</th>
+            <th scope="col">Start Date</th>
+            <th scope="col">End Date</th>
+            <th scope="col">Status</th>
+            <th scope="col">Description</th>
+            <th scope="col">Image</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -149,8 +163,8 @@ export default function ExhibitionManagement({ onCountChange }) {
                 {item.imageUrl && <img src={item.imageUrl} alt={item.title} className="exhibition-image" style={{ width: '50px', height: 'auto' }} />}
               </td>
               <td>
-                <button onClick={() => startEdit(item)} style={{ marginRight: '0.5rem' }}>Edit</button>
-                <button onClick={() => deleteExhibition(item._id)}>Delete</button>
+                <button type="button" onClick={() => startEdit(item)} aria-label={`Edit ${item.title}`} style={{ marginRight: '0.5rem' }}>Edit</button>
+                <button type="button" onClick={() => deleteExhibition(item._id)} aria-label={`Delete ${item.title}`}>Delete</button>
               </td>
             </tr>
           ))}

@@ -3,35 +3,74 @@ import { useParams, Link } from "react-router-dom";
 import axios from "../lib/axios.ts"; 
 import CollectionCard from "../components/CollectionCard";
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
+import usePageTitle from "../utils/usePageTitle";
 
 function CollectionDetail() {
   const { id } = useParams(); // Removed TypeScript generic brackets
   const [item, setItem] = useState(null);
   const [relatedCollections, setRelatedCollections] = useState([]);
   const [loading, setLoading] = useState(true);
+  // `notFound` is only ever set for a real 404; `error` covers every other
+  // failure (network, 500, timeout) so an outage cannot read as a deleted item.
+  const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  // The object's own name once it loads; "Collection" covers the fetch and the
+  // not-found state, both of which render before it exists.
+  usePageTitle(item ? item.title : "Collection");
 
   useEffect(() => {
-    const fetchItemAndRelated = async () => {
+    const fetchItem = async () => {
       if (!id) return;
       setLoading(true);
+      setError(false);
+      setNotFound(false);
       try {
         const itemResponse = await axios.get(`/collections/${id}`);
         setItem(itemResponse.data);
-
-        const listResponse = await axios.get("/collections");
-        const allItems = listResponse.data?.collections || (Array.isArray(listResponse.data) ? listResponse.data : []);
-        
-        const filteredRelated = allItems.filter((collection) => collection._id !== id);
-        setRelatedCollections(filteredRelated.slice(0, 2));
       } catch (err) {
         console.error("Error fetching collection detail from database:", err);
+        // Only the item request may clear the item.
         setItem(null);
+        if (err?.response?.status === 404) {
+          setNotFound(true);
+        } else {
+          setError(true);
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchItemAndRelated();
+    fetchItem();
+  }, [id, attempt]);
+
+  // Related items are a nice-to-have, so they are fetched separately: a failure
+  // here must never reach the code above and clear a valid item.
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+
+    const fetchRelated = async () => {
+      setRelatedCollections([]);
+      try {
+        const listResponse = await axios.get("/collections");
+        const allItems = listResponse.data?.collections || (Array.isArray(listResponse.data) ? listResponse.data : []);
+        if (cancelled) return;
+        const filteredRelated = allItems.filter((collection) => collection._id !== id);
+        setRelatedCollections(filteredRelated.slice(0, 2));
+      } catch (err) {
+        // Losing the suggestions costs only the suggestions.
+        console.warn("Error fetching related collection items:", err);
+      }
+    };
+
+    fetchRelated();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   if (loading) {
@@ -42,7 +81,23 @@ function CollectionDetail() {
     );
   }
 
-  if (!item) {
+  if (error) {
+    return (
+      <main className="state-error" role="alert">
+        <h1>Collection Item Unavailable</h1>
+        <p>We couldn't load this collection item right now. Please try again.</p>
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() => setAttempt((current) => current + 1)}
+        >
+          Try again
+        </button>
+      </main>
+    );
+  }
+
+  if (notFound || !item) {
     return (
       <main className="not-found" style={{ textAlign: "center", padding: "5rem 2rem" }}>
         <h1>Collection Item Not Found</h1>

@@ -1,6 +1,9 @@
 import { Link } from 'react-router'
+import usePageTitle from '../utils/usePageTitle'
 
 export default function BookingsPage() {
+  usePageTitle('Tickets and membership')
+
   return (
     <div className="booking-landing">
       <p className="eyebrow">A DAY OF DISCOVERY</p>

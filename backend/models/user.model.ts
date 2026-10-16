@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema<IUser>(
             type: String,
             required: [true, "Email is required"],
             unique: true,
+            // Without these three, " Jane@x.com " and "jane@x.com" were stored
+            // as written, so the unique index saw two different strings and one
+            // person could hold two accounts (and log in as whichever they
+            // typed). trim/lowercase normalise the value, the match rejects a
+            // string that is not an email at all.
+            trim: true,
+            lowercase: true,
+            match: [/^\S+@\S+\.\S+$/, "Invalid email"],
         },
         password: {
             type: String,

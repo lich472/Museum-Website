@@ -12,6 +12,7 @@ import {
 } from '../data/facilityMap';
 import { DEFAULT_VISITOR_INFO } from '../data/visitorInfo';
 import { apiFetch } from '../api/client';
+import usePageTitle from '../utils/usePageTitle';
 
 /** The short letter shown on a gallery's card, taken from its label. */
 function galleryLetter(room) {
@@ -30,6 +31,10 @@ function facilityGlyph(point) {
 }
 
 function Facilities() {
+  // Called before the loading/error early returns below, so the tab is named
+  // from the first render.
+  usePageTitle('Facilities');
+
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exhibitions, setExhibitions] = useState([]);
@@ -102,7 +107,7 @@ function Facilities() {
     });
   }, [selection]);
 
-  const { byRoomId, counts } = useMemo(
+  const { byRoomId, counts, unplaced } = useMemo(
     () => groupExhibitionsByRoom(exhibitions),
     [exhibitions]
   );
@@ -110,7 +115,12 @@ function Facilities() {
   if (loading) return <div className="state-loading">⏳ Loading…</div>;
   if (!info) return <div className="state-error">No data available.</div>;
 
-  const facilities = info.facilities || [];
+  // An empty list from the API must not wipe the map: `[] || fallback` keeps the
+  // empty array, which is exactly how a backend with empty defaults removed every
+  // facility card and every marker from this page.
+  const facilities = info.facilities?.length
+    ? info.facilities
+    : DEFAULT_VISITOR_INFO.facilities;
   const mapPoints = buildFacilityPoints(facilities, info.facilityLocations);
 
   const highlightedRoomId =
@@ -208,8 +218,11 @@ function Facilities() {
                   </p>
                   <ul className="gallery-panel-list">
                     {galleryExhibitions.map((exhibition) => (
-                      <li key={exhibition._id}>
-                        <Link to={`/exhibitions/${exhibition._id}`}>
+                      /* The fallback backend lists exhibitions with a numeric
+                         `id` instead of `_id`, so read both or the link ends up
+                         pointing at /exhibitions/undefined. */
+                      <li key={exhibition._id ?? exhibition.id}>
+                        <Link to={`/exhibitions/${exhibition._id ?? exhibition.id}`}>
                           {exhibition.title}
                         </Link>
                       </li>
@@ -276,6 +289,18 @@ function Facilities() {
             );
           })}
         </div>
+
+        {/* An exhibition whose `room` has no place on the plan is bucketed into
+            `unplaced` by groupExhibitionsByRoom rather than dropped silently, so
+            it is counted here instead of vanishing without trace. */}
+        {unplaced.length > 0 && (
+          <p className="page-hint">
+            {unplaced.length} exhibition{unplaced.length === 1 ? '' : 's'} in the
+            listings {unplaced.length === 1 ? 'has' : 'have'} no location on this
+            floor plan, so {unplaced.length === 1 ? 'it is' : 'they are'} not
+            shown in the galleries above.
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="facilities-list-heading" className="page-section">

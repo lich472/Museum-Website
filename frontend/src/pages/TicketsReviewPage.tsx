@@ -4,8 +4,12 @@ import { useBooking } from '../extraBooking/useBooking'
 import { detailErrors, validTickets } from '../extraBooking/bookingModel'
 import { createMockBooking } from '../extraBooking/bookingService'
 import BookingSummary from '../components/BookingSummary'
+import usePageTitle from '../utils/usePageTitle'
 
 export default function TicketsReviewPage() {
+  // The step's own <h1> comes from BookingLayout; the title names the step.
+  usePageTitle('Review your booking')
+
   const { draft } = useBooking()
   const navigate = useNavigate()
   const [pending, setPending] = useState(false)

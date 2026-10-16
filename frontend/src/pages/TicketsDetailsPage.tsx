@@ -4,8 +4,12 @@ import { useBooking } from '../extraBooking/useBooking'
 import { detailErrors, validTickets } from '../extraBooking/bookingModel'
 import type { Details } from '../extraBooking/bookingModel'
 import BookingSummary from '../components/BookingSummary'
+import usePageTitle from '../utils/usePageTitle'
 
 export default function TicketsDetailsPage() {
+  // The step's own <h1> comes from BookingLayout; the title names the step.
+  usePageTitle('Booking details')
+
   const { draft, setDraft } = useBooking()
   const navigate = useNavigate()
   const [errors, setErrors] = useState<Partial<Record<keyof Details, string>>>(

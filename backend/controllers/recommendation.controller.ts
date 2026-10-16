@@ -6,6 +6,23 @@ import Exhibition from "../models/exhibition.model.ts";
 const MAX_RECOMMENDATIONS = 4;
 
 /**
+ * Same mapping as `collection.controller.ts`. This endpoint is public and takes
+ * an id straight from the query string, so a CastError or ValidationError is
+ * the caller's mistake (400, generic message) rather than a 500 that hands the
+ * Mongoose message to an unauthenticated caller.
+ */
+function handleError(res: Response, error: any, label: string) {
+	if (error?.name === "ValidationError") {
+		return res.status(400).json({ message: error.message });
+	}
+	if (error?.name === "CastError") {
+		return res.status(400).json({ message: "Invalid exhibition id" });
+	}
+	console.error(`${label} error:`, error);
+	return res.status(500).json({ message: "Server error" });
+}
+
+/**
  * A recommended exhibition: the stored document, plus how many topics it shares
  * with the exhibition being viewed. The shared-* fields are present only on
  * topic matches, not on id-ordered fillers.
@@ -106,9 +123,6 @@ export const getRecommendations = async (req: Request, res: Response) => {
 
 		res.json({ recommendations: matching });
 	} catch (error) {
-		if (error instanceof Error) {
-			console.log("Error in getRecommendations controller", error.message);
-			res.status(500).json({ message: "Server error", error: error.message });
-		}
+		handleError(res, error, "getRecommendations");
 	}
 };

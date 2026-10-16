@@ -11,8 +11,13 @@ import {
 } from '../data/facilityMap';
 import { DEFAULT_VISITOR_INFO } from '../data/visitorInfo';
 import { apiFetch } from '../api/client';
+import usePageTitle from '../utils/usePageTitle';
 
 function Accessibility() {
+  // Called before the loading/error early returns below, so the tab is named
+  // from the first render.
+  usePageTitle('Accessibility');
+
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exhibitions, setExhibitions] = useState([]);
@@ -82,12 +87,26 @@ function Accessibility() {
     });
   }, [selection]);
 
-  const { counts } = useMemo(() => groupExhibitionsByRoom(exhibitions), [exhibitions]);
+  const { counts, unplaced } = useMemo(
+    () => groupExhibitionsByRoom(exhibitions),
+    [exhibitions]
+  );
 
   if (loading) return <div className="state-loading">⏳ Loading…</div>;
   if (!info) return <div className="state-error">No data available.</div>;
 
-  const acc = info.accessibility || {};
+  // A section that arrives empty must not replace the curated copy — the same
+  // trap as the facilities list. The boolean is taken as given, because `false`
+  // is a legitimate answer once an administrator has actually set it.
+  const apiAcc = info.accessibility || {};
+  const acc = {
+    wheelchairAccess:
+      apiAcc.wheelchairAccess ?? DEFAULT_VISITOR_INFO.accessibility.wheelchairAccess,
+    parking: apiAcc.parking || DEFAULT_VISITOR_INFO.accessibility.parking,
+    sensoryFriendlyHours:
+      apiAcc.sensoryFriendlyHours ||
+      DEFAULT_VISITOR_INFO.accessibility.sensoryFriendlyHours,
+  };
   const mapPoints = buildAccessibilityPoints(info.accessibilityPoints);
 
   /*
@@ -159,6 +178,18 @@ function Accessibility() {
             roomCounts={counts}
           />
         </div>
+
+        {/* groupExhibitionsByRoom collects exhibitions whose room is not on the
+            plan in `unplaced` rather than dropping them silently, so the ones
+            missing from the counts above are named here. */}
+        {unplaced.length > 0 && (
+          <p className="page-hint">
+            {unplaced.length} exhibition{unplaced.length === 1 ? '' : 's'} in the
+            listings {unplaced.length === 1 ? 'has' : 'have'} no location on this
+            floor plan, so {unplaced.length === 1 ? 'it is' : 'they are'} not
+            counted on the map above.
+          </p>
+        )}
 
         <div
           ref={detailRef}

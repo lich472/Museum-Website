@@ -37,7 +37,17 @@ function Navbar() {
 
         <div className="museum-logo">
           <Link to="/">
-            <h2>Regional Museum</h2>
+            {/*
+              Was an <h2>, which made the navbar logo the first heading on
+              every route and pushed the outline to h2 → h1 before the page's
+              own <h1> was even reached. It is decorative branding, not a
+              section of the document, so it is a plain <span> now.
+
+              The 24px size is inline because it used to come from
+              `.museum-logo h2` in App.css; a <p> here would instead match
+              `.museum-logo p` (12px, letterspaced) and shrink the logo.
+            */}
+            <span style={{ fontSize: "24px" }}>Regional Museum</span>
             <p>History • Culture • Discovery</p>
           </Link>
         </div>

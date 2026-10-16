@@ -6,6 +6,7 @@ import ExhibitionCard from "../components/ExhibitionCard";
 import { apiFetch } from "../api/client";
 import { formatDateLong, formatDateRangeLong } from "../utils/date";
 import { findRoomByLabel } from "../data/facilityMap";
+import usePageTitle from "../utils/usePageTitle";
 
 /** An exhibition suggested as similar, plus why it was suggested. */
 type Recommendation = IExhibition & {
@@ -39,30 +40,46 @@ function readRecommendations(payload: unknown): Recommendation[] {
   );
 }
 
+/** A load failure: a real 404, or anything else (network, 500, timeout). */
+type LoadError = "not-found" | "failed";
+
+/** Only an HTTP 404 means the exhibition is missing; everything else is an outage. */
+function isNotFound(err: unknown): boolean {
+  return (err as { response?: { status?: number } } | null)?.response?.status === 404;
+}
+
 function ExhibitionDetail() {
   const { id } = useParams(); // MongoDB uses string ObjectIds (no type assertion required)
   const [exhibition, setExhibition] = useState<IExhibition | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LoadError | null>(null);
+  const [attempt, setAttempt] = useState<number>(0);
+
+  // The placeholder is what the tab shows while the fetch is in flight and if
+  // the exhibition is missing; the record's own name replaces it on success.
+  usePageTitle(exhibition ? exhibition.title : "Exhibition");
 
   useEffect(() => {
     const fetchExhibition = async () => {
       try {
         setLoading(true);
+        setError(null);
         const response = await axios.get<IExhibition>(`/exhibitions/${id}`);
         setExhibition(response.data);
-        setError(null);
       } catch (err) {
         console.error("Error fetching exhibition detail:", err);
-        setError("Exhibition Not Found");
+        setExhibition(null);
+        // "Not found" is reserved for a 404; any other failure is retryable and
+        // must not claim the exhibition does not exist.
+        setError(isNotFound(err) ? "not-found" : "failed");
       } finally {
         setLoading(false);
       }
     };
 
     if (id) fetchExhibition();
-  }, [id]);
+  }, [id, attempt]);
 
   // Recommendations are a nice-to-have, so they are fetched separately: if this
   // request fails the exhibition itself still renders.
@@ -97,7 +114,26 @@ function ExhibitionDetail() {
     );
   }
 
-  if (error || !exhibition) {
+  if (error === "failed") {
+    return (
+      <main className="state-error" role="alert">
+        <h1>Exhibition Unavailable</h1>
+        <p>We couldn't load this exhibition right now. Please try again.</p>
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() => setAttempt((current) => current + 1)}
+        >
+          Try again
+        </button>
+        <p>
+          <Link to="/exhibitions">← Back to Exhibitions</Link>
+        </p>
+      </main>
+    );
+  }
+
+  if (error === "not-found" || !exhibition) {
     return (
       <main className="not-found">
         <h1>Exhibition Not Found</h1>

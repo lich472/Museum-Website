@@ -24,6 +24,7 @@ import type { Profile } from './membershipService'
 import { testDetails } from './membershipMockData'
 import CardPaymentFields from './CardPaymentFields'
 import StatusIcon from '../../components/StatusIcon'
+import usePageTitle from '../../utils/usePageTitle'
 
 const date = (value: string) =>
   new Date(value).toLocaleDateString('en-AU', {
@@ -105,6 +106,7 @@ function Summary() {
   )
 }
 export function MemberPlanPage() {
+  usePageTitle('Membership')
   const { account } = useMembership()
   return (
     <div className="booking-columns">
@@ -291,27 +293,33 @@ function DetailsForm({ standalone = false }: { standalone?: boolean }) {
           continuing.
         </p>
       )}
-      <div className="member-test-fill">
-        <button
-          type="button"
-          className="test-fill"
-          disabled={busy}
-          onClick={fillTestDetails}
-        >
-          Fill test details
-        </button>
-        {filled && (
-          <p className="field-help" role="status">
-            Test details filled. You can edit them before continuing.
-            {!account && (
-              <>
-                {' '}
-                Password: <strong>{testPassword}</strong>
-              </>
-            )}
-          </p>
-        )}
-      </div>
+      {/* Development-only: fills the form from membershipMockData. Gated the
+          same way as the booking form's test-fill button
+          (pages/TicketsDetailsPage.tsx) so a production build ships no control
+          that types known credentials into a real sign-in form. */}
+      {import.meta.env.DEV && (
+        <div className="member-test-fill">
+          <button
+            type="button"
+            className="test-fill"
+            disabled={busy}
+            onClick={fillTestDetails}
+          >
+            Fill test details
+          </button>
+          {filled && (
+            <p className="field-help" role="status">
+              Test details filled. You can edit them before continuing.
+              {!account && (
+                <>
+                  {' '}
+                  Password: <strong>{testPassword}</strong>
+                </>
+              )}
+            </p>
+          )}
+        </div>
+      )}
       <ProfileFields profile={account} />
       {!account && (
         <>
@@ -374,6 +382,7 @@ function DetailsForm({ standalone = false }: { standalone?: boolean }) {
   )
 }
 export function MemberCheckoutPage() {
+  usePageTitle('Your details')
   const { account } = useMembership()
   return (
     <div className="booking-columns">
@@ -383,6 +392,7 @@ export function MemberCheckoutPage() {
   )
 }
 export function RegisterPage() {
+  usePageTitle('Create an account')
   const { account } = useMembership()
   if (account) return <Navigate to="/account" replace />
   return (
@@ -399,6 +409,7 @@ export function RegisterPage() {
   )
 }
 export function MemberPaymentPage() {
+  usePageTitle('Membership payment')
   const { account, refresh } = useMembership()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -482,6 +493,7 @@ export function MemberPaymentPage() {
   )
 }
 export function MemberConfirmationPage() {
+  usePageTitle('Membership confirmed')
   const { account } = useMembership()
   const { reference } = useParams()
   const order = account?.orders.find((o) => o.id === reference)
@@ -528,6 +540,7 @@ export function MemberConfirmationPage() {
   )
 }
 export function AccountPage() {
+  usePageTitle('Your museum account')
   const { account, signOut, openLogin, refresh } = useMembership()
   const [tab, setTab] = useState('Overview')
   const [message, setMessage] = useState('')
@@ -709,6 +722,7 @@ export function LoginPage() {
 }
 
 export function TicketReceiptPage() {
+  usePageTitle('Ticket receipt')
   const { account } = useMembership()
   const { reference } = useParams()
   const order = account?.ticketOrders.find((ticket) => ticket.id === reference)

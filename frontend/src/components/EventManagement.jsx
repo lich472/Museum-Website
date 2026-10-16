@@ -118,7 +118,7 @@ export default function EventManagement({ onStatsChange }) {
       reportStats(updatedList);
       toast.success('Event removed successfully');
     } catch (err) {
-      toast.error('Failed to delete event');
+      toast.error(err.response?.data?.message || 'Failed to delete event');
     }
   }
 
@@ -153,15 +153,18 @@ export default function EventManagement({ onStatsChange }) {
       </form>
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <caption className="visually-hidden">
+          Events, with dates, type, capacity and row actions
+        </caption>
         <thead>
           <tr style={{ textAlign: 'left', borderBottom: '2px solid #ccc' }}>
-            <th>Name</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Image</th>
-            <th>Actions</th>
+            <th scope="col">Name</th>
+            <th scope="col">Start Date</th>
+            <th scope="col">End Date</th>
+            <th scope="col">Type</th>
+            <th scope="col">Description</th>
+            <th scope="col">Image</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -176,8 +179,8 @@ export default function EventManagement({ onStatsChange }) {
                 {item.imageUrl && <img src={item.imageUrl} alt={item.title} className="event-image" style={{ width: '50px', height: 'auto' }} />}
               </td>
               <td>
-                <button type="button" onClick={() => startEdit(item)} style={{ marginRight: '0.5rem' }}>Edit</button>
-                <button type="button" onClick={() => deleteEvent(item._id)}>Delete</button>
+                <button type="button" onClick={() => startEdit(item)} aria-label={`Edit ${item.title}`} style={{ marginRight: '0.5rem' }}>Edit</button>
+                <button type="button" onClick={() => deleteEvent(item._id)} aria-label={`Delete ${item.title}`}>Delete</button>
               </td>
             </tr>
           ))}

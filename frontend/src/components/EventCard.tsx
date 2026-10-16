@@ -14,17 +14,19 @@ interface EventCardProps {
  * classes rather than the inline styles the P5 version used, so the events grid
  * matches the exhibitions grid.
  *
- * Note on availability: `spotRemaining` is a real field on the Event schema (the
- * main branch added it), so this shows the stored value. It is a number an admin
- * sets rather than something the system recalculates, so once event registration
- * is implemented it should be kept in step with `capacity - registrations`.
+ * Note on availability: events reach the frontend in two shapes. The TypeScript
+ * backend sends `spotRemaining` and an ObjectId `_id`; `backend-fallback/`
+ * sends `spotsRemaining` and a numeric `id`. Both are read here, and `capacity`
+ * is only the last resort — reading `capacity` alone made a sold-out fallback
+ * event report full availability.
  */
 function EventCard({ event, number }: EventCardProps) {
-  const spotsLeft = event.spotRemaining ?? event.capacity;
-  const soldOut = spotsLeft <= 0;
+  const data = event as IEvent & { spotsRemaining?: number; id?: string | number };
+  const left = data.spotRemaining ?? data.spotsRemaining ?? data.capacity;
+  const soldOut = left <= 0;
   const spotsColor = soldOut
     ? "text-red-600"
-    : spotsLeft <= 5
+    : left <= 5
     ? "text-orange-500"
     : "text-green-600";
 
@@ -55,7 +57,7 @@ function EventCard({ event, number }: EventCardProps) {
         <h3>{event.title}</h3>
 
         <p className={`text-sm font-semibold ${spotsColor}`}>
-          {soldOut ? "Fully booked" : `${spotsLeft} spots left`}
+          {soldOut ? "Fully booked" : `${left} spots left`}
         </p>
 
         {/* Long form with the start time; main's detail page uses the same form. */}
@@ -71,7 +73,7 @@ function EventCard({ event, number }: EventCardProps) {
         <p className="exhibition-description">{description}</p>
 
         <Link
-          to={`/events/${event._id}`}
+          to={`/events/${data._id ?? data.id}`}
           className="discover-link"
         >
           Discover event →

@@ -15,6 +15,14 @@
  *
  * Note this hides Google's own attribution UI. The site still offers both
  * directions of switching through its own dropdown.
+ *
+ * Nothing is hidden on the strength of the `googtrans` cookie alone. That cookie
+ * is written by the site's own dropdown, before — and whether or not — the
+ * widget ever loads, so where translate.google.com is unreachable (see the
+ * comment on the script tag in `index.html`) it proves nothing. Suppression
+ * waits for a signal only Google can give: the `translated-ltr` / `translated-rtl`
+ * class it puts on `<html>` when it really translates. A requested translation
+ * that never arrives is reported instead of hidden.
  */
 
 /** Anything stacked this high at the top of the page is Google's bar. */
@@ -23,15 +31,45 @@ const MIN_BANNER_Z_INDEX = 10000000;
 /** How long to keep re-checking after translation starts, in 500ms ticks. */
 const RETRY_TICKS = 20;
 
-/** Is a translation actually in effect? Cheap enough to call on every tick. */
-function isTranslating() {
-  const html = document.documentElement;
+/**
+ * Latched once Google has been OBSERVED to translate. It marks `<html>` with
+ * `translated-ltr` / `translated-rtl` only when it really has, and keeps the
+ * class while the translation is in effect.
+ *
+ * The `googtrans` cookie deliberately does NOT count: the site's own dropdown
+ * writes it before — and regardless of whether — the widget loads, so treating
+ * it as proof suppressed the banner for a translation that never happened.
+ */
+let translationObserved = false;
 
-  return (
-    html.classList.contains("translated-ltr") ||
-    html.classList.contains("translated-rtl") ||
-    // Set before the translator has finished, so it catches the early phase.
-    /(?:^|;\s*)googtrans=\/en\/(?!en)/.test(document.cookie)
+/** Did the visitor ask for a translation? The site's own cookie says so. */
+function translationRequested() {
+  return /(?:^|;\s*)googtrans=\/en\/(?!en)/.test(document.cookie);
+}
+
+/** Is a translation actually in effect? Only Google's own marker counts. */
+function isTranslating() {
+  if (!translationObserved) {
+    const html = document.documentElement;
+
+    translationObserved =
+      html.classList.contains("translated-ltr") ||
+      html.classList.contains("translated-rtl");
+  }
+
+  return translationObserved;
+}
+
+/**
+ * Report a translation that was asked for and never arrived, rather than
+ * leaving the page looking as though it had been translated (or hiding a bar
+ * that was never there).
+ */
+function reportMissingTranslation() {
+  console.warn(
+    "[google-translate] a translation was requested but Google never translated this " +
+      "page (no translated-ltr/translated-rtl on <html>). The page is still in English " +
+      "and nothing was hidden. Check that translate.google.com is reachable."
   );
 }
 
@@ -46,7 +84,7 @@ function looksLikeGoogleBar(element) {
 }
 
 function hideBanners() {
-  // Do nothing at all while the page is simply English.
+  // Do nothing at all until Google has really translated the page.
   if (!isTranslating()) return;
 
   // "div, iframe" covers the bar wherever Google nests it, and keeps this far
@@ -77,7 +115,16 @@ export function suppressGoogleTranslateBanner() {
     const timer = window.setInterval(() => {
       hideBanners();
       ticks += 1;
-      if (ticks >= RETRY_TICKS) window.clearInterval(timer);
+      if (ticks >= RETRY_TICKS) {
+        window.clearInterval(timer);
+
+        // The widget has had its chance. If a translation was requested and
+        // Google never applied one, say so: the alternative — saying nothing —
+        // is what made a dead translator look like a working one.
+        if (translationRequested() && !isTranslating()) {
+          reportMissingTranslation();
+        }
+      }
     }, 500);
   };
 

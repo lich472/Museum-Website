@@ -1,15 +1,29 @@
 import Event from "../models/event.model.ts";
 import { Request, Response } from "express";
 
+/**
+ * The same mapping `collection.controller.ts` uses: a ValidationError or a
+ * CastError means the request was wrong, so it is answered with 400 and a
+ * generic message. Everything else is a real server fault and is logged and
+ * reported as 500 without leaking the Mongoose text to the caller.
+ */
+function handleError(res: Response, error: any, label: string) {
+	if (error?.name === "ValidationError") {
+		return res.status(400).json({ message: error.message });
+	}
+	if (error?.name === "CastError") {
+		return res.status(400).json({ message: "Invalid event id" });
+	}
+	console.error(`${label} error:`, error);
+	return res.status(500).json({ message: "Server error" });
+}
+
 export const getAllEvent = async (req: Request, res: Response) => {
 	try {
 		const events = await Event.find({}); // find all Event
 		res.json({ events });
 	} catch (error) {
-		if(error instanceof Error){
-			console.log("Error in getAllEvent controller", error.message);
-			res.status(500).json({ message: "Server error", error: error.message });
-		}
+		handleError(res, error, "getAllEvent");
 	}
 };
 
@@ -31,10 +45,7 @@ export const createEvent = async (req: Request, res: Response) => {
 
 		res.status(201).json(event);
 	} catch (error) {
-		if(error instanceof Error){
-			console.log("Error in createEvent controller", error.message);
-			res.status(500).json({ message: "Server error", error: error.message });
-		}
+		handleError(res, error, "createEvent");
 	}
 };
 
@@ -50,10 +61,7 @@ export const deleteEvent = async (req: Request, res: Response) => {
 
 		res.json({ message: "Event deleted successfully" });
 	} catch (error) {
-		if(error instanceof Error){
-			console.log("Error in deleteEvent controller", error.message);
-			res.status(500).json({ message: "Server error", error: error.message });
-		}
+		handleError(res, error, "deleteEvent");
 	}
 };
 
@@ -67,10 +75,7 @@ export const getEventById = async (req: Request, res: Response) => {
 
     res.status(200).json(event);
   } catch (error) {
-	if(error instanceof Error){
-    	console.error("Error fetching event:", error);
-    	res.status(500).json({ message: "Error fetching event", error: error.message });
-	}
+	handleError(res, error, "getEventById");
   }
 };
 
@@ -98,7 +103,10 @@ export const updateEvent = async (req: Request, res: Response) => {
             type, 
             capacity,
 			location },
-			{ new: true } 
+			// runValidators: without it Mongoose skipped required/enum checking on
+			// update, so a `type` outside the schema enum was stored as-is and only
+			// surfaced later as a broken document.
+			{ new: true, runValidators: true } 
 		);
 
 		if (!updatedEvent) {
@@ -107,9 +115,6 @@ export const updateEvent = async (req: Request, res: Response) => {
 
 		res.json(updatedEvent);
 	} catch (error) {
-		if (error instanceof Error) {
-			console.log("Error in updateEvent controller", error.message);
-			res.status(500).json({ message: "Server error", error: error.message });
-		}
+		handleError(res, error, "updateEvent");
 	}
 };

@@ -2,17 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from '../lib/axios';
 import { eventDate, eventTime } from '../utils/date';
+import usePageTitle from '../utils/usePageTitle';
 
 /**
  * Places still available on an event.
  *
- * The schema field is `spotRemaining` (singular); this page used to read
- * `spotsRemaining`, which never existed, so the number always came out
- * undefined. Falls back to capacity if the field is ever missing.
+ * Events reach the frontend in two shapes: the TypeScript backend sends
+ * `spotRemaining`, while `backend-fallback/server.js` sends `spotsRemaining`
+ * (with a numeric `id`). Both are read, and `capacity` is only the last resort
+ * — reading `capacity` alone made a sold-out fallback event look available.
  */
-const placesLeft = (event) => event?.spotRemaining ?? event?.capacity ?? 0;
+const placesLeft = (event) =>
+  event?.spotRemaining ?? event?.spotsRemaining ?? event?.capacity ?? 0;
+
+/**
+ * The guest count as a number, for the places that need arithmetic or a JSON
+ * body. `formData.numGuests` itself holds exactly what was typed, so the field
+ * never rewrites the visitor's input under them.
+ */
+const guestCount = (value) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : NaN;
+};
 
 function EventRegister() {
+  usePageTitle('Register for an event');
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -47,17 +62,22 @@ function EventRegister() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Store exactly what was typed, including "0" and "". Coercing here (the
+    // old parseInt-with-a-fallback-to-1) silently turned a typed 0 into 1, so
+    // the guest count that was submitted could differ from the one on screen.
+    // Coercion happens in validate(), where a bad value is reported.
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'numGuests' ? parseInt(value, 10) || 1 : value,
+      [name]: value,
     }));
   };
 
   const validate = () => {
     if (!formData.visitorName.trim()) return 'Please enter your name';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return 'Please enter a valid email';
-    if (formData.numGuests < 1) return 'At least 1 guest is required';
-    if (event && formData.numGuests > placesLeft(event)) {
+    const guests = guestCount(formData.numGuests);
+    if (!Number.isFinite(guests) || guests < 1) return 'At least 1 guest is required';
+    if (event && guests > placesLeft(event)) {
       return `Only ${placesLeft(event)} place(s) left for this event`;
     }
     return null;
@@ -75,7 +95,12 @@ function EventRegister() {
     setError(null);
 
     try {
-      const response = await axios.post(`/events/${id}/register`, formData);
+      // numGuests is sent as a number: formData keeps the typed string so the
+      // input is never rewritten, but the API expects a numeric field.
+      const response = await axios.post(`/events/${id}/register`, {
+        ...formData,
+        numGuests: guestCount(formData.numGuests),
+      });
       const data = response.data;
 
       if (!data?.success) throw new Error(data?.message || 'Registration failed');
@@ -220,12 +245,26 @@ function EventRegister() {
           : `✅ ${remaining} of ${event.capacity} place(s) remaining.`}
       </div>
 
-      <form onSubmit={handleSubmit}>
+      {/*
+        noValidate, deliberately: the email and guest-count checks in validate()
+        could never run while the browser's own constraint validation cancelled
+        the submit event first — `type="email"` and `min="1" max={remaining}`
+        did exactly that, so the accessible role="alert" message below never
+        appeared and the browser showed its own bubble instead. Submitting is
+        therefore always allowed, and validate() reports the problem in that
+        alert. The input types stay: they still give the right keyboard and
+        number spinner.
+      */}
+      <form onSubmit={handleSubmit} noValidate>
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+          <label
+            htmlFor="register-visitor-name"
+            style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}
+          >
             Your Name *
           </label>
           <input
+            id="register-visitor-name"
             type="text"
             name="visitorName"
             value={formData.visitorName}
@@ -237,10 +276,14 @@ function EventRegister() {
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+          <label
+            htmlFor="register-email"
+            style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}
+          >
             Email *
           </label>
           <input
+            id="register-email"
             type="email"
             name="email"
             value={formData.email}
@@ -252,10 +295,14 @@ function EventRegister() {
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
+          <label
+            htmlFor="register-num-guests"
+            style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}
+          >
             Number of Guests *
           </label>
           <input
+            id="register-num-guests"
             type="number"
             name="numGuests"
             min="1"
