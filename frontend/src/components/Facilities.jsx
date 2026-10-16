@@ -8,6 +8,7 @@ import {
   findRoomByLabel,
   groupExhibitionsByRoom,
   readExhibitionList,
+  roomIcon,
 } from '../data/facilityMap';
 import { DEFAULT_VISITOR_INFO } from '../data/visitorInfo';
 import { apiFetch } from '../api/client';
@@ -15,6 +16,17 @@ import { apiFetch } from '../api/client';
 /** The short letter shown on a gallery's card, taken from its label. */
 function galleryLetter(room) {
   return room.label.replace(/^Gallery\s+/i, '');
+}
+
+/**
+ * The glyph for a facility.
+ *
+ * The card grid and the detail panel both call this, so one place cannot show
+ * two different symbols — which it did while the cards used their own map and
+ * the panel used another.
+ */
+function facilityGlyph(point) {
+  return FACILITY_CARD_ICONS[point?.name] || '📍';
 }
 
 function Facilities() {
@@ -108,8 +120,27 @@ function Facilities() {
         ? selection.point.roomId
         : undefined;
 
-  const galleryExhibitions =
-    selection?.kind === 'room' ? byRoomId[selection.room.id] ?? [] : [];
+  /*
+   * A facility card and the room it sits in are two views of one place, so they
+   * resolve to the same selection.
+   *
+   * They did not before: the card carried the description and the room did not,
+   * so clicking the Café room on the map answered "Part of the ground floor
+   * layout." while clicking the Café card answered with the café's own
+   * description. The card grid and the panel both key off `currentFacility`, so
+   * one place can no longer show two different answers, or highlight in only one
+   * of the two places.
+   */
+  const currentFacility =
+    selection?.kind === 'facility'
+      ? selection.point
+      : selection?.kind === 'room'
+        ? mapPoints.find((point) => point.roomId === selection.room.id) ?? null
+        : null;
+
+  const selectedRoom = selection?.kind === 'room' ? selection.room : null;
+
+  const galleryExhibitions = selectedRoom ? byRoomId[selectedRoom.id] ?? [] : [];
 
   const selectRoom = (room) => setSelection({ kind: 'room', room });
   const selectFacility = (point) => setSelection({ kind: 'facility', point });
@@ -147,13 +178,25 @@ function Facilities() {
           role="status"
           aria-live="polite"
         >
-          {selection?.kind === 'room' ? (
+          {currentFacility ? (
+            /* Both routes to a facility land here: its card, and its room. */
             <>
               <div className="selection-detail-header">
                 <span className="selection-detail-icon" aria-hidden="true">
-                  🗺
+                  {facilityGlyph(currentFacility)}
                 </span>
-                <h3 className="selection-detail-title">{selection.room.label}</h3>
+                <h3 className="selection-detail-title">{currentFacility.name}</h3>
+              </div>
+              <p className="selection-detail-body">{currentFacility.description}</p>
+              <p className="selection-detail-meta">Ground Floor · Main Building</p>
+            </>
+          ) : selectedRoom ? (
+            <>
+              <div className="selection-detail-header">
+                <span className="selection-detail-icon" aria-hidden="true">
+                  {roomIcon(selectedRoom)}
+                </span>
+                <h3 className="selection-detail-title">{selectedRoom.label}</h3>
               </div>
 
               {galleryExhibitions.length > 0 ? (
@@ -177,23 +220,12 @@ function Facilities() {
                 <p className="selection-detail-body">
                   {!exhibitionsLoaded
                     ? 'Exhibition listings are unavailable right now.'
-                    : selection.room.kind === 'gallery'
+                    : selectedRoom.kind === 'gallery'
                       ? 'No exhibitions are currently listed in this gallery.'
                       : 'Part of the ground floor layout.'}
                 </p>
               )}
 
-              <p className="selection-detail-meta">Ground Floor · Main Building</p>
-            </>
-          ) : selection?.kind === 'facility' ? (
-            <>
-              <div className="selection-detail-header">
-                <span className="selection-detail-icon" aria-hidden="true">
-                  {FACILITY_CARD_ICONS[selection.point.name] || '📍'}
-                </span>
-                <h3 className="selection-detail-title">{selection.point.name}</h3>
-              </div>
-              <p className="selection-detail-body">{selection.point.description}</p>
               <p className="selection-detail-meta">Ground Floor · Main Building</p>
             </>
           ) : (
@@ -250,8 +282,10 @@ function Facilities() {
         <h2 id="facilities-list-heading">All Facilities</h2>
         <div className="facility-icon-grid">
           {mapPoints.map((point) => {
-            const isSelected =
-              selection?.kind === 'facility' && selection.point.id === point.id;
+            // A room selection that resolves to this facility counts as selected
+            // too, so clicking the room and clicking the card light up the same
+            // card.
+            const isSelected = currentFacility?.id === point.id;
 
             return (
               <button
@@ -262,7 +296,7 @@ function Facilities() {
                 aria-pressed={isSelected}
               >
                 <span className="icon" aria-hidden="true">
-                  {FACILITY_CARD_ICONS[point.name] || '📍'}
+                  {facilityGlyph(point)}
                 </span>
                 <span className="label">{point.name}</span>
               </button>

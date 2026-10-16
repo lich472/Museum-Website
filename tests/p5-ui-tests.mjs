@@ -9,38 +9,168 @@
 // non-UI step is the database read at the end, which proves the UI action
 // persisted.
 //
-// Run from the repository root with the backend, the frontend and a Chrome that
-// has a debugging port all already running:
+// TWO MODES
 //
-//     cd backend && npm run dev
-//     cd frontend && npm run dev
-//     chrome --headless=new --remote-debugging-port=9222 --user-data-dir=/tmp/p5 about:blank
-//     node tests/p5-ui-tests.mjs
+//   node tests/p5-ui-tests.mjs            headless, as fast as it can go
+//   node tests/p5-ui-tests.mjs --watch    a visible browser, paced, with the
+//                                         element about to be clicked outlined
+//                                         in red and a banner naming the case
 //
-// CDP_PORT overrides the debugging port (default 9222); SHOT_DIR chooses where
-// the screenshots and results.json are written.
+// Use --watch when you want to SEE the test run (a demo, or checking by eye what
+// the assertions claim). Use the default for repeat runs.
+//
+// WHAT IT NEEDS RUNNING
+//
+//     cd backend && npm run dev      # port 5001
+//     cd frontend && npm run dev     # port 5173
+//
+// Chrome it starts itself. In --watch it uses a visible window on port 9223; in
+// headless mode port 9222. Separate ports on purpose: a headless instance left
+// over from an earlier run would otherwise be reused by --watch, and you would
+// be watching a browser with no window.
+//
+// The working directory does not matter — the database credentials are resolved
+// from this file's location, not from the cwd.
+//
+// CDP_PORT overrides the debugging port; SHOT_DIR chooses where the screenshots
+// and results.json are written; PACE_MS overrides the pause between steps in
+// watch mode (default 900).
 //
 // It registers a real visitor against whatever MONGO_URI points at, then deletes
 // that registration and returns the places it took, so re-running leaves no
 // residue. An interrupted run can leave a row behind: delete registrations whose
 // email is TEST_EMAIL below.
+
+//& "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" --headless=new --disable-gpu --remote-debugging-port=9222 --user-data-dir="$env:TEMP\p5-ui-chrome" about:blank
+//node tests/p5-ui-tests.mjs
+
+
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { MongoClient } from 'mongodb';
+
+// ---------------------------------------------------------------- watch mode
+// --watch trades speed for being able to follow what happens: a visible window,
+// a pause before each action, the next target outlined on the page, and a banner
+// naming the current case.
+const WATCH = process.argv.includes('--watch') || process.env.WATCH === '1';
+const PACE = WATCH ? Number(process.env.PACE_MS ?? 900) : 0;
+const PORT = Number(process.env.CDP_PORT ?? (WATCH ? 9223 : 9222));
 
 // Read the DevTools port from the environment instead of rewriting this file:
 // rewriting it with PowerShell's Set-Content -Encoding UTF8 corrupts the CJK
 // strings below (PowerShell 5.1 writes a BOM and re-encodes them wrongly).
-const CDP = `http://127.0.0.1:${process.env.CDP_PORT ?? 9222}`;
+const CDP = `http://127.0.0.1:${PORT}`;
 const SITE = 'http://localhost:5173';
-const OUT = process.env.SHOT_DIR ?? '.';
+const API = 'http://127.0.0.1:5001/api';
+// Screenshots and results.json land here. The default sits next to this file
+// (tests/.artifacts, gitignored) so a run never litters the repository root.
+const OUT =
+  process.env.SHOT_DIR ?? path.join(path.dirname(fileURLToPath(import.meta.url)), '.artifacts');
+fs.mkdirSync(OUT, { recursive: true });
 const TEST_EMAIL = 'p5-ui-check@example.org';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// --------------------------------------------------------------- preflight
+// Check the three things the suite needs before doing anything, and start
+// Chrome itself if that is the only thing missing. A bare ECONNREFUSED on the
+// debugging port is not a useful error for someone who just wants to run tests.
+const reachable = async (url) => {
+  try {
+    await fetch(url, { signal: AbortSignal.timeout(2500) });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const CHROME_CANDIDATES = [
+  process.env.CHROME_PATH,
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+  '/usr/bin/google-chrome',
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+].filter(Boolean);
+
+const frontendUp = await reachable(SITE);
+const backendUp = await reachable(`${API}/events`);
+let chromeUp = await reachable(`${CDP}/json/version`);
+let launchedChrome = null;
+
+if (!chromeUp) {
+  const browser = CHROME_CANDIDATES.find((candidate) => fs.existsSync(candidate));
+  if (browser) {
+    // Its own profile: with a profile that is already in use, Chrome hands the
+    // request to the running instance and silently drops the debugging port.
+    const profile = path.join(os.tmpdir(), WATCH ? 'p5-ui-chrome-watch' : 'p5-ui-chrome');
+    launchedChrome = spawn(
+      browser,
+      [
+        // No --headless in watch mode, so there is a window to look at.
+        ...(WATCH ? [] : ['--headless=new']),
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-default-browser-check',
+        `--remote-debugging-port=${PORT}`,
+        `--user-data-dir=${profile}`,
+        '--window-size=1280,1000',
+        '--window-position=60,40',
+        'about:blank',
+      ],
+      { stdio: 'ignore' }
+    );
+    for (let attempt = 0; attempt < 60 && !chromeUp; attempt += 1) {
+      await sleep(250);
+      chromeUp = await reachable(`${CDP}/json/version`);
+    }
+  }
+}
+
+console.log(WATCH ? 'WATCH MODE — a browser window will open and the run is paced.' : '');
+console.log('Preflight');
+console.log(`  frontend  ${SITE.padEnd(26)} ${frontendUp ? 'ok' : 'NOT RUNNING'}`);
+console.log(`  backend   ${`${API}/events`.padEnd(26)} ${backendUp ? 'ok' : 'NOT RUNNING'}`);
+console.log(
+  `  chrome    ${CDP.padEnd(26)} ${
+    chromeUp
+      ? launchedChrome
+        ? `ok (started by this script${WATCH ? ', visible' : ', headless'})`
+        : 'ok (already running)'
+      : 'NOT AVAILABLE'
+  }`
+);
+console.log('');
+
+if (!frontendUp || !backendUp || !chromeUp) {
+  console.log('Cannot run the tests yet.\n');
+  if (!backendUp) console.log('  backend:   cd backend    then  npm run dev');
+  if (!frontendUp) console.log('  frontend:  cd frontend   then  npm run dev');
+  if (!chromeUp) {
+    console.log('  chrome:    none found to start automatically. Start one yourself:');
+    console.log('');
+    console.log(
+      `    chrome --remote-debugging-port=${PORT} --user-data-dir="${path.join(os.tmpdir(), 'p5-ui-chrome')}" about:blank`
+    );
+    console.log('');
+    console.log('  If Chrome lives somewhere unusual, set CHROME_PATH to its executable.');
+  }
+  console.log('\n  Both `npm run dev` commands need a few seconds before the port answers.');
+  process.exit(1);
+}
+
 // ---------------------------------------------------------------- CDP plumbing
 const targets = await (await fetch(`${CDP}/json`)).json();
 const page = targets.find((t) => t.type === 'page');
-if (!page) { console.log('No Chrome page target.'); process.exit(1); }
+if (!page) {
+  console.log('Chrome is listening but has no page target — is it still starting up?');
+  process.exit(1);
+}
 
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 let nextId = 0;
@@ -74,10 +204,35 @@ const waitFor = async (expression, label, timeout = 20000) => {
 await send('Page.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 1000, deviceScaleFactor: 1, mobile: false });
 
+// ------------------------------------------------------------ watch helpers
+// A banner pinned to the top of the page saying which case is running, and an
+// outline on whatever is about to be clicked. Both are page DOM, so a
+// navigation wipes them and goto() puts the banner back.
+let currentLabel = '';
+
+const banner = async (label) => {
+  currentLabel = label;
+  if (!WATCH) return;
+  await evaluate(`(() => {
+    let el = document.getElementById('p5-banner');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'p5-banner';
+      el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+        'background:#111827;color:#fff;font:600 15px/1.5 system-ui,sans-serif;' +
+        'padding:11px 18px;box-shadow:0 2px 12px rgba(0,0,0,.35)';
+      document.body.appendChild(el);
+    }
+    el.textContent = ${JSON.stringify(`▶ ${label}`)};
+  })()`).catch(() => {});
+};
+
 const goto = async (path) => {
+  await sleep(PACE);
   await send('Page.navigate', { url: `${SITE}${path}` });
   await waitFor(`document.readyState === 'complete'`, 'page load');
   await sleep(1200); // let the data fetch settle
+  await banner(currentLabel);
 };
 
 const shoot = async (name) => {
@@ -97,7 +252,10 @@ const shoot = async (name) => {
  */
 const settle = async (text, selector = 'a, button, [role="button"]') => {
   const found = await evaluate(`(() => {
-    document.querySelectorAll('[data-p5target]').forEach((n) => delete n.dataset.p5target);
+    document.querySelectorAll('[data-p5target]').forEach((n) => {
+      n.style.outline = ''; n.style.outlineOffset = ''; n.style.boxShadow = '';
+      delete n.dataset.p5target;
+    });
     const wanted = ${JSON.stringify(text.toLowerCase())};
     const nodes = Array.from(document.querySelectorAll(${JSON.stringify(selector)}));
     const el = nodes.find((n) =>
@@ -107,6 +265,11 @@ const settle = async (text, selector = 'a, button, [role="button"]') => {
     if (!el) return null;
     el.setAttribute('data-p5target', 'yes');
     el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
+    if (${WATCH}) {
+      el.style.outline = '3px solid #e11d48';
+      el.style.outlineOffset = '3px';
+      el.style.boxShadow = '0 0 0 7px rgba(225,29,72,.22)';
+    }
     return (el.textContent || '').trim().replace(/\\s+/g, ' ').slice(0, 70);
   })()`);
   if (!found) throw new Error(`no clickable element containing "${text}"`);
@@ -140,10 +303,15 @@ const clickText = async (text, selector) => {
       return el ? el.tagName + (el.className ? '.' + String(el.className).split(' ')[0] : '') : null; })()`
   );
   if (!topmost) throw new Error(`nothing is on top at (${box.x},${box.y}) for "${text}"`);
+  // Let the outline be seen before the click lands.
+  await sleep(PACE);
   for (const type of ['mousePressed', 'mouseReleased']) {
     await send('Input.dispatchMouseEvent', { type, x: box.x, y: box.y, button: 'left', clickCount: 1 });
   }
-  await evaluate(`document.querySelectorAll('[data-p5target]').forEach((n) => delete n.dataset.p5target)`);
+  await evaluate(`document.querySelectorAll('[data-p5target]').forEach((n) => {
+    n.style.outline = ''; n.style.outlineOffset = ''; n.style.boxShadow = '';
+    delete n.dataset.p5target;
+  })`);
   await sleep(900);
   return { ...box, topmost };
 };
@@ -151,10 +319,17 @@ const clickText = async (text, selector) => {
 /** Type with real input events, so React's onChange runs exactly as for a user. */
 const typeInto = async (selector, text) => {
   const ok = await evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)});
-    if (!el) return false; el.scrollIntoView({ block: 'center' }); el.focus(); return true; })()`);
+    if (!el) return false;
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    el.focus();
+    if (${WATCH}) { el.style.outline = '3px solid #2563eb'; el.style.outlineOffset = '3px'; }
+    return true; })()`);
   if (!ok) throw new Error(`no field matching ${selector}`);
+  await sleep(PACE);
   await send('Input.insertText', { text });
-  await sleep(200);
+  await sleep(WATCH ? 450 : 200);
+  await evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)});
+    if (el) { el.style.outline = ''; el.style.outlineOffset = ''; } })()`);
 };
 
 const text = (selector) =>
@@ -175,6 +350,7 @@ const step = (message) => console.log(`   · ${message}`);
 
 // ============================================================== TC-01 / TC-02
 console.log('\n=== TC-01 活动列表显示,并可点击进入详情 ===');
+await banner('TC-01 · 活动列表 → 点击 Discover event 进入详情');
 let ok = false;
 let actual = '';
 try {
@@ -197,6 +373,7 @@ await shoot('tc01-event-detail');
 
 // ============================================================== TC-02 / TC-03
 console.log('\n=== TC-02 详情页显示时间与余量,并可点击进入报名页 ===');
+await banner('TC-02 · 详情页 → 点击 Register for this event 进入报名页');
 ok = false; actual = '';
 try {
   const sidebar = await text('.detail-info');
@@ -217,6 +394,7 @@ record('TC-02', '详情页可进入报名页', ok, '侧栏显示 Time 与 "N of 
 await shoot('tc02-register-form');
 
 console.log('\n=== TC-03 填写并提交报名,确认页显示参考号 ===');
+await banner('TC-03 · 填写姓名与邮箱 → 点击 Confirm Registration');
 ok = false; actual = '';
 try {
   await typeInto('input[name="visitorName"]', 'P5 UI Check');
@@ -237,6 +415,7 @@ await shoot('tc03-confirmation');
 
 // ===================================================================== TC-04
 console.log('\n=== TC-04 报名后余量在详情页正确减少 ===');
+await banner('TC-04 · 回到详情页,核对余量是否减少 1');
 ok = false; actual = '';
 try {
   await goto(globalThis.__eventPath);
@@ -251,6 +430,7 @@ record('TC-04', '余量随报名减少', ok, '返回详情页后余量比报名�
 
 // ===================================================================== TC-05
 console.log('\n=== TC-05 非法邮箱被拦截,不提交 ===');
+await banner('TC-05 · 填入非法邮箱 → 点击提交,应被拦下');
 ok = false; actual = '';
 try {
   await goto(`${globalThis.__eventPath}/register`);
@@ -278,11 +458,12 @@ try {
   ok = blocked && validity.fieldValid === false && !!validity.nativeMessage;
   actual = `未进入确认页=${blocked};浏览器判定邮箱字段无效=${validity.fieldValid === false},原生提示 "${validity.nativeMessage}";页面自定义提示=${validity.customMessageShown}(被原生校验挡在其之前)`;
 } catch (error) { actual = `异常: ${error.message}`; }
-record('TC-05', '非法邮箱被拒绝', ok, '停留在表单页并显示 "Please enter a valid email"', actual);
+record('TC-05', '非法邮箱被拒绝', ok, '停留在表单页显示 "Please enter a valid email"', actual);
 await shoot('tc05-invalid-email');
 
 // ===================================================================== TC-06
 console.log('\n=== TC-06 人数超过余量被拦截 ===');
+await banner('TC-06 · 人数设为超出余量 → 点击提交,应被拦下');
 ok = false; actual = '';
 try {
   await goto(`${globalThis.__eventPath}/register`);
@@ -299,6 +480,7 @@ try {
     const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
     setter.call(el, String(${remaining} + 1));
     el.dispatchEvent(new Event('input', { bubbles: true }));
+    if (${WATCH}) { el.style.outline = '3px solid #2563eb'; el.style.outlineOffset = '3px'; }
   })()`);
   await sleep(400);
   await clickText('Confirm Registration');
@@ -325,6 +507,7 @@ record('TC-06', '超过余量被拒绝', ok, '停留在表单页并提示剩余�
 
 // ===================================================================== TC-07
 console.log('\n=== TC-07 设施页:点击平面图展厅并验证深链 ===');
+await banner('TC-07 · 设施页 → 在平面图上点击 Gallery A');
 ok = false; actual = '';
 try {
   await goto('/facilities');
@@ -345,6 +528,7 @@ await shoot('tc07-facilities');
 
 // ===================================================================== TC-08
 console.log('\n=== TC-08 无障碍页:点击兴趣点 ===');
+await banner('TC-08 · 无障碍页 → 点击 Wheelchair Loan 兴趣点');
 ok = false; actual = '';
 try {
   await goto('/accessibility');
@@ -371,7 +555,11 @@ await shoot('tc08-accessibility');
 // ------------------------------------------------------------------ DB check
 console.log('\n=== 用后端核对数据库(唯一一次非 UI 操作) ===');
 try {
-  const uri = fs.readFileSync('.env', 'utf8').match(/^MONGO_URI=(.*)$/m)[1].trim();
+  // Resolved from the repository root rather than the cwd, so the suite can be
+  // launched from anywhere (VS Code's F5 uses the workspace folder, but an
+  // integrated terminal may be sitting in tests/).
+  const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const uri = fs.readFileSync(path.join(repoRoot, '.env'), 'utf8').match(/^MONGO_URI=(.*)$/m)[1].trim();
   const client = new MongoClient(uri);
   await client.connect();
   const db = client.db();
@@ -395,4 +583,12 @@ const passed = results.filter((r) => r.status === 'PASS').length;
 console.log(`\n=== 汇总: ${passed}/${results.length} 通过 ===`);
 for (const r of results) console.log(`${r.status}  ${r.id}  ${r.title}`);
 fs.writeFileSync(`${OUT}/results.json`, JSON.stringify(results, null, 2));
+console.log(`\n截图与 results.json: ${OUT}`);
 ws.close();
+if (launchedChrome && !WATCH) {
+  // Headless browser: close it. In watch mode the window is left open so you can
+  // look at the final state or click around yourself.
+  launchedChrome.kill();
+} else if (launchedChrome && WATCH) {
+  console.log('The browser window is left open — close it when you are done.');
+}

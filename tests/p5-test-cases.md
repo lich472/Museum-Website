@@ -18,16 +18,22 @@ uncommitted working tree; Vite 8.3.0 serving the frontend on `localhost:5173`,
 the TypeScript backend on `localhost:5001` against MongoDB Atlas; Chrome headless,
 viewport 1280x1000; Windows 11.
 
-**Reproduce:**
+**Reproduce.** Two shells are enough — the suite starts its own browser:
 
-    # backend
+    # shell 1
     cd backend && npm install && npm run dev
-    # frontend, in a second shell
+
+    # shell 2
     cd frontend && npm install && npm run dev
-    # Chrome with a debugging port, in a third shell
-    chrome --headless=new --remote-debugging-port=9222 --user-data-dir=/tmp/p5 about:blank
-    # run the suite from the repository root
-    node tests/p5-ui-tests.mjs
+
+    # then, from the repository root, either:
+    node tests/p5-ui-tests.mjs            # headless, as fast as it goes
+    node tests/p5-ui-tests.mjs --watch    # a visible browser, paced, with the next
+                                          # target outlined before it is clicked
+
+`--watch` is for watching the run — a demo, or checking by eye what the
+assertions claim. It uses a browser window and port 9223; the default headless
+run uses port 9222. The results below came from the headless run.
 
 The suite registers a real visitor against the live database and then deletes
 that registration and returns the places it took, so it is safe to re-run. Use a

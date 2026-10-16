@@ -107,12 +107,17 @@ export const DEFAULT_ACCESSIBILITY_POINTS = [
   {
     id: 'accessible-restroom',
     name: 'Accessible Restroom',
-    // No coordinates on purpose: the accessible restroom *is* the restrooms
-    // room, so selecting it highlights that room rather than adding a second
-    // marker to a room only 68px tall. FloorMap draws a marker only for entries
-    // that carry `mapX`/`mapY`.
+    // It has a marker of its own, so the list can number it like the others.
+    //
+    // The Restrooms room is only 68px tall, but a marker still fits beside its
+    // label: FloorMap left-aligns a facility's label at room.x + 14 — x 544
+    // here, about 105px wide — which leaves x 655–760 free. Radius is 26, or 32
+    // when selected, so the marker needs 64px: y 302–366 inside 300–368.
     roomId: 'restrooms',
-    icon: 'wheelchair',
+    mapX: 707, mapY: 334,
+    // A restroom glyph rather than the wheelchair: "Accessible" is already in
+    // the name, and a wheelchair here reads as the Wheelchair Loan point.
+    icon: 'wc',
     description:
       'Wheelchair-accessible restroom on the ground floor, adjacent to the main restrooms in the right wing. Includes an adult changing table.',
   },
@@ -139,6 +144,20 @@ export const FACILITY_CARD_ICONS = {
   'Restrooms': '🚻',
   'Cloakroom': '🧥',
 };
+
+/**
+ * The glyph to head a room's description with, once a room is selected.
+ *
+ * A room gets its own kind of glyph rather than one generic symbol, so the panel
+ * describing the restrooms shows a restroom. Falls back to a neutral dot so a
+ * room added to the layout later still renders something sensible.
+ */
+export function roomIcon(room) {
+  if (!room) return POINT_ICONS.facility;
+  if (room.kind === 'gallery') return POINT_ICONS.gallery;
+  if (room.kind === 'circulation') return '🏛';
+  return FACILITY_CARD_ICONS[room.label] || POINT_ICONS.facility;
+}
 
 // ---------- Room lookup ----------
 

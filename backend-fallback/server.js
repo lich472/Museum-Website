@@ -205,9 +205,12 @@ const visitorInfo = {
     {
       id: 'accessible-restroom',
       name: 'Accessible Restroom',
-      // No coordinates: the accessible restroom is the restrooms room itself.
+      // Kept in step with frontend/src/data/facilityMap.js: same coordinates and
+      // the same icon. The marker sits in the space the room's left-aligned
+      // label leaves free.
       roomId: 'restrooms',
-      icon: 'wheelchair',
+      mapX: 707, mapY: 334,
+      icon: 'wc',
       description: 'Wheelchair-accessible restroom on the ground floor, adjacent to the main restrooms in the right wing.',
     },
   ],

@@ -7,6 +7,7 @@ import {
   findRoomByLabel,
   groupExhibitionsByRoom,
   readExhibitionList,
+  roomIcon,
 } from '../data/facilityMap';
 import { DEFAULT_VISITOR_INFO } from '../data/visitorInfo';
 import { apiFetch } from '../api/client';
@@ -89,15 +90,33 @@ function Accessibility() {
   const acc = info.accessibility || {};
   const mapPoints = buildAccessibilityPoints(info.accessibilityPoints);
 
-  const selectedPointId =
-    selection?.kind === 'point' ? selection.point.id : undefined;
+  /*
+   * A room that holds exactly one point of interest resolves to that point, so
+   * clicking the Restrooms room on the map and clicking the Accessible Restroom
+   * card give the same answer instead of two different ones — the same defect
+   * the facilities page had. The Lobby holds three points, so it stays a room
+   * selection and keeps its own panel text.
+   */
+  const currentPoint =
+    selection?.kind === 'point'
+      ? selection.point
+      : selection?.kind === 'room'
+        ? mapPoints.filter((point) => point.roomId === selection.room.id).length === 1
+          ? mapPoints.find((point) => point.roomId === selection.room.id)
+          : null
+        : null;
 
-  const highlightedRoomId =
-    selection?.kind === 'room'
-      ? selection.room.id
-      : selection?.kind === 'point'
-        ? selection.point.roomId
-        : undefined;
+  const selectedRoom = selection?.kind === 'room' ? selection.room : null;
+
+  // Drives both the marker and the card highlight, so a room selection that
+  // resolves to one point lights up that point's card as well.
+  const selectedPointId = currentPoint?.id;
+
+  const highlightedRoomId = selectedRoom
+    ? selectedRoom.id
+    : currentPoint
+      ? currentPoint.roomId
+      : undefined;
 
   const selectPoint = (point) => setSelection({ kind: 'point', point });
   const selectRoom = (room) => setSelection({ kind: 'room', room });
@@ -147,23 +166,25 @@ function Accessibility() {
           role="status"
           aria-live="polite"
         >
-          {selection?.kind === 'point' ? (
+          {currentPoint ? (
+            /* Both routes to a point of interest land here: its card, and — when
+               it is the only one in that room — the room itself. */
             <>
               <div className="selection-detail-header">
                 <span className="selection-detail-icon" aria-hidden="true">
-                  {POINT_ICONS[selection.point.icon] || '♿'}
+                  {POINT_ICONS[currentPoint.icon] || '♿'}
                 </span>
-                <h3 className="selection-detail-title">{selection.point.name}</h3>
+                <h3 className="selection-detail-title">{currentPoint.name}</h3>
               </div>
-              <p className="selection-detail-body">{selection.point.description}</p>
+              <p className="selection-detail-body">{currentPoint.description}</p>
             </>
-          ) : selection?.kind === 'room' ? (
+          ) : selectedRoom ? (
             <>
               <div className="selection-detail-header">
                 <span className="selection-detail-icon" aria-hidden="true">
-                  🗺
+                  {roomIcon(selectedRoom)}
                 </span>
-                <h3 className="selection-detail-title">{selection.room.label}</h3>
+                <h3 className="selection-detail-title">{selectedRoom.label}</h3>
               </div>
               <p className="selection-detail-body">
                 A step-free route reaches every gallery on this floor, and gallery
@@ -192,12 +213,13 @@ function Accessibility() {
                 className={`facility-icon-card${isSelected ? ' is-selected' : ''}`}
                 aria-pressed={isSelected}
               >
-                {/* A numbered badge ties the entry to its marker on the map.
-                    An entry that is a whole room has no marker, so it shows
-                    the map glyph instead. */}
-                <span className="facility-icon-badge">
-                  {point.mapX != null ? index + 1 : '🗺'}
-                </span>
+                {/* The number ties the entry to its marker on the map. An entry
+                    with no coordinates has no marker to point at, so it gets no
+                    badge at all — a globe in a restroom's corner reads as
+                    neither a number nor a restroom. */}
+                {point.mapX != null && (
+                  <span className="facility-icon-badge">{index + 1}</span>
+                )}
                 <span className="icon" aria-hidden="true">
                   {POINT_ICONS[point.icon] || '♿'}
                 </span>
