@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { apiFetch } from '../api/client';
+import axios from '../lib/axios';
 import { eventDate, eventTime } from '../utils/date';
+
+/**
+ * Places still available on an event.
+ *
+ * The schema field is `spotRemaining` (singular); this page used to read
+ * `spotsRemaining`, which never existed, so the number always came out
+ * undefined. Falls back to capacity if the field is ever missing.
+ */
+const placesLeft = (event) => event?.spotRemaining ?? event?.capacity ?? 0;
 
 function EventRegister() {
   const { id } = useParams();
@@ -16,39 +25,40 @@ function EventRegister() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [registrationId, setRegistrationId] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
 
-  // 加载事件信息（用于显示名额上限）
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const res = await apiFetch(`/events/${id}`);
-        if (!res.ok) throw new Error('Failed to load event');
-        setEvent(await res.json());
+        // The backend answers with the event itself; tolerate a { event }
+        // envelope too so this page survives that changing.
+        const response = await axios.get(`/events/${id}`);
+        const payload = response.data;
+        setEvent(payload && payload.event ? payload.event : payload);
       } catch (err) {
-        setError(err.message);
+        console.error('Error loading event for registration:', err);
+        setError('We could not load this event.');
       } finally {
         setLoadingEvent(false);
       }
     };
-    fetchEvent();
+    if (id) fetchEvent();
   }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'numGuests' ? parseInt(value) || 1 : value,
+      [name]: name === 'numGuests' ? parseInt(value, 10) || 1 : value,
     }));
   };
 
-  // 前端校验
   const validate = () => {
     if (!formData.visitorName.trim()) return 'Please enter your name';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return 'Please enter a valid email';
-    if (formData.numGuests < 1) return 'At least 1 guest required';
-    if (event && formData.numGuests > event.spotsRemaining) {
-      return `Only ${event.spotsRemaining} spot(s) remaining`;
+    if (formData.numGuests < 1) return 'At least 1 guest is required';
+    if (event && formData.numGuests > placesLeft(event)) {
+      return `Only ${placesLeft(event)} place(s) left for this event`;
     }
     return null;
   };
@@ -65,34 +75,41 @@ function EventRegister() {
     setError(null);
 
     try {
-      const response = await apiFetch(`/events/${id}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      const response = await axios.post(`/events/${id}/register`, formData);
+      const data = response.data;
+
+      if (!data?.success) throw new Error(data?.message || 'Registration failed');
+
+      setConfirmation({
+        reference:
+          data.reference ??
+          String(data.registrationId ?? '').slice(-6).toUpperCase(),
+        spotRemaining: data.spotRemaining,
       });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || 'Registration failed');
-      }
-
-      setRegistrationId(data.registrationId);
     } catch (err) {
-      setError(err.message);
+      // Prefer the backend's own wording: it knows whether the event is full,
+      // missing, or the input was rejected, and it is the authority on capacity.
+      const message =
+        err?.response?.data?.message || err?.message || 'Registration failed';
+      setError(message);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ---------- 成功视图 ----------
-  if (registrationId) {
+  // ---------- Confirmation ----------
+  if (confirmation) {
     return (
       <div style={{ maxWidth: '600px', margin: '40px auto', textAlign: 'center' }}>
         <div style={{ fontSize: '3rem', marginBottom: '16px' }}>✅</div>
-        <h2 style={{ marginBottom: '12px' }}>Registration Confirmed</h2>
+        {/* Explicit sizes: Tailwind's preflight resets headings to the body
+            size, so an unstyled h2 here would not read as a heading. */}
+        <h2 style={{ fontSize: '1.75rem', fontWeight: 'bold', marginBottom: '12px' }}>
+          Registration Confirmed
+        </h2>
         <p style={{ color: '#666', marginBottom: '24px' }}>
-          Thank you, {formData.visitorName}. You're registered for <strong>{event?.title}</strong>.
+          Thank you, {formData.visitorName}. You're registered for{' '}
+          <strong>{event?.title}</strong>.
         </p>
 
         <div
@@ -105,25 +122,34 @@ function EventRegister() {
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ color: '#666' }}>Reference Number</span>
-            <strong>#{registrationId}</strong>
+            <span style={{ color: '#666' }}>Reference</span>
+            <strong>{confirmation.reference}</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ color: '#666' }}>Date & Time</span>
+            <span style={{ color: '#666' }}>Date &amp; Time</span>
             <strong>{eventDate(event)} · {eventTime(event)}</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ color: '#666' }}>Location</span>
             <strong>{event?.location}</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ color: '#666' }}>Guests</span>
             <strong>{formData.numGuests}</strong>
           </div>
+          {confirmation.spotRemaining !== undefined && (
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#666' }}>Places left</span>
+              <strong>{confirmation.spotRemaining}</strong>
+            </div>
+          )}
         </div>
 
-        <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '24px' }}>
-          A confirmation email has been sent to {formData.email}.
+        {/* No email is sent by this project — the previous wording claimed one
+            was, which is not true. The reference above is what to quote. */}
+        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-subtle)', marginBottom: '24px' }}>
+          Please keep this reference. Registered as {formData.email}. If you need
+          to change or cancel, contact the museum and quote the reference.
         </p>
 
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
@@ -144,23 +170,26 @@ function EventRegister() {
     );
   }
 
-  // ---------- 加载事件中 ----------
+  // ---------- Loading ----------
   if (loadingEvent) {
-    return <div style={{ padding: '40px', textAlign: 'center' }}>⏳ Loading...</div>;
+    return <div style={{ padding: '40px', textAlign: 'center' }}>⏳ Loading…</div>;
   }
 
-  // ---------- 事件不存在 ----------
+  // ---------- Event missing ----------
   if (!event) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: 'var(--color-danger)' }}>Event not found.</p>
+        <p style={{ color: 'var(--color-danger)' }}>
+          {error || 'Event not found.'}
+        </p>
         <Link to="/events">← Back to Events</Link>
       </div>
     );
   }
 
-  // ---------- 表单视图 ----------
-  const isFull = event.spotsRemaining === 0;
+  // ---------- Form ----------
+  const remaining = placesLeft(event);
+  const isFull = remaining <= 0;
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -171,10 +200,12 @@ function EventRegister() {
         ← Back to Event Details
       </button>
 
-      <h1 style={{ marginBottom: '8px' }}>Register for Event</h1>
+      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '8px' }}>
+        Register for Event
+      </h1>
       <p style={{ color: '#666', marginBottom: '24px' }}>{event.title}</p>
 
-      {/* 名额提示 */}
+      {/* Availability */}
       <div
         style={{
           padding: '12px 16px',
@@ -186,11 +217,10 @@ function EventRegister() {
       >
         {isFull
           ? '❌ This event is fully booked.'
-          : `✅ ${event.spotsRemaining} spot(s) remaining.`}
+          : `✅ ${remaining} of ${event.capacity} place(s) remaining.`}
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* 姓名 */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
             Your Name *
@@ -206,7 +236,6 @@ function EventRegister() {
           />
         </div>
 
-        {/* 邮箱 */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
             Email *
@@ -222,7 +251,6 @@ function EventRegister() {
           />
         </div>
 
-        {/* 人数 */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
             Number of Guests *
@@ -231,24 +259,24 @@ function EventRegister() {
             type="number"
             name="numGuests"
             min="1"
-            max={event.spotsRemaining}
+            max={remaining}
             value={formData.numGuests}
             onChange={handleChange}
             disabled={isFull}
             style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '1rem' }}
           />
-          <small style={{ color: '#888' }}>
-            Max {event.spotsRemaining} guest(s) per registration.
+          <small style={{ color: 'var(--color-text-subtle)' }}>
+            Max {remaining} guest(s) per registration.
           </small>
         </div>
 
-        {/* 错误提示 */}
         {error && (
           <div
+            role="alert"
             style={{
               padding: '12px',
               backgroundColor: '#fdecea',
-              color: '#c0392b',
+              color: 'var(--color-danger)',
               borderRadius: '6px',
               marginBottom: '20px',
             }}
@@ -257,7 +285,6 @@ function EventRegister() {
           </div>
         )}
 
-        {/* 提交按钮 */}
         <button
           type="submit"
           disabled={isFull || submitting}
@@ -273,7 +300,7 @@ function EventRegister() {
             fontWeight: 'bold',
           }}
         >
-          {submitting ? 'Submitting...' : 'Confirm Registration'}
+          {submitting ? 'Submitting…' : 'Confirm Registration'}
         </button>
       </form>
     </div>

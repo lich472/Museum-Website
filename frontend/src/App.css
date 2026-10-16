@@ -31,6 +31,10 @@
   display: flex;
   align-items: center;
   gap: 30px;
+  /* With twelve items the row no longer fits on a mid-size laptop. Wrapping
+     keeps every link visible; without it the last one is clipped off-screen. */
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .nav-links a {
@@ -40,6 +44,77 @@
 
 .nav-links a:hover {
   opacity: 0.7;
+}
+
+/* ---------- Responsive navigation ---------- */
+/*
+   Two stages, because one is not enough:
+
+   1. Above 900px the row stays horizontal but is allowed to wrap (see
+      flex-wrap on .nav-links above). Between about 900px and 1300px the twelve
+      items need a second line, and wrapping is far better than the clipping
+      that happened before this change.
+
+   2. At 900px and below even a wrapped row is too tall, so the links move
+      behind the hamburger button (.nav-toggle) and open as a vertical panel.
+      The button is hidden above the breakpoint, so it costs nothing on a wide
+      screen, and Navbar's menuOpen state is simply ignored there.
+*/
+.nav-toggle {
+  display: none; /* shown only inside the media query below */
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: #ffffff;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.nav-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.nav-toggle:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  /* Put the toggle on the logo's row and let the panel drop below both. */
+  .nav-container {
+    flex-wrap: wrap;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  /* Collapsed by default. Navbar adds .is-open when the toggle is pressed. */
+  .nav-links {
+    display: none;
+    flex-basis: 100%; /* its own row, under the logo and the toggle */
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 16px 0 8px;
+  }
+
+  .nav-links.is-open {
+    display: flex;
+  }
+
+  /* Row-sized controls do not read as menu items in a column, so let each one
+     span the panel width. */
+  .nav-links > a,
+  .nav-links > button,
+  .nav-links > .language-switcher {
+    align-self: stretch;
+  }
 }
 
 /* ---------- Language switcher ---------- */
@@ -242,8 +317,24 @@ body {
 
 .exhibition-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Three across on a wide screen, two on a laptop or tablet, one on a phone.
+     minmax(0, 1fr) stops a long unbroken word from forcing a column wider than
+     its share and pushing the grid into horizontal scroll. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 30px;
+}
+
+@media (max-width: 1024px) {
+  .exhibition-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .exhibition-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 }
 
 .exhibition-card {
@@ -790,4 +881,38 @@ body {
    nothing. */
 #main-content:focus {
   outline: none;
+}
+
+/* ---------- Headings and lists flattened by Tailwind's preflight ---------- */
+/*
+   Tailwind's preflight (imported at the top of index.css) sets
+   `h1..h6 { font-size: inherit; font-weight: inherit }` and removes list
+   markers. Any page title that relied on the browser default therefore renders
+   at body size. The detail pages set their own sizes; these are the list and
+   content pages, which had none.
+
+   Scoped to our class-based containers on purpose: the Tailwind-driven pages
+   (booking, membership, admin) depend on that reset and must keep it.
+*/
+.page-header h1,
+.page h1 {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.page h2 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+/* The accessibility commitment's lists lost their markers to the same reset. */
+.commitment-block ul {
+  list-style: disc;
+  margin: 8px 0 16px;
+  padding-left: 22px;
+}
+
+.commitment-block li {
+  margin-bottom: 6px;
 }

@@ -1,11 +1,17 @@
 /**
  * Date and time formatting for the whole app.
  *
- * Requirement: every date is displayed as dd/mm/yyyy (Australian format).
+ * Two presentation conventions exist, both deliberate:
  *
- * `toLocaleDateString()` is deliberately avoided. Called without an explicit
- * locale it follows the operating system's region, which is exactly what
- * produced mm/dd/yyyy on a US-configured machine.
+ *  - `formatDate` / `formatDateRange` render dd/mm/yyyy, used in compact places
+ *    such as the exhibition cards and the accessibility and facilities pages.
+ *  - `formatDateLong` / `formatDateRangeLong` render the long form the main
+ *    branch uses on its detail pages ("Sunday, 20 September 2026").
+ *
+ * The field order is always stated explicitly and never left to the operating
+ * system's region: a bare `toLocaleDateString()` follows the OS locale, which
+ * is what produced mm/dd/yyyy on a US-configured machine. That is the bug this
+ * module exists to prevent.
  *
  * Stored values have two different meanings, and they need different getters:
  *
@@ -75,4 +81,31 @@ export function eventTime(event) {
   if (event.time) return event.time;
   if (event.startDate) return formatTime(event.startDate);
   return "";
+}
+
+/**
+ * "Sunday, 20 September 2026" — the long form used on the detail pages.
+ *
+ * `en-AU` is passed explicitly. Left undefined, a US-configured browser renders
+ * "Sunday, September 20, 2026", swapping the day and month: the same ordering
+ * problem, just spelled out. Being explicit keeps the order stable everywhere.
+ */
+export function formatDateLong(value) {
+  const date = toDate(value);
+  if (!date) return "";
+  return date.toLocaleDateString("en-AU", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/** Long-form range, collapsing to one date when both ends fall on the same day. */
+export function formatDateRangeLong(start, end) {
+  const from = formatDateLong(start);
+  const to = formatDateLong(end);
+  if (!from) return to;
+  if (!to || from === to) return from;
+  return `${from} – ${to}`;
 }

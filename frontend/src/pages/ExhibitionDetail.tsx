@@ -4,7 +4,7 @@ import axios from "../lib/axios";
 import { IExhibition } from "../types"; // Make sure your types file matches the MongoDB schema fields
 import ExhibitionCard from "../components/ExhibitionCard";
 import { apiFetch } from "../api/client";
-import { formatDate, formatDateRange } from "../utils/date";
+import { formatDateLong, formatDateRangeLong } from "../utils/date";
 import { findRoomByLabel } from "../data/facilityMap";
 
 /** An exhibition suggested as similar, plus why it was suggested. */
@@ -106,8 +106,8 @@ function ExhibitionDetail() {
     );
   }
 
-  // dd/mm/yyyy, as agreed for the whole site.
-  const dateRange = formatDateRange(exhibition.startDate, exhibition.endDate);
+  // Long form, following the main branch's choice for the detail pages.
+  const dateRange = formatDateRangeLong(exhibition.startDate, exhibition.endDate);
 
   // A room that exists on the floor plan becomes a link to the map. Anything
   // the plan does not show (the legacy "Room A", for instance) stays plain text
@@ -186,9 +186,8 @@ function ExhibitionDetail() {
           <div className="info-item">
             <span>Date</span>
             <div>
-              <strong className="block">Start: {formatDate(exhibition.startDate)}</strong>
-              <span> </span>
-              <strong className="block">End: {formatDate(exhibition.endDate)}</strong>
+              <strong className="block">Start: {formatDateLong(exhibition.startDate)}</strong>
+              <strong className="block">End: {formatDateLong(exhibition.endDate)}</strong>
             </div>
           </div>
 

@@ -1,6 +1,7 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
-import { Lock, UserPlus, LogIn, LogOut } from "lucide-react";
+import { Lock, UserPlus, LogIn, LogOut, Menu, X } from "lucide-react";
 // Carried over from the Jason_P5 branch.
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -8,6 +9,28 @@ import LanguageSwitcher from "./LanguageSwitcher";
 function Navbar() {
   const { user, logout } = useUserStore();
 	const isAdmin = user?.role === "admin";
+
+  /*
+   * Narrow-screen menu state.
+   *
+   * The collapsing itself is CSS (the "Responsive navigation" block in App.css,
+   * 900px breakpoint): below that width .nav-links is display:none, the
+   * .nav-toggle button is shown, and .is-open brings the panel back. Above the
+   * breakpoint the button is hidden and this state has no effect, so there is
+   * nothing to keep in sync with a resize.
+   *
+   * The button is a real <button>, so it is keyboard operable and reports its
+   * state through aria-expanded without any extra work.
+   */
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  // Close the panel after navigating. Without this it stays open over the page
+  // you just moved to, which reads as a broken menu on a phone.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
   return (
     <header className="navbar">
       <nav className="nav-container">
@@ -19,7 +42,26 @@ function Navbar() {
           </Link>
         </div>
 
-        <div className="nav-links">
+        {/* Hidden by CSS above 900px, where the links are always visible. */}
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-expanded={menuOpen}
+          aria-controls="primary-navigation"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? (
+            <X size={22} aria-hidden="true" />
+          ) : (
+            <Menu size={22} aria-hidden="true" />
+          )}
+        </button>
+
+        <div
+          id="primary-navigation"
+          className={`nav-links${menuOpen ? " is-open" : ""}`}
+        >
           <Link to="/">Home</Link>
 
           <Link to="/exhibitions">

@@ -2,20 +2,13 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import { IEvent } from "../types";
+import { formatDateLong, eventTime } from "../utils/date";
 
 const badgeStyles: Record<string, string> = {
   workshop: "bg-blue-100 text-blue-800",
   talk: "bg-purple-100 text-purple-800",
   tour: "bg-green-100 text-green-800",
 };
-
-const fmt = (d: string | Date) =>
-  new Date(d).toLocaleDateString(undefined, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 
 function EventDetail() {
   const { id } = useParams();
@@ -61,9 +54,16 @@ function EventDetail() {
   const sameDay =
     new Date(event.startDate).toDateString() === new Date(event.endDate).toDateString();
   const dateText = sameDay
-    ? fmt(event.startDate)
-    : `${fmt(event.startDate)} – ${fmt(event.endDate)}`;
+    ? formatDateLong(event.startDate)
+    : `${formatDateLong(event.startDate)} – ${formatDateLong(event.endDate)}`;
 
+  // Ported from the Jason_P5 detail page: main did not surface the start time.
+  const time = eventTime(event);
+
+  // `spotRemaining` is a real field on the Event schema, so this shows the
+  // stored value. It is set by an admin rather than recalculated, so once event
+  // registration is implemented it should be kept in step with
+  // `capacity - registrations`.
   const spotsLeft = event.spotRemaining ?? event.capacity;
   const soldOut = spotsLeft <= 0;
   const spotsColor = soldOut
@@ -91,6 +91,9 @@ function EventDetail() {
           </div>
 
           <h1>{event.title}</h1>
+          {/* No time here: on a multi-day range "· 10:30" would read as if it
+              belonged to the end date. The exact start time is its own row in
+              the details panel below. */}
           <p className="detail-date">{dateText}</p>
         </div>
       </section>
@@ -124,11 +127,17 @@ function EventDetail() {
           <div className="info-item">
             <span>Date</span>
             <div>
-              <strong className="block">Start: {fmt(event.startDate)}</strong>
-              <span> </span>
-              <strong className="block">End: {fmt(event.endDate)}</strong>
+              <strong className="block">Start: {formatDateLong(event.startDate)}</strong>
+              <strong className="block">End: {formatDateLong(event.endDate)}</strong>
             </div>
           </div>
+
+          {time && (
+            <div className="info-item">
+              <span>Time</span>
+              <strong>{time}</strong>
+            </div>
+          )}
 
           <div className="info-item">
             <span>Location</span>
@@ -142,15 +151,29 @@ function EventDetail() {
             </strong>
           </div>
 
+          {/*
+            The registration step is P5's. Without this link the page had no way
+            to reach it at all — main's only call to action was "Plan Your Visit".
+          */}
           {soldOut ? (
-            <button disabled className="primary-button detail-button cursor-not-allowed opacity-50">
-              Fully booked
+            <button
+              disabled
+              className="primary-button detail-button cursor-not-allowed opacity-50"
+            >
+              Registration closed
             </button>
           ) : (
-            <Link to="/visit" className="primary-button detail-button">
-              Plan Your Visit
+            <Link
+              to={`/events/${event._id}/register`}
+              className="primary-button detail-button"
+            >
+              Register for this event
             </Link>
           )}
+
+          <Link to="/visit" className="secondary-button detail-button">
+            Plan Your Visit
+          </Link>
         </aside>
       </section>
     </main>

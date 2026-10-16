@@ -1,6 +1,12 @@
 import dotenv from "dotenv";
 // Always load environment variables immediately at the top
 dotenv.config(); 
+// Fall back to the repository-root .env so a single file can serve both the
+// server and `npm run seed` (the seed script reads it from there). dotenv never
+// overwrites a variable that is already set, so backend/.env still wins when it
+// exists. Needed because `npm run dev` runs with backend/ as the working
+// directory, and a bare dotenv.config() would only look inside backend/.
+dotenv.config({ path: path.resolve(process.cwd(), "..", ".env") });
 
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -39,7 +45,15 @@ app.use("/api/recommendations", recommendationRoutes);
 
 
 
-app.listen(PORT, () => {
-  console.log("Server is running on http://localhost:" + PORT);
-  connectDB();
+// Connect to MongoDB BEFORE accepting traffic. In the original order the server
+// began answering requests while the Atlas handshake was still in flight, so a
+// request that arrived in that window had no database connection: Mongoose
+// buffered the query and it eventually failed, surfacing as a 500. A login
+// attempt during startup used to hit exactly that. connectDB already exits the
+// process when the connection fails, so a broken database now stops the server
+// instead of leaving it up and serving errors.
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log("Server is running on http://localhost:" + PORT);
+  });
 });
