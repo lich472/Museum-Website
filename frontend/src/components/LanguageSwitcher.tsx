@@ -100,7 +100,9 @@ function LanguageSwitcher() {
         }}
       >
         {LANGUAGES.map((option) => (
-          <option key={option.code} value={option.code}>
+          // `lang` tells a screen reader which voice to use, so "中文" is not
+          // read out with English pronunciation (WCAG 3.1.2 Language of Parts).
+          <option key={option.code} value={option.code} lang={option.code}>
             {option.label}
           </option>
         ))}

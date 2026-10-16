@@ -169,48 +169,47 @@ const visitorInfo = {
   },
   facilities: ['Café', 'Gift Shop', 'Restrooms', 'Cloakroom'],
   // 可选扩展（P3 若采纳契约变更后由后端提供）
+  // Coordinates must match FLOOR_ROOMS in frontend/src/data/facilityMap.js:
+  // a marker has to sit inside the room it names.
   facilityLocations: [
-    { name: 'Café',      mapX: 160, mapY: 300, icon: 'cafe'  },
-    { name: 'Gift Shop', mapX: 160, mapY: 420, icon: 'shop'  },
-    { name: 'Restrooms', mapX: 600, mapY: 300, icon: 'wc'    },
-    { name: 'Cloakroom', mapX: 640, mapY: 420, icon: 'cloak' },
+    { name: 'Café',      roomId: 'cafe',      mapX: 228, mapY: 334, icon: 'cafe'  },
+    { name: 'Gift Shop', roomId: 'gift-shop', mapX: 228, mapY: 414, icon: 'shop'  },
+    { name: 'Restrooms', roomId: 'restrooms', mapX: 718, mapY: 334, icon: 'wc'    },
+    { name: 'Cloakroom', roomId: 'cloakroom', mapX: 718, mapY: 414, icon: 'cloak' },
   ],
   accessibilityPoints: [
-{
-    id: 'accessible-entrance',
-    name: 'Accessible Entrance',
-    mapX: 400, mapY: 440,
-    icon: 'entrance',
-    description: 'Step-free entry at the main entrance. Automatic doors with a level threshold.',
-  },
-  {
-    id: 'elevator',
-    name: 'Elevator',
-    mapX: 330, mapY: 140,
-    icon: 'elevator',
-    description: 'Serves all public floors. Located in the central lobby.',
-  },
-  {
-    id: 'wheelchair-loan',
-    name: 'Wheelchair Loan',
-    mapX: 480, mapY: 140,
-    icon: 'wheelchair',
-    description: 'Complimentary wheelchairs available at the front desk.',
-  },
-  {
-    id: 'quiet-room',
-    name: 'Quiet Room',
-    mapX: 400, mapY: 300,
-    icon: 'quiet',
-    description: 'Low-stimulation space with dimmed lighting for sensory breaks.',
-  },
-  {
-    id: 'accessible-restroom',
-    name: 'Accessible Restroom',
-    mapX: 660, mapY: 300,
-    icon: 'wheelchair',
-    description: 'Wheelchair-accessible restroom on the ground floor.',
-  },
+    {
+      id: 'accessible-entrance',
+      name: 'Accessible Entrance',
+      roomId: 'lobby',
+      mapX: 400, mapY: 425,
+      icon: 'entrance',
+      description: 'Step-free entry at the main entrance, opening directly into the central lobby. Automatic doors with a level threshold.',
+    },
+    {
+      id: 'wheelchair-loan',
+      name: 'Wheelchair Loan',
+      roomId: 'lobby',
+      mapX: 465, mapY: 250,
+      icon: 'wheelchair',
+      description: 'Complimentary wheelchairs available at the front desk in the lobby.',
+    },
+    {
+      id: 'quiet-room',
+      name: 'Quiet Room',
+      roomId: 'lobby',
+      mapX: 400, mapY: 130,
+      icon: 'quiet',
+      description: 'Low-stimulation space with dimmed lighting for sensory breaks, off the central lobby.',
+    },
+    {
+      id: 'accessible-restroom',
+      name: 'Accessible Restroom',
+      // No coordinates: the accessible restroom is the restrooms room itself.
+      roomId: 'restrooms',
+      icon: 'wheelchair',
+      description: 'Wheelchair-accessible restroom on the ground floor, adjacent to the main restrooms in the right wing.',
+    },
   ],
 };
 

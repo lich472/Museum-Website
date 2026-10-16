@@ -5,6 +5,7 @@ import { IExhibition } from "../types"; // Make sure your types file matches the
 import ExhibitionCard from "../components/ExhibitionCard";
 import { apiFetch } from "../api/client";
 import { formatDateRange } from "../utils/date";
+import { findRoomByLabel } from "../data/facilityMap";
 
 /** An exhibition suggested as similar, plus why it was suggested. */
 type Recommendation = IExhibition & {
@@ -108,6 +109,11 @@ function ExhibitionDetail() {
   // dd/mm/yyyy, replacing the mock .date field
   const dateRange = formatDateRange(exhibition.startDate, exhibition.endDate);
 
+  // A room that exists on the floor plan becomes a link to the map. Anything
+  // the plan does not show (the legacy "Room A", for instance) stays plain text
+  // rather than linking somewhere that cannot highlight it.
+  const mapRoom = findRoomByLabel(exhibition.room);
+
   return (
     <main>
       <section className="detail-hero">
@@ -162,7 +168,18 @@ function ExhibitionDetail() {
           <div className="info-item">
             <span>Location</span>
             {/* Swapped hardcoded text with your real Mongoose dynamic .room property */}
-            <strong>{exhibition.room || "Gallery One"}</strong>
+            {mapRoom ? (
+              <Link
+                to={`/facilities?room=${encodeURIComponent(mapRoom.label)}`}
+                className="room-link"
+                title="Show this room on the floor map"
+              >
+                {mapRoom.label}
+                <span className="room-link-hint">View on map</span>
+              </Link>
+            ) : (
+              <strong>{exhibition.room || "Gallery One"}</strong>
+            )}
           </div>
 
           <div className="info-item">

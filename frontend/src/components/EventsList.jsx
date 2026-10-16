@@ -27,7 +27,7 @@ function EventsList() {
   }, []);
 
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>⏳ Loading events...</div>;
-  if (error) return <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>❌ {error}</div>;
+  if (error) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-danger)' }}>❌ {error}</div>;
 
   return (
     <div>

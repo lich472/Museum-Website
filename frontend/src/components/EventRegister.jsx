@@ -153,7 +153,7 @@ function EventRegister() {
   if (!event) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: 'red' }}>Event not found.</p>
+        <p style={{ color: 'var(--color-danger)' }}>Event not found.</p>
         <Link to="/events">← Back to Events</Link>
       </div>
     );

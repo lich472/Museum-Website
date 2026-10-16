@@ -762,3 +762,32 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Skip link ---------- */
+/*
+   Off-screen until it takes focus, so it is invisible to mouse users but is the
+   first thing a keyboard user reaches (WCAG 2.4.1 Bypass Blocks).
+   White on #1d2925 is roughly 15:1.
+*/
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: -9999px;
+  z-index: 100;
+  padding: 12px 20px;
+  background-color: #1d2925;
+  color: #ffffff;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* Focus is moved here programmatically by the skip link. The content's own
+   headings provide the orientation, so a ring around the whole page adds
+   nothing. */
+#main-content:focus {
+  outline: none;
+}

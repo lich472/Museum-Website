@@ -34,7 +34,7 @@ function EventDetail() {
   if (error) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: 'red' }}>❌ {error}</p>
+        <p style={{ color: 'var(--color-danger)' }}>❌ {error}</p>
         <button onClick={() => navigate('/events')} style={{ padding: '8px 16px', marginTop: '12px' }}>
           ← Back to Events
         </button>

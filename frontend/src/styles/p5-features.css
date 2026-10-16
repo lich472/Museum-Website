@@ -17,7 +17,9 @@
   --color-danger: #c0392b;
   --color-text: #2c3e50;
   --color-text-muted: #666;
-  --color-text-subtle: #888;
+  /* WCAG 2.2 AA needs 4.5:1 for text this size. #888 on white is only 3.5:1;
+     #6b6b6b is ~5.3:1 and looks the same at a glance. */
+  --color-text-subtle: #6b6b6b;
   --color-bg: #f5f7fa;
   --color-surface: #ffffff;
   --color-border: #e0e0e0;
@@ -687,7 +689,10 @@ button:disabled {
   height: 26px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #fff;
+  /* Dark on the badge, not white: white on #3498db is 3.2:1 and on the accent
+     orange only 2.8:1, both short of the 4.5:1 this small text needs. Dark
+     keeps the badge colours exactly as designed and reaches ~4.8:1 and ~5.3:1. */
+  color: #1d2925;
   background-color: #3498db;
   border-radius: 50%;
   transition: background-color 0.15s;
@@ -710,4 +715,146 @@ button:disabled {
   .facility-icon-card .label {
     font-size: 0.9rem;
   }
+}
+
+/* ============================================================
+   Floor plan — interactive rooms, legend and gallery panel
+   ============================================================ */
+
+.floor-map {
+  width: 100%;
+}
+
+/* Rooms are SVG groups, so the interactive affordances are set here instead of
+   relying on default button styling. */
+.map-room {
+  outline: none;
+}
+
+.map-room.is-clickable {
+  cursor: pointer;
+}
+
+.map-room.is-clickable:hover rect {
+  stroke: var(--color-accent);
+  stroke-width: 3;
+}
+
+/* Focus indicator for keyboard users: the room outline changes colour. */
+.map-room.is-clickable:focus rect,
+.map-room.is-clickable:focus-visible rect {
+  stroke: var(--color-accent);
+  stroke-width: 4;
+}
+
+/* The room named by ?room=, or picked from one of the lists. */
+.map-room.is-highlighted rect {
+  filter: drop-shadow(0 0 6px rgba(230, 126, 34, 0.55));
+}
+
+/* ---------- Legend ---------- */
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.map-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid #95a5a6;
+  border-radius: 3px;
+}
+
+.map-legend-swatch--gallery {
+  background-color: #e4ecf5;
+}
+
+.map-legend-swatch--facility {
+  background-color: #eef2f6;
+}
+
+.map-legend-swatch--point {
+  background-color: #3498db;
+  border-color: #ffffff;
+  border-radius: 50%;
+}
+
+.map-legend-swatch--highlight {
+  background-color: #fdebd7;
+  /* Darker than the brand accent: #e67e22 on this fill is 2.4:1, under the
+     3:1 that non-text UI boundaries need. */
+  border-color: #b35c07;
+}
+
+/* ---------- Selected room: what is on display there ---------- */
+
+.gallery-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.gallery-panel-list a {
+  color: var(--color-link);
+  text-decoration: underline;
+}
+
+.gallery-panel-list a:hover {
+  color: var(--color-accent);
+}
+
+/* Secondary line on a card, e.g. "3 on display". */
+.facility-icon-count {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+}
+
+/* Shown when ?room= names something the plan cannot locate. */
+.page-hint--warning {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+/* ============================================================
+   "View on map" link, used on the exhibition detail page
+   ============================================================ */
+
+.room-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--color-link);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.room-link:hover {
+  color: var(--color-accent);
+}
+
+.room-link-hint {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  text-decoration: none;
 }

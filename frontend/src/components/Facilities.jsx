@@ -1,15 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import FloorMap from './FloorMap';
-import { DEFAULT_FACILITY_LOCATIONS, FACILITY_CARD_ICONS } from '../data/facilityMap';
+import {
+  FACILITY_CARD_ICONS,
+  GALLERY_ROOMS,
+  buildFacilityPoints,
+  findRoomByLabel,
+  groupExhibitionsByRoom,
+  readExhibitionList,
+} from '../data/facilityMap';
 import { DEFAULT_VISITOR_INFO } from '../data/visitorInfo';
 import { apiFetch } from '../api/client';
+
+/** The short letter shown on a gallery's card, taken from its label. */
+function galleryLetter(room) {
+  return room.label.replace(/^Gallery\s+/i, '');
+}
 
 function Facilities() {
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const [exhibitions, setExhibitions] = useState([]);
+  const [exhibitionsLoaded, setExhibitionsLoaded] = useState(false);
+  // Either { kind: 'room', room } or { kind: 'facility', point }.
+  const [selection, setSelection] = useState(null);
   const detailRef = useRef(null);
+  const [searchParams] = useSearchParams();
+
+  // An exhibition's "Location" links here as /facilities?room=Gallery%20A.
+  const requestedRoomName = searchParams.get('room');
+  const requestedRoom = useMemo(
+    () => findRoomByLabel(requestedRoomName),
+    [requestedRoomName]
+  );
 
   useEffect(() => {
     apiFetch('/visitor-info')
@@ -19,19 +42,45 @@ function Facilities() {
       })
       .then((json) => {
         setInfo(json.data ?? json);
-        setError(null);
       })
       .catch((err) => {
-        // Neither backend answered: fall back to the visitor information
-        // bundled with the frontend so the floor map still renders.
+        // Neither backend answered: fall back to the data bundled with the
+        // frontend so the floor map still renders.
         console.warn(`[facilities] using bundled visitor info: ${err.message}`);
         setInfo(DEFAULT_VISITOR_INFO);
       })
       .finally(() => setLoading(false));
   }, []);
 
+  // Exhibitions drive the per-gallery counts on the map and the gallery panel.
+  // Losing them only costs those extras, so a failure never blocks the page.
   useEffect(() => {
-    if (!selected || !detailRef.current) return;
+    let cancelled = false;
+
+    apiFetch('/exhibitions')
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (cancelled || !payload) return;
+        setExhibitions(readExhibitionList(payload));
+        setExhibitionsLoaded(true);
+      })
+      .catch((err) =>
+        console.warn(`[facilities] gallery contents unavailable: ${err.message}`)
+      );
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Follow the deep link, including when it changes while this page is already
+  // open (clicking another exhibition's room while staying on /facilities).
+  useEffect(() => {
+    if (requestedRoom) setSelection({ kind: 'room', room: requestedRoom });
+  }, [requestedRoom]);
+
+  useEffect(() => {
+    if (!selection || !detailRef.current) return;
     const prefersReducedMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
     ).matches;
@@ -39,92 +88,183 @@ function Facilities() {
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
       block: 'nearest',
     });
-  }, [selected]);
+  }, [selection]);
+
+  const { byRoomId, counts } = useMemo(
+    () => groupExhibitionsByRoom(exhibitions),
+    [exhibitions]
+  );
 
   if (loading) return <div className="state-loading">⏳ Loading…</div>;
-  if (error) return <div className="state-error">❌ Failed to load facilities: {error}</div>;
   if (!info) return <div className="state-error">No data available.</div>;
 
   const facilities = info.facilities || [];
+  const mapPoints = buildFacilityPoints(facilities, info.facilityLocations);
 
-  const mapPoints = facilities.map((name) => {
-    const fromApi = info.facilityLocations?.find((f) => f.name === name);
-    const fallback = DEFAULT_FACILITY_LOCATIONS[name];
-    const loc = fromApi || fallback || {};
-    return {
-      id: name,
-      name,
-      mapX: loc.mapX ?? 400,
-      mapY: loc.mapY ?? 250,
-      icon: loc.icon || 'facility',
-      description:
-        loc.description ||
-        'This facility is available on the ground floor. Ask our front desk staff for assistance.',
-    };
-  });
+  const highlightedRoomId =
+    selection?.kind === 'room'
+      ? selection.room.id
+      : selection?.kind === 'facility'
+        ? selection.point.roomId
+        : undefined;
+
+  const galleryExhibitions =
+    selection?.kind === 'room' ? byRoomId[selection.room.id] ?? [] : [];
+
+  const selectRoom = (room) => setSelection({ kind: 'room', room });
+  const selectFacility = (point) => setSelection({ kind: 'facility', point });
 
   return (
     <div className="page">
       <h1>Facilities</h1>
       <p className="page-subtitle">What's available during your visit.</p>
 
+      {requestedRoomName && !requestedRoom && (
+        <p className="page-hint page-hint--warning">
+          We don't have a map location for “{requestedRoomName}”. Ask at the front
+          desk and our staff will point you the right way.
+        </p>
+      )}
+
       <section aria-labelledby="facilities-map-heading" className="page-section">
         <h2 id="facilities-map-heading">Where to Find Them</h2>
         <p className="page-hint">
-          Select a facility below to highlight it on the map.
+          Select a room on the map, or pick a gallery or facility below, to see
+          more about it.
         </p>
 
         <div className="map-wrapper">
           <FloorMap
-            highlights={mapPoints}
-            selectedId={selected?.id}
-            onSelect={setSelected}
+            highlightedRoomId={highlightedRoomId}
+            onRoomSelect={selectRoom}
+            roomCounts={counts}
           />
         </div>
 
         <div
           ref={detailRef}
-          className={`selection-detail${selected ? ' is-visible' : ''}`}
+          className={`selection-detail${selection ? ' is-visible' : ''}`}
           role="status"
           aria-live="polite"
         >
-          {selected ? (
+          {selection?.kind === 'room' ? (
             <>
               <div className="selection-detail-header">
                 <span className="selection-detail-icon" aria-hidden="true">
-                  {FACILITY_CARD_ICONS[selected.name] || '📍'}
+                  🗺
                 </span>
-                <h3 className="selection-detail-title">{selected.name}</h3>
+                <h3 className="selection-detail-title">{selection.room.label}</h3>
               </div>
-              <p className="selection-detail-body">{selected.description}</p>
+
+              {galleryExhibitions.length > 0 ? (
+                <>
+                  <p className="selection-detail-body">
+                    {galleryExhibitions.length} exhibition
+                    {galleryExhibitions.length === 1 ? '' : 's'} on display in this
+                    space:
+                  </p>
+                  <ul className="gallery-panel-list">
+                    {galleryExhibitions.map((exhibition) => (
+                      <li key={exhibition._id}>
+                        <Link to={`/exhibitions/${exhibition._id}`}>
+                          {exhibition.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p className="selection-detail-body">
+                  {!exhibitionsLoaded
+                    ? 'Exhibition listings are unavailable right now.'
+                    : selection.room.kind === 'gallery'
+                      ? 'No exhibitions are currently listed in this gallery.'
+                      : 'Part of the ground floor layout.'}
+                </p>
+              )}
+
+              <p className="selection-detail-meta">Ground Floor · Main Building</p>
+            </>
+          ) : selection?.kind === 'facility' ? (
+            <>
+              <div className="selection-detail-header">
+                <span className="selection-detail-icon" aria-hidden="true">
+                  {FACILITY_CARD_ICONS[selection.point.name] || '📍'}
+                </span>
+                <h3 className="selection-detail-title">{selection.point.name}</h3>
+              </div>
+              <p className="selection-detail-body">{selection.point.description}</p>
               <p className="selection-detail-meta">Ground Floor · Main Building</p>
             </>
           ) : (
             <p className="selection-detail-placeholder">
-              Select a facility to see more information.
+              Select a room or a facility to see more information.
             </p>
           )}
+        </div>
+      </section>
+
+      <section aria-labelledby="galleries-heading" className="page-section">
+        <h2 id="galleries-heading">Galleries</h2>
+        <p className="page-hint">
+          Four galleries, lettered A to D. Select one to locate it on the map and
+          see what is showing.
+        </p>
+
+        <div className="facility-icon-grid">
+          {GALLERY_ROOMS.map((room) => {
+            const isSelected =
+              selection?.kind === 'room' && selection.room.id === room.id;
+            const count = counts[room.id] ?? 0;
+            // Only claim a gallery is empty once the exhibition list has
+            // actually arrived — a failed request must not read as "nothing on".
+            const countLabel = !exhibitionsLoaded
+              ? ''
+              : count > 0
+                ? `${count} on display`
+                : 'Nothing on display';
+
+            return (
+              <button
+                key={room.id}
+                type="button"
+                onClick={() => selectRoom(room)}
+                className={`facility-icon-card${isSelected ? ' is-selected' : ''}`}
+                aria-pressed={isSelected}
+              >
+                <span className="facility-icon-badge">{galleryLetter(room)}</span>
+                <span className="icon" aria-hidden="true">
+                  🖼
+                </span>
+                <span className="label">{room.label}</span>
+                {countLabel && (
+                  <span className="facility-icon-count">{countLabel}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </section>
 
       <section aria-labelledby="facilities-list-heading" className="page-section">
         <h2 id="facilities-list-heading">All Facilities</h2>
         <div className="facility-icon-grid">
-          {mapPoints.map((p, index) => {
-            const isSelected = selected?.id === p.id;
+          {mapPoints.map((point) => {
+            const isSelected =
+              selection?.kind === 'facility' && selection.point.id === point.id;
+
             return (
               <button
-                key={p.id}
+                key={point.id}
                 type="button"
-                onClick={() => setSelected(p)}
+                onClick={() => selectFacility(point)}
                 className={`facility-icon-card${isSelected ? ' is-selected' : ''}`}
                 aria-pressed={isSelected}
               >
-                <span className="facility-icon-badge">{index + 1}</span>
                 <span className="icon" aria-hidden="true">
-                  {FACILITY_CARD_ICONS[p.name] || '📍'}
+                  {FACILITY_CARD_ICONS[point.name] || '📍'}
                 </span>
-                <span className="label">{p.name}</span>
+                <span className="label">{point.name}</span>
               </button>
             );
           })}
