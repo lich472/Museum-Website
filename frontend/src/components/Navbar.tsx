@@ -28,6 +28,10 @@ function Navbar() {
             Collections
           </Link>
 
+		  <Link to="/events">
+            Events
+          </Link>
+
           <Link to="/visit">
             Plan Your Visit
           </Link>

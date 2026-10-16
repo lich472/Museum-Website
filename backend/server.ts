@@ -10,6 +10,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.route.ts";
 import eventRoutes from "./routes/event.route.ts";
 import exhibitionRoutes from "./routes/exhibition.route.ts";
+import collectionRoutes from "./routes/collection.route.ts";
 import { connectDB } from "./lib/db.ts";
 
 const app = express();
@@ -30,6 +31,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/exhibitions", exhibitionRoutes);
+app.use("/api/collections", collectionRoutes);
 
 
 

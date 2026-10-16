@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 // FIX: Import your custom axios instance instead of the raw axios package
-import axios from "../lib/axios.ts"; 
+import axios from "../lib/axios"; 
 import ExhibitionCard from "../components/ExhibitionCard";
 import { IExhibition } from "../types"; 
 

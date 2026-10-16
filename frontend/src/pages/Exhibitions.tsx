@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../lib/axios";
 import ExhibitionCard from "../components/ExhibitionCard";
 import { IExhibition } from "../types"; // Shared interface with MongoDB fields
 
@@ -12,7 +12,7 @@ function Exhibitions() {
       try {
         setLoading(true);
         // Calls your backend getAllExhibition controller route
-        const response = await axios.get<{ exhibitions: IExhibition[] }>("/api/exhibitions");
+        const response = await axios.get<{ exhibitions: IExhibition[] }>("/exhibitions");
         
         // Defensive check: handle both object envelopes and direct array fallbacks safely
         if (response.data && Array.isArray(response.data.exhibitions)) {

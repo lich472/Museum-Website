@@ -13,6 +13,19 @@ export type IExhibition = {
   updatedAt?: string;
 }
 
+export type IEvent = {
+    _id: string; 
+    title: string,
+    description: string,
+    imageUrl: string,
+    startDate: Date,
+    endDate: Date,
+    spotRemaining: number,
+    type: string,
+    capacity: number,
+    location: string
+}
+
 export type User = {
   _id: string;
   name: string;

@@ -44,6 +44,8 @@ import {
   MemberConfirmationPage,
 } from "./components/memberships/MembershipFlow";
 import MembershipProvider from "./components/memberships/MembershipProvider";
+import EventDetail from "./pages/EventDetail.tsx";
+import Events from "./pages/Events.tsx";
 
 function ResetTestData() {
   return null;
@@ -123,6 +125,8 @@ function App() {
         <Route path="/exhibitions/:id" element={<ExhibitionDetail />} />
         <Route path="/collections" element={<Collections />} />
         <Route path="/collections/:id" element={<CollectionDetail />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/events/:id" element={<EventDetail />} />
         <Route path="/visit" element={<Visit />} />
 
         <Route element={<FeatureLayout />}>

@@ -1,9 +1,16 @@
-function DashboardOverview({ totalExhibitions, totalEvents, totalCapacity, availableSpots }) {
+function DashboardOverview({
+  totalExhibitions,
+  totalCollections,
+  totalEvents,
+  totalCapacity,
+  availableSpots,
+}) {
   const stats = [
     { id: 1, label: 'Total Exhibitions', value: totalExhibitions },
-    { id: 2, label: 'Total Events', value: totalEvents },
-    { id: 3, label: 'Total Event Capacity', value: totalCapacity },
-    { id: 4, label: 'Available Event Spots', value: availableSpots }
+    { id: 2, label: 'Total Collection Items', value: totalCollections },
+    { id: 3, label: 'Total Events', value: totalEvents },
+    { id: 4, label: 'Total Event Capacity', value: totalCapacity },
+    { id: 5, label: 'Available Event Spots', value: availableSpots },
   ];
 
   return (
@@ -13,7 +20,7 @@ function DashboardOverview({ totalExhibitions, totalEvents, totalCapacity, avail
         {stats.map((stat) => (
           <div className="summary-card" key={stat.id}>
             <p>{stat.label}</p>
-            <strong>{stat.value}</strong>
+            <strong>{stat.value ?? 0}</strong>
           </div>
         ))}
       </div>

@@ -3,8 +3,8 @@ import { Request, Response } from "express";
 
 export const getAllEvent = async (req: Request, res: Response) => {
 	try {
-		const event = await Event.find({}); // find all exhibition
-		res.json({ event });
+		const events = await Event.find({}); // find all Event
+		res.json({ events });
 	} catch (error) {
 		if(error instanceof Error){
 			console.log("Error in getAllEvent controller", error.message);
@@ -15,16 +15,18 @@ export const getAllEvent = async (req: Request, res: Response) => {
 
 export const createEvent = async (req: Request, res: Response) => {
 	try {
-		const { title, description, image, start_date, end_date, type, capacity } = req.body;
+		const { title, description, imageUrl, startDate, endDate, spotRemaining, type, capacity, location } = req.body;
 
 		const event = await Event.create({
 			title,
 			description,
-			image,
-			start_date,
-			end_date,
+			imageUrl,
+			startDate,
+			endDate,
+			spotRemaining,
             type, 
             capacity,
+			location
 		});
 
 		res.status(201).json(event);
@@ -70,4 +72,44 @@ export const getEventById = async (req: Request, res: Response) => {
     	res.status(500).json({ message: "Error fetching event", error: error.message });
 	}
   }
+};
+
+export const updateEvent = async (req: Request, res: Response) => {
+	try {
+		const { title,
+			description,
+			imageUrl,
+			startDate,
+			endDate,
+			spotRemaining,
+            type, 
+            capacity,
+			location } = req.body;
+
+		// Find the item by ID and pass the updated body values
+		const updatedEvent = await Event.findByIdAndUpdate(
+			req.params.id,
+			{ title,
+			description,
+			imageUrl,
+			startDate,
+			endDate,
+			spotRemaining,
+            type, 
+            capacity,
+			location },
+			{ new: true } 
+		);
+
+		if (!updatedEvent) {
+			return res.status(404).json({ message: "Event not found" });
+		}
+
+		res.json(updatedEvent);
+	} catch (error) {
+		if (error instanceof Error) {
+			console.log("Error in updateEvent controller", error.message);
+			res.status(500).json({ message: "Server error", error: error.message });
+		}
+	}
 };

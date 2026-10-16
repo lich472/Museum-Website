@@ -74,7 +74,8 @@ function CollectionDetail() {
           <img
             src={displayImage}
             alt={item.title}
-            className="detail-image"
+            className="mx-auto h-auto max-h-[70vh] w-full max-w-4xl rounded-lg object-contain"
+            onError={(e) => (e.currentTarget.style.display = "none")}
           />
         </section>
       )}
