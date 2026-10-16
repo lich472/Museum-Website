@@ -1,10 +1,10 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../lib/axios";
 import { IExhibition } from "../types"; // Make sure your types file matches the MongoDB schema fields
 import ExhibitionCard from "../components/ExhibitionCard";
 import { apiFetch } from "../api/client";
-import { formatDateRange } from "../utils/date";
+import { formatDate, formatDateRange } from "../utils/date";
 import { findRoomByLabel } from "../data/facilityMap";
 
 /** An exhibition suggested as similar, plus why it was suggested. */
@@ -50,7 +50,7 @@ function ExhibitionDetail() {
     const fetchExhibition = async () => {
       try {
         setLoading(true);
-        const response = await axios.get<IExhibition>(`/api/exhibitions/${id}`);
+        const response = await axios.get<IExhibition>(`/exhibitions/${id}`);
         setExhibition(response.data);
         setError(null);
       } catch (err) {
@@ -106,7 +106,7 @@ function ExhibitionDetail() {
     );
   }
 
-  // dd/mm/yyyy, replacing the mock .date field
+  // dd/mm/yyyy, as agreed for the whole site.
   const dateRange = formatDateRange(exhibition.startDate, exhibition.endDate);
 
   // A room that exists on the floor plan becomes a link to the map. Anything
@@ -141,7 +141,8 @@ function ExhibitionDetail() {
           <img
             src={exhibition.imageUrl}
             alt={exhibition.title}
-            className="detail-image"
+            className="mx-auto h-auto max-h-[70vh] w-full max-w-4xl rounded-lg object-contain"
+            onError={(e) => (e.currentTarget.style.display = "none")}
           />
         </section>
       )}
@@ -180,6 +181,15 @@ function ExhibitionDetail() {
             ) : (
               <strong>{exhibition.room || "Gallery One"}</strong>
             )}
+          </div>
+
+          <div className="info-item">
+            <span>Date</span>
+            <div>
+              <strong className="block">Start: {formatDate(exhibition.startDate)}</strong>
+              <span> </span>
+              <strong className="block">End: {formatDate(exhibition.endDate)}</strong>
+            </div>
           </div>
 
           <div className="info-item">

@@ -1,0 +1,174 @@
+.admin-page-container {
+  width: 100%;
+  background-color: #f4f6f8;
+  text-align: left;
+  min-height: 100vh;
+}
+
+/* 2. Nest all sub-selectors so they can't leak onto public pages */
+.admin-page-container .admin-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px;
+  color: #222;
+}
+
+.admin-page-container .admin-page h1 {
+  font-size: 36px;
+  margin-bottom: 8px;
+  text-align: left;
+  color: #222;
+}
+
+.admin-page-container .admin-page p {
+  margin-top: 0;
+  margin-bottom: 32px;
+  color: #666;
+  text-align: left;
+}
+
+.admin-page-container .admin-page h2 {
+  font-size: 24px;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  text-align: left;
+  color: #222;
+}
+
+/* 3. Scope her form layouts so your Login/Signup forms remain clean */
+.admin-page-container form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.admin-page-container form h3 {
+  grid-column: 1 / -1;
+  margin: 0 0 8px;
+  color: #222;
+}
+
+.admin-page-container form input,
+.admin-page-container form select,
+.admin-page-container form textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  font-family: inherit;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: #222;
+  background-color: white;
+}
+
+.admin-page-container form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.admin-page-container form input,
+.admin-page-container form select {
+  height: 48px;
+  align-self: start;
+}
+
+.admin-page-container form button {
+  width: fit-content;
+  padding: 10px 18px;
+  color: white;
+  background-color: #245b8a;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.admin-page-container form button:hover {
+  background-color: #19476d;
+}
+
+/* 4. Scope tables and dashboard summary cards */
+.admin-page-container table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  margin-bottom: 32px;
+}
+
+.admin-page-container th,
+.admin-page-container td {
+  padding: 14px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid #ddd;
+}
+
+.admin-page-container th {
+  color: white;
+  background-color: #245b8a;
+}
+
+.admin-page-container td {
+  color: #222;
+}
+
+.admin-page-container .exhibition-image {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+}
+
+.admin-page-container td button {
+  margin: 3px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.admin-page-container form input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.admin-page-container .dashboard-overview {
+  margin: 40px 0;
+}
+
+.admin-page-container .summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.admin-page-container .summary-card {
+  background-color: white;
+  border: 1px solid #d7dce1;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.admin-page-container .summary-card p {
+  margin: 0 0 12px;
+  color: #666;
+}
+
+.admin-page-container .summary-card strong {
+  font-size: 32px;
+  color: #39638f;
+}
+
+@media (max-width: 800px) {
+  .admin-page-container .admin-page { padding: 16px; }
+  .admin-page-container form { grid-template-columns: 1fr; }
+  .admin-page-container table { font-size: 14px; }
+  .admin-page-container th, .admin-page-container td { padding: 8px; }
+  .admin-page-container .summary-grid { grid-template-columns: repeat(2, 1fr); }
+}

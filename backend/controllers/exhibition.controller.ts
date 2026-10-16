@@ -73,3 +73,27 @@ export const getExhibitionById = async (req: Request, res: Response) => {
 	}
   }
 };
+
+export const updateExhibition = async (req: Request, res: Response) => {
+	try {
+		const { title, description, imageUrl, startDate, endDate, status, room, tags, isHighlight } = req.body;
+
+		// Find the item by ID and pass the updated body values
+		const updatedExhibition = await Exhibition.findByIdAndUpdate(
+			req.params.id,
+			{ title, description, imageUrl, startDate, endDate, status, room, tags, isHighlight },
+			{ new: true } // 'new: true' tells Mongoose to return the modified document instead of the original
+		);
+
+		if (!updatedExhibition) {
+			return res.status(404).json({ message: "Exhibition not found" });
+		}
+
+		res.json(updatedExhibition);
+	} catch (error) {
+		if (error instanceof Error) {
+			console.log("Error in updateExhibition controller", error.message);
+			res.status(500).json({ message: "Server error", error: error.message });
+		}
+	}
+};
