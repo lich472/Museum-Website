@@ -5,6 +5,88 @@
 .booking-title {
   font-size: clamp(30px, 4vw, 46px);
 }
+.booking-landing {
+  --color-primary: #a64f32;
+  --color-secondary: #e5edf0;
+  --color-border: #e5dfd3;
+  padding: 0 24px clamp(64px, 8vw, 120px);
+  color: #34332f;
+}
+.booking-landing-intro {
+  min-height: 33vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 48px 0;
+}
+.booking-landing-intro > * {
+  margin: 0;
+}
+.booking-landing-intro .eyebrow {
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  color: #795f49;
+}
+.booking-landing-intro h1 {
+  font-size: clamp(36px, 4.5vw, 56px);
+  font-weight: 400;
+  line-height: 1.2;
+}
+.booking-landing-intro > p:last-child {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #6d655a;
+}
+.booking-landing .booking-options {
+  max-width: 1240px;
+  margin: 0 auto;
+  gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: none;
+}
+.booking-landing .booking-options article {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(28px, 3.5vw, 44px);
+}
+.booking-landing .booking-options .option-number {
+  display: block;
+  line-height: 1.5;
+}
+.booking-landing .booking-options h2 {
+  margin: 32px 0;
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 400;
+  line-height: 1.2;
+}
+.booking-landing .booking-options p {
+  margin: 0 0 18px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.booking-landing .booking-options .booking-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  margin-top: auto;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 6px;
+  box-shadow: none;
+}
+.booking-landing .booking-options .booking-button:hover {
+  background: #87412c;
+}
 .booking-note {
   text-align: center;
   color: #665a4c;
@@ -303,6 +385,12 @@
   letter-spacing: 2px;
 }
 @media (max-width: 700px) {
+  .booking-landing {
+    padding-inline: 20px;
+  }
+  .booking-landing .booking-options {
+    grid-template-columns: 1fr;
+  }
   .booking-options,
   .booking-columns {
     grid-template-columns: 1fr;

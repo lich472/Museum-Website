@@ -83,7 +83,7 @@ export default function MembershipsPage() {
                   className="booking-button comparison-action"
                   to="/membership/plan"
                 >
-                  {isMember(account) ? 'Renew membership' : 'Become a member'} →
+                  {isMember(account) ? 'Explore membership' : 'Become a member'} →
                 </Link>
               </th>
             </tr>

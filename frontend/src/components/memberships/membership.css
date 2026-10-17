@@ -1,6 +1,20 @@
+.membership-page {
+  --color-primary: #a64f32;
+  --color-border: #e5dfd3;
+  max-width: 1296px;
+  margin: 0 auto;
+  padding: 56px 24px 64px;
+  color: #34332f;
+}
+.membership-page .eyebrow {
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 2.5px;
+  color: #795f49;
+}
 .member-intro {
   text-align: center;
-  margin-bottom: 46px;
+  margin-bottom: 48px;
 }
 .comparison-scroll-hint {
   display: none;
@@ -15,6 +29,14 @@
 }
 .member-intro h1 {
   font-size: clamp(36px, 4.5vw, 56px);
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 24px 0;
+}
+.member-intro p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
 }
 .member-intro p,
 .member-footnote {
@@ -45,11 +67,14 @@
 }
 .member-comparison thead th {
   padding-top: 32px;
+  padding-bottom: 20px;
   vertical-align: top;
 }
 .member-comparison thead h2 {
   font-size: 25px;
-  margin: 16px 0 6px;
+  font-weight: 400;
+  line-height: 1.3;
+  margin: 20px 0 6px;
 }
 .member-comparison tbody th {
   font-size: 14px;
@@ -67,20 +92,22 @@
 .comparison-label {
   color: #6d655a;
   font-size: 11px;
-  letter-spacing: 1px;
+  letter-spacing: 0;
   text-transform: uppercase;
   min-height: 28px;
 }
 .comparison-price {
-  font-family: Georgia, serif;
+  font-family: inherit;
   font-size: 44px;
+  line-height: 1.2;
   color: var(--color-primary);
-  padding: 9px 0;
+  padding: 16px 0;
   font-weight: 400;
 }
 .comparison-unit {
   font-size: 12px;
   font-weight: 400;
+  line-height: 1.5;
 }
 .benefit-yes,
 .benefit-no {
@@ -109,10 +136,23 @@
   font-size: 14px;
   font-weight: 500;
 }
+.membership-page .booking-button {
+  background: var(--color-primary);
+  color: white;
+}
+.membership-page .booking-button:hover {
+  background: #87412c;
+}
+.member-comparison .benefit-yes svg,
+.member-comparison .benefit-no svg {
+  width: 20px;
+  height: 20px;
+}
 .member-footnote {
   font-size: 12px;
   text-align: center;
   margin-top: 22px;
+  line-height: 1.6;
 }
 .member-secondary {
   display: inline-block;
@@ -315,6 +355,9 @@
   padding-bottom: 10px;
 }
 @media (max-width: 700px) {
+  .membership-page {
+    padding: 36px 16px 48px;
+  }
   .member-intro {
     margin-bottom: 30px;
   }
