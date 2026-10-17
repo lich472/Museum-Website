@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+// FIX: Import your custom axios instance instead of the raw axios package
+import axios from "../lib/axios"; 
 import ExhibitionCard from "../components/ExhibitionCard";
-import type { IExhibition } from "../types"; // Import the shared type interface
+import { IExhibition } from "../types"; 
 
 function Home() {
   const [exhibitions, setExhibitions] = useState<IExhibition[]>([]);
@@ -10,15 +11,14 @@ function Home() {
   useEffect(() => {
     const fetchExhibitions = async () => {
       try {
-        // Enforce the shape matching your backend payload { exhibitions: [...] }
-        const response = await axios.get<{ exhibitions: IExhibition[] }>("/api/exhibitions");
+        const response = await axios.get<{ exhibitions: IExhibition[] }>("/exhibitions");
         
-        // Filter array to only include featured items if your backend model has 'isHighlight' set to true
-        const featuredItems = response.data.exhibitions.filter(item => item.isHighlight);
+        const rawExhibitions = response.data?.exhibitions || [];
         
-        // Fallback: If no items are flagged as highlights yet, show the first 3 exhibitions
+        const featuredItems = rawExhibitions.filter(item => item.isHighlight);
+        
         if (featuredItems.length === 0) {
-          setExhibitions(response.data.exhibitions.slice(0, 3));
+          setExhibitions(rawExhibitions.slice(0, 3));
         } else {
           setExhibitions(featuredItems);
         }
@@ -72,13 +72,17 @@ function Home() {
           <div className="loading"><p>Loading featured exhibits...</p></div>
         ) : (
           <div className="exhibition-grid">
-            {exhibitions.map((exhibition, index) => (
-              <ExhibitionCard
-                key={exhibition._id} // Uses MongoDB _id string instead of mock id number
-                exhibition={exhibition}
-                number={`0${index + 1}`}
-              />
-            ))}
+            {exhibitions && exhibitions.length > 0 ? (
+              exhibitions.map((exhibition, index) => (
+                <ExhibitionCard
+                  key={exhibition._id} 
+                  exhibition={exhibition}
+                  number={`0${index + 1}`}
+                />
+              ))
+            ) : (
+              <div className="no-data"><p>No current exhibitions available.</p></div>
+            )}
           </div>
         )}
       </section>

@@ -1,13 +1,12 @@
-
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 function CollectionCard({ item, number }) {
   return (
     <article className="collection-card">
       <div className="collection-image">
-        {item.image ? (
+        {item.imageUrl || item.image ? (
           <img
-            src={item.image}
+            src={item.imageUrl || item.image}
             alt={item.title}
             className="collection-photo"
           />
@@ -32,8 +31,9 @@ function CollectionCard({ item, number }) {
           {item.description}
         </p>
 
+        {/* Updated path configuration targeting your live database MongoDB _id field */}
         <Link
-          to={`/collections/${item.id}`}
+          to={`/collections/${item._id}`}
           className="discover-link"
         >
           Discover Object →

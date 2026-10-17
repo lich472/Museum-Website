@@ -1,94 +1,137 @@
-// @ts-check
-import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Link, Outlet, useLocation } from 'react-router'
-import Navbar from './components/Navbar'
-import Footer from './components/Footer'
-import BookingsPage from './features/bookings/BookingsPage'
-import MembershipsPage from './features/memberships/MembershipsPage'
-import MembershipProvider from './features/memberships/MembershipProvider'
-import ResetTestData from './features/memberships/ResetTestData'
+import "./App.css";
+import "./extraBooking/booking.css";
+import "./components/memberships/membership.css"
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  Outlet,
+} from "react-router-dom";
+
+import { useEffect } from "react";
+import { useUserStore } from "./stores/useUserStore.js";
+
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import LoadingSpinner from "./components/LoadingSpinner.jsx";
+
+import Home from "./pages/Home";
+import Exhibitions from "./pages/Exhibitions";
+import ExhibitionDetail from "./pages/ExhibitionDetail";
+import Collections from "./pages/Collections";
+import CollectionDetail from "./pages/CollectionDetail";
+import Visit from "./pages/Visit";
+import SignupPage from "./pages/SignupPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+
+import BookingsPage from "./extraBooking/BookingsPage.js";
+import { BookingDraftProvider } from "./extraBooking/BookingDraftProvider.js";
+import BookingConfirmationPage from "./pages/BookingConfirmationPage.js";
+import BookingLayout from "./extraBooking/BookingLayout";
+import TicketsPage from "./pages/TicketsPage.js";
+import TicketsDetailsPage from "./pages/TicketsDetailsPage";
+import TicketsReviewPage from "./pages/TicketsReviewPage";
+
+import MembershipsPage from "./components/memberships/MembershipsPage";
 import {
   MembershipLayout,
   MemberPlanPage,
   MemberCheckoutPage,
   MemberPaymentPage,
   MemberConfirmationPage,
-  RegisterPage,
-  AccountPage,
-  LoginPage,
-  TicketReceiptPage,
-} from './features/memberships/MembershipFlow'
-import './main-content.css'
-import featureBase from './feature-base.css?inline'
-import featureShell from './App.css?inline'
-import bookingStyles from './features/bookings/booking.css?inline'
-import membershipStyles from './features/memberships/membership.css?inline'
+} from "./components/memberships/MembershipFlow";
+import MembershipProvider from "./components/memberships/MembershipProvider";
+import EventDetail from "./pages/EventDetail.tsx";
+import Events from "./pages/Events.tsx";
 
-// Keep existing feature styles inside their routes; main retains its own cascade.
-const featureStyles = '@scope (.feature-shell) {' +
-  featureBase.replaceAll(':root', ':scope').replace(/\bbody\s*\{/g, ':scope {') +
-  featureShell + bookingStyles + membershipStyles + '}'
-import Home from './pages/Home'
-import Exhibitions from './pages/Exhibitions'
-import ExhibitionDetail from './pages/ExhibitionDetail'
-import Collections from './pages/Collections'
-import CollectionDetail from './pages/CollectionDetail'
-import Visit from './pages/Visit'
-import { BookingDraftProvider } from './features/bookings/BookingDraftProvider'
-import BookingLayout from './features/bookings/BookingLayout'
-import TicketsPage from './features/bookings/pages/TicketsPage'
-import TicketsDetailsPage from './features/bookings/pages/TicketsDetailsPage'
-import TicketsReviewPage from './features/bookings/pages/TicketsReviewPage'
-import BookingConfirmationPage from './features/bookings/pages/BookingConfirmationPage'
+function ResetTestData() {
+  return null;
+}
 
 function PagePosition() {
-  const { pathname } = useLocation()
+  const { pathname } = useLocation();
+
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
-  return null
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
 }
+
 function FeatureLayout() {
   return (
     <div className="feature-shell">
       <PagePosition />
 
-        <BookingDraftProvider>
-          <main id="main-content" className="site-container main-content" tabIndex={-1}>
-            <Outlet />
-          </main>
-        </BookingDraftProvider>
+      <BookingDraftProvider>
+        <main
+          id="main-content"
+          className="site-container main-content"
+          tabIndex={-1}
+        >
+          <Outlet />
+        </main>
+      </BookingDraftProvider>
+
       <ResetTestData />
     </div>
-  )
+  );
 }
-/** @param {{ title: string }} props */
-function Placeholder({ title }) {
-  return (
-    <section className="placeholder-page">
-      <h1>{title}</h1>
-      <p>This page is coming soon.</p>
-      <Link to="/">Back to home</Link>
-    </section>
-  )
-}
-export default function App() {
+
+function App() {
+  const { user, checkAuth, checkingAuth } = useUserStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  console.log("Current Authenticated User Object Structure:", user);
+
+  if (checkingAuth) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <BrowserRouter>
-      <style>{featureStyles}</style>
-      <MembershipProvider>
       <Navbar />
+
       <Routes>
-        <Route>
-          <Route path="/" element={<Home />} />
-          <Route path="/exhibitions" element={<Exhibitions />} />
-          <Route path="/exhibitions/:id" element={<ExhibitionDetail />} />
-          <Route path="/collections" element={<Collections />} />
-          <Route path="/collections/:id" element={<CollectionDetail />} />
-          <Route path="/visit" element={<Visit />} />
-        </Route>
+        <Route path="/" element={<Home />} />
+
+        <Route
+          path="/signup"
+          element={!user ? <SignupPage /> : <Navigate to="/" />}
+        />
+
+        <Route
+          path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />}
+        />
+
+        <Route
+          path="/admin"
+          element={
+            user?.role?.toLowerCase() === "admin" ? (
+              <AdminDashboard />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        <Route path="/exhibitions" element={<Exhibitions />} />
+        <Route path="/exhibitions/:id" element={<ExhibitionDetail />} />
+        <Route path="/collections" element={<Collections />} />
+        <Route path="/collections/:id" element={<CollectionDetail />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/events/:id" element={<EventDetail />} />
+        <Route path="/visit" element={<Visit />} />
+
         <Route element={<FeatureLayout />}>
           <Route path="/booking" element={<BookingsPage />} />
+
           <Route element={<BookingLayout />}>
             <Route path="/tickets" element={<TicketsPage />} />
             <Route
@@ -100,53 +143,48 @@ export default function App() {
               element={<TicketsReviewPage />}
             />
           </Route>
+
           <Route
             path="/bookings/:reference"
             element={<BookingConfirmationPage />}
           />
-          <Route path="/membership" element={<MembershipsPage />} />
-          <Route element={<MembershipLayout />}>
-            <Route path="/membership/plan" element={<MemberPlanPage />} />
+
+          {/* Membership routes share the same MembershipProvider */}
+          <Route
+            element={
+              <MembershipProvider>
+                <Outlet />
+              </MembershipProvider>
+            }
+          >
+            <Route path="/membership" element={<MembershipsPage />} />
+
+            <Route element={<MembershipLayout />}>
+              <Route
+                path="/membership/plan"
+                element={<MemberPlanPage />}
+              />
+              <Route
+                path="/membership/checkout"
+                element={<MemberCheckoutPage />}
+              />
+              <Route
+                path="/membership/payment"
+                element={<MemberPaymentPage />}
+              />
+            </Route>
+
             <Route
-              path="/membership/checkout"
-              element={<MemberCheckoutPage />}
-            />
-            <Route
-              path="/membership/payment"
-              element={<MemberPaymentPage />}
+              path="/membership/confirmation/:reference"
+              element={<MemberConfirmationPage />}
             />
           </Route>
-          <Route
-            path="/membership/confirmation/:reference"
-            element={<MemberConfirmationPage />}
-          />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/account" element={<AccountPage />} />
-          <Route
-            path="/account/tickets/:reference"
-            element={<TicketReceiptPage />}
-          />
-          <Route path="/login" element={<LoginPage />} />
-          {Object.entries({
-            accessibility: 'Accessibility',
-            contact: 'Contact us',
-            shop: 'Museum shop',
-            privacy: 'Privacy & Legal',
-          }).map(([path, title]) => (
-            <Route
-              key={path}
-              path={`/${path}`}
-              element={<Placeholder title={title} />}
-            />
-          ))}
-          <Route
-            path="*"
-            element={<Placeholder title="Page not found" />}
-          />
         </Route>
       </Routes>
+
       <Footer />
-      </MembershipProvider>
     </BrowserRouter>
-  )
+  );
 }
+
+export default App;

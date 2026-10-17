@@ -1,7 +1,16 @@
-import { useParams, Link } from "react-router";
+import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
-import type { IExhibition } from "../types"; // Make sure your types file matches the MongoDB schema fields
+import axios from "../lib/axios";
+import { IExhibition } from "../types"; // Make sure your types file matches the MongoDB schema fields
+
+
+const fmt = (d: string | Date) =>
+  new Date(d).toLocaleDateString(undefined, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
 function ExhibitionDetail() {
   const { id } = useParams(); // MongoDB uses string ObjectIds (no type assertion required)
@@ -13,7 +22,7 @@ function ExhibitionDetail() {
     const fetchExhibition = async () => {
       try {
         setLoading(true);
-        const response = await axios.get<IExhibition>(`/api/exhibitions/${id}`);
+        const response = await axios.get<IExhibition>(`/exhibitions/${id}`);
         setExhibition(response.data);
         setError(null);
       } catch (err) {
@@ -45,10 +54,6 @@ function ExhibitionDetail() {
     );
   }
 
-  // Format MongoDB date strings into human-friendly formats to replace the old mock .date field
-  const formattedStartDate = new Date(exhibition.startDate).toLocaleDateString();
-  const formattedEndDate = new Date(exhibition.endDate).toLocaleDateString();
-
   return (
     <main>
       <section className="detail-hero">
@@ -67,7 +72,7 @@ function ExhibitionDetail() {
           <h1>{exhibition.title}</h1>
 
           <p className="detail-date">
-            {formattedStartDate} – {formattedEndDate}
+            {fmt(exhibition.startDate)} – {fmt(exhibition.endDate)}
           </p>
         </div>
       </section>
@@ -78,7 +83,8 @@ function ExhibitionDetail() {
           <img
             src={exhibition.imageUrl}
             alt={exhibition.title}
-            className="detail-image"
+            className="mx-auto h-auto max-h-[70vh] w-full max-w-4xl rounded-lg object-contain"
+            onError={(e) => (e.currentTarget.style.display = "none")}
           />
         </section>
       )}
@@ -106,6 +112,15 @@ function ExhibitionDetail() {
             <span>Location</span>
             {/* Swapped hardcoded text with your real Mongoose dynamic .room property */}
             <strong>{exhibition.room || "Gallery One"}</strong>
+          </div>
+
+          <div className="info-item">
+            <span>Date</span>
+            <div>
+              <strong className="block">Start: {fmt(exhibition.startDate)}</strong>
+              <span> </span>
+              <strong className="block">End: {fmt(exhibition.endDate)}</strong>
+            </div>
           </div>
 
           <div className="info-item">
