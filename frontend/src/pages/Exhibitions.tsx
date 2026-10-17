@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import ExhibitionCard from "../components/ExhibitionCard";
-import type { IExhibition } from "../types"; // Shared interface with MongoDB fields
+import { IExhibition } from "../types"; // Shared interface with MongoDB fields
 
 function Exhibitions() {
   const [exhibitions, setExhibitions] = useState<IExhibition[]>([]);

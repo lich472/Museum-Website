@@ -1,5 +1,5 @@
-import { Link } from "react-router";
-import type { IExhibition } from "../types"; // Import the type matching your MongoDB Schema
+import { Link } from "react-router-dom";
+import { IExhibition } from "../types"; // Import the type matching your MongoDB Schema
 
 // Explicitly type the component's incoming props for TypeScript safety
 interface ExhibitionCardProps {
