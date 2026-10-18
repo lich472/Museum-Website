@@ -1,3 +1,4 @@
+import "dotenv/config";
 import dotenv from "dotenv";
 // Always load environment variables immediately at the top
 dotenv.config(); 
@@ -22,6 +23,7 @@ import recommendationRoutes from "./routes/recommendation.route.ts";
 // Museum-wide visitor information (api-contract.md §3), owned by P4.
 import visitorInfoRoutes from "./routes/visitorInfo.route.ts";
 import { connectDB } from "./lib/db.ts";
+import bookingRoutes from "./routes/booking.route.ts";
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -54,8 +56,10 @@ app.use("/api/exhibitions", exhibitionRoutes);
 app.use("/api/collections", collectionRoutes);
 // Tag-based "you might also like", from the Jason_P5 branch.
 app.use("/api/recommendations", recommendationRoutes);
+// Museum-wide visitor information (api-contract.md §3).
 app.use("/api/visitor-info", visitorInfoRoutes);
-
+// Ticket booking against the database, from main.
+app.use("/api/bookings", bookingRoutes);
 
 
 // Connect to MongoDB BEFORE accepting traffic. In the original order the server

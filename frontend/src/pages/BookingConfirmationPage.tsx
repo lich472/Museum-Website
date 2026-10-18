@@ -2,17 +2,19 @@ import StatusIcon from '../components/StatusIcon'
 import { useEffect, useState } from 'react'
 import { useBooking } from '../extraBooking/useBooking'
 import { Link, useParams } from 'react-router'
-import { readBookings, resendMockBookingEmail } from '../extraBooking/bookingService'
+import { fetchBooking, resendBookingEmail } from '../extraBooking/bookingService'
 import { createTicketImage } from '../extraBooking/ticketImage'
 import BookingSummary from '../components/BookingSummary'
 import usePageTitle from '../utils/usePageTitle'
+import type { Booking } from '../extraBooking/bookingModel'
 
 export default function BookingConfirmationPage() {
   usePageTitle('Booking confirmation')
 
   const { reference } = useParams()
-  const [bookings] = useState(readBookings)
-  const booking = bookings.find((item) => item.reference === reference)
+  const [booking, setBooking] = useState<Booking | null>(null)
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'missing'>('loading')
+
   const { draft, reset } = useBooking()
   const [images, setImages] = useState<{
     reference: string
@@ -28,6 +30,28 @@ export default function BookingConfirmationPage() {
   const [now, setNow] = useState(Date.now)
   const remaining = Math.max(0, Math.ceil((nextAllowedAt - now) / 1000))
   const currentImages = images?.reference === reference ? images : null
+
+  // Load the booking from the backend
+  useEffect(() => {
+    if (!reference) {
+      setLoadState('missing')
+      return
+    }
+    let cancelled = false
+    setLoadState('loading')
+    fetchBooking(reference)
+      .then((b) => {
+        if (cancelled) return
+        setBooking(b)
+        setLoadState('ready')
+      })
+      .catch(() => {
+        if (!cancelled) setLoadState('missing')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [reference])
 
   useEffect(() => {
     if (booking && draft.requestId === booking.requestId) reset()
@@ -61,12 +85,10 @@ export default function BookingConfirmationPage() {
     setEmailMessage('')
     setEmailError('')
     try {
-      const result = await resendMockBookingEmail(booking.reference)
+      const result = await resendBookingEmail(booking.reference)
       setNextAllowedAt(result.nextAllowedAt)
       setNow(Date.now())
-      setEmailMessage(
-        `Resend request processed for ${result.email}. No real email was sent.`,
-      )
+      setEmailMessage(`Confirmation email sent to ${result.email}.`)
     } catch (error) {
       setEmailError(
         error instanceof Error
@@ -78,18 +100,26 @@ export default function BookingConfirmationPage() {
     }
   }
 
-  if (!booking)
+  if (loadState === 'loading')
+    return (
+      <section className="booking-confirmation">
+        <p role="status">Loading your booking…</p>
+      </section>
+    )
+
+  if (loadState === 'missing' || !booking)
     return (
       <section className="booking-confirmation">
         <h1>Booking not found</h1>
         <p>
-          Bookings are available only in the browser session that created them.
+          We couldn’t find a booking with that reference. Please check the
+          reference and try again.
         </p>
         <Link to="/booking">Start a new booking</Link>
       </section>
     )
 
-  return (
+    return (
     <section className="booking-confirmation">
       <span className="confirmation-check" aria-hidden="true">
         <StatusIcon />
@@ -97,7 +127,8 @@ export default function BookingConfirmationPage() {
       <h1>Your booking is confirmed</h1>
       <p>Save your booking image for easy access on your phone.</p>
       <p className="booking-note">
-        This QR code is not valid for admission. No email has been sent.
+        This QR code is not valid for admission. A confirmation email has been
+        sent to your booking email.
       </p>
       <div className="confirmation-reference">
         <span>Booking reference</span>
@@ -170,14 +201,11 @@ export default function BookingConfirmationPage() {
           disabled={sending || remaining > 0}
         >
           {sending
-            ? 'Processing…'
+            ? 'Sending…'
             : remaining > 0
               ? `Try again in ${remaining}s`
               : 'Resend email'}
         </button>
-        <p className="field-help">
-          Email delivery will be enabled when the backend is connected.
-        </p>
         {emailMessage && <p role="status">{emailMessage}</p>}
         {emailError && (
           <p role="alert" className="booking-error">

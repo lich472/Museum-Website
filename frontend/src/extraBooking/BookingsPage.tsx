@@ -15,7 +15,10 @@ export default function BookingsPage() {
           <h2>Tickets</h2>
           <p>Discover exhibitions and local stories at your own pace.</p>
           <p>Single-day entry · Adult, child and concession options</p>
-          <Link className="booking-button" to="/tickets">
+          <Link
+            to="/tickets"
+            className="mt-4 inline-block rounded-md border-2 border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white focus-visible:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+          >
             Choose your tickets →
           </Link>
         </article>
@@ -26,7 +29,9 @@ export default function BookingsPage() {
             Stay connected to the museum and discover more throughout the year.
           </p>
           <p>Explore membership plans and benefits.</p>
-          <Link className="booking-button" to="/membership">
+          <Link 
+            className="mt-4 inline-block rounded-md border-2 border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white focus-visible:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+            to="/membership">
             Explore membership →
           </Link>
         </article>
