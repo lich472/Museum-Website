@@ -1,3 +1,4 @@
+import "dotenv/config";
 import dotenv from "dotenv";
 // Always load environment variables immediately at the top
 dotenv.config(); 
@@ -12,6 +13,7 @@ import eventRoutes from "./routes/event.route.ts";
 import exhibitionRoutes from "./routes/exhibition.route.ts";
 import collectionRoutes from "./routes/collection.route.ts";
 import { connectDB } from "./lib/db.ts";
+import bookingRoutes from "./routes/booking.route.ts";
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -32,7 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/exhibitions", exhibitionRoutes);
 app.use("/api/collections", collectionRoutes);
-
+app.use("/api/bookings", bookingRoutes);
 
 
 app.listen(PORT, () => {

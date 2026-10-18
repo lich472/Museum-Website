@@ -46,7 +46,7 @@ export default function TicketsDetailsPage() {
             navigate('/tickets/review')
           }}
         >
-          {import.meta.env.DEV && (
+          {/* {import.meta.env.DEV && (
             <button
               className="test-fill"
               type="button"
@@ -72,7 +72,7 @@ export default function TicketsDetailsPage() {
             >
               Fill test details (development only)
             </button>
-          )}
+          )} */}
           {fields.map((field) => (
             <div className="booking-field" key={field.key}>
               <label htmlFor={field.key}>{field.label} *</label>

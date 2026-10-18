@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { useBooking } from '../extraBooking/useBooking'
 import { detailErrors, validTickets } from '../extraBooking/bookingModel'
-import { createMockBooking } from '../extraBooking/bookingService'
+import { createBooking } from '../extraBooking/bookingService'
 import BookingSummary from '../components/BookingSummary'
 
 export default function TicketsReviewPage() {
@@ -21,7 +21,7 @@ export default function TicketsReviewPage() {
     setPending(true)
     setError('')
     try {
-      const booking = await createMockBooking(draft, fail)
+      const booking = await createBooking(draft)
       navigate(`/bookings/${booking.reference}`)
     } catch (cause) {
       setError(
@@ -78,7 +78,7 @@ export default function TicketsReviewPage() {
         </section>
         <BookingSummary draft={draft} />
       </div>
-      {import.meta.env.DEV && (
+      {/* {import.meta.env.DEV && (
         <label className="booking-checkbox">
           <input
             type="checkbox"
@@ -88,7 +88,7 @@ export default function TicketsReviewPage() {
           />
           Simulate service failure (development only)
         </label>
-      )}
+      )} */}
       {error && (
         <p role="alert" className="booking-error">
           {error}
