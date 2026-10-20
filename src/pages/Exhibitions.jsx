@@ -1,7 +1,22 @@
+
+import { useState } from "react";
 import exhibitions from "../data/exhibitions";
 import ExhibitionCard from "../components/ExhibitionCard";
 
 function Exhibitions() {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Filter exhibitions based on user search
+  const filteredExhibitions = exhibitions.filter((exhibition) => {
+    const search = searchTerm.toLowerCase().trim();
+
+    return (
+      exhibition.title.toLowerCase().includes(search) ||
+      exhibition.category.toLowerCase().includes(search) ||
+      exhibition.description.toLowerCase().includes(search)
+    );
+  });
+
   return (
     <main>
       <section className="page-header">
@@ -18,8 +33,21 @@ function Exhibitions() {
       </section>
 
       <section className="exhibitions-page">
+
+        {/* Exhibition Search Bar */}
+        <div className="exhibition-search">
+          <input
+            type="search"
+            placeholder="Search exhibitions..."
+            aria-label="Search exhibitions"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+        </div>
+
+        {/* Exhibition Cards */}
         <div className="exhibition-grid">
-          {exhibitions.map((exhibition, index) => (
+          {filteredExhibitions.map((exhibition, index) => (
             <ExhibitionCard
               key={exhibition.id}
               exhibition={exhibition}
@@ -27,6 +55,14 @@ function Exhibitions() {
             />
           ))}
         </div>
+
+        {/* No Search Results */}
+        {filteredExhibitions.length === 0 && (
+          <p className="no-results">
+            No exhibitions found. Please try another search.
+          </p>
+        )}
+
       </section>
     </main>
   );

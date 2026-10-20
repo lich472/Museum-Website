@@ -672,3 +672,34 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Exhibition Search Bar */
+
+.exhibition-search {
+  max-width: 550px;
+  margin: 0 auto 35px;
+}
+
+.exhibition-search input {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 16px;
+  border: 1px solid #c8d0c9;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #203c33;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.exhibition-search input:focus {
+  border-color: #315b4a;
+  box-shadow: 0 0 0 3px rgba(49, 91, 74, 0.12);
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: #555;
+}
