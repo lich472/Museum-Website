@@ -1,12 +1,12 @@
 import "./App.css";
 import "./extraBooking/booking.css";
-import "./components/memberships/membership.css"
 import {
   BrowserRouter,
   Routes,
   Route,
   Navigate,
   useLocation,
+  useSearchParams,
   Outlet,
 } from "react-router-dom";
 
@@ -40,16 +40,11 @@ import {
   MembershipLayout,
   MemberPlanPage,
   MemberCheckoutPage,
-  MemberPaymentPage,
   MemberConfirmationPage,
+  AccountPage,
 } from "./components/memberships/MembershipFlow";
-import MembershipProvider from "./components/memberships/MembershipProvider";
 import EventDetail from "./pages/EventDetail.tsx";
 import Events from "./pages/Events.tsx";
-
-function ResetTestData() {
-  return null;
-}
 
 function PagePosition() {
   const { pathname } = useLocation();
@@ -75,10 +70,21 @@ function FeatureLayout() {
           <Outlet />
         </main>
       </BookingDraftProvider>
-
-      <ResetTestData />
     </div>
   );
+}
+
+function GuestOnly({ children }) {
+  const { user } = useUserStore();
+  const [params] = useSearchParams();
+
+  const returnTo = params.get("returnTo");
+  const safeReturnTo =
+    returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
+      ? returnTo
+      : "/";
+
+  return user ? <Navigate to={safeReturnTo} replace /> : children;
 }
 
 function App() {
@@ -87,8 +93,6 @@ function App() {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
-
-  console.log("Current Authenticated User Object Structure:", user);
 
   if (checkingAuth) {
     return <LoadingSpinner />;
@@ -103,11 +107,20 @@ function App() {
 
         <Route
           path="/signup"
-          element={!user ? <SignupPage /> : <Navigate to="/" />}
+          element={
+            <GuestOnly>
+              <SignupPage />
+            </GuestOnly>
+          }
         />
 
         <Route
-          path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />}
+          path="/login"
+          element={
+            <GuestOnly>
+              <LoginPage />
+            </GuestOnly>
+          }
         />
 
         <Route
@@ -134,14 +147,8 @@ function App() {
 
           <Route element={<BookingLayout />}>
             <Route path="/tickets" element={<TicketsPage />} />
-            <Route
-              path="/tickets/details"
-              element={<TicketsDetailsPage />}
-            />
-            <Route
-              path="/tickets/review"
-              element={<TicketsReviewPage />}
-            />
+            <Route path="/tickets/details" element={<TicketsDetailsPage />} />
+            <Route path="/tickets/review" element={<TicketsReviewPage />} />
           </Route>
 
           <Route
@@ -149,36 +156,22 @@ function App() {
             element={<BookingConfirmationPage />}
           />
 
-          {/* Membership routes share the same MembershipProvider */}
-          <Route
-            element={
-              <MembershipProvider>
-                <Outlet />
-              </MembershipProvider>
-            }
-          >
-            <Route path="/membership" element={<MembershipsPage />} />
+          <Route path="/membership" element={<MembershipsPage />} />
 
-            <Route element={<MembershipLayout />}>
-              <Route
-                path="/membership/plan"
-                element={<MemberPlanPage />}
-              />
-              <Route
-                path="/membership/checkout"
-                element={<MemberCheckoutPage />}
-              />
-              <Route
-                path="/membership/payment"
-                element={<MemberPaymentPage />}
-              />
-            </Route>
-
+          <Route element={<MembershipLayout />}>
+            <Route path="/membership/plan" element={<MemberPlanPage />} />
             <Route
-              path="/membership/confirmation/:reference"
-              element={<MemberConfirmationPage />}
+              path="/membership/checkout"
+              element={<MemberCheckoutPage />}
             />
           </Route>
+
+          <Route
+            path="/membership/confirmation/:reference"
+            element={<MemberConfirmationPage />}
+          />
+
+          <Route path="/account" element={<AccountPage />} />
         </Route>
       </Routes>
 

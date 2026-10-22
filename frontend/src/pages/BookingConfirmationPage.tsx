@@ -193,7 +193,7 @@ export default function BookingConfirmationPage() {
         </p>
         <button
           type="button"
-          className="booking-button"
+          className="inline-flex items-center justify-center rounded-md bg-[#000000] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
           onClick={resendEmail}
           disabled={sending || remaining > 0}
         >
@@ -212,7 +212,10 @@ export default function BookingConfirmationPage() {
       </div>
       <div className="booking-navigation">
         <Link to="/">Back to home</Link>
-        <Link className="booking-button" to="/tickets">
+        <Link 
+          className="inline-flex items-center justify-center rounded-md bg-transparent px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
+          to="/tickets"
+        >
           Book another visit →
         </Link>
       </div>

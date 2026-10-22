@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 type IBooking = {
+  userId: mongoose.Schema.Types.ObjectId,
   reference: string;
   requestId: string;
   date: string;
@@ -22,6 +23,11 @@ type IBooking = {
 
 const bookingSchema = new mongoose.Schema(
   {
+    userId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User", 
+      index: true 
+    },
     reference: { 
         type: String, 
         required: true, 

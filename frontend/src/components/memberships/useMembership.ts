@@ -1,13 +1,38 @@
-import { createContext, useContext } from 'react'
-import type { Account } from './membershipService'
-export const MembershipContext = createContext<{
-  account: Account | null
-  refresh: () => void
-  openLogin: () => void
-  signOut: () => void
-} | null>(null)
+import { useCallback, useEffect, useState } from 'react'
+import { useUserStore } from '../../stores/useUserStore' // adjust the path
+import { fetchMyMembership } from './membershipService'
+import type { MembershipStatus } from './membershipService'
+
 export function useMembership() {
-  const context = useContext(MembershipContext)
-  if (!context) throw new Error('MembershipProvider is required')
-  return context
+  const user = useUserStore((s) => s.user) // adjust to your store's field
+  const [status, setStatus] = useState<MembershipStatus | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const refresh = useCallback(async () => {
+    if (!user) {
+      setStatus(null)
+      setLoading(false)
+      return
+    }
+    try {
+      setStatus(await fetchMyMembership())
+    } catch {
+      setStatus(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
+
+  useEffect(() => {
+    refresh()
+  }, [refresh])
+
+  return {
+    user,
+    status,
+    loading,
+    refresh,
+    isMember: !!status?.isMember,
+    expiresAt: status?.expiresAt ?? null,
+  }
 }

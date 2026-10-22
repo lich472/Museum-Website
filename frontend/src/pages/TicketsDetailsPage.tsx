@@ -225,7 +225,9 @@ export default function TicketsDetailsPage() {
           )}
           <div className="booking-navigation">
             <Link to="/tickets">← Back to tickets</Link>
-            <button type="submit" className="booking-button">
+            <button type="submit" 
+              className="inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
+            >
               Review booking →
             </button>
           </div>
