@@ -5,7 +5,7 @@ import { adminRoute, protectRoute } from "../middleware/auth.middleware.ts";
 const router = express.Router();
 
 router.get("/", getAllExhibition); 
-router.post("/createExhibition", createExhibition);
+router.post("/createExhibition", protectRoute, adminRoute, createExhibition);
 router.get("/:id", getExhibitionById);
 router.delete("/:id", protectRoute, adminRoute, deleteExhibition);
 router.put("/:id", protectRoute, adminRoute, updateExhibition);

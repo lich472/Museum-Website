@@ -1,4 +1,5 @@
 import "./App.css";
+import { Toaster } from 'react-hot-toast'
 import "./extraBooking/booking.css";
 import {
   BrowserRouter,
@@ -176,6 +177,7 @@ function App() {
       </Routes>
 
       <Footer />
+      <Toaster />
     </BrowserRouter>
   );
 }

@@ -1,4 +1,27 @@
+import { useState, useEffect } from 'react'
+import axios from '../lib/axios'
+
 function Visit() {
+  const [openingHours, setOpeningHours] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadVisitorInfo() {
+      try {
+        const response = await axios.get('/visitor-info')
+        const info = response.data.visitorInfo ?? response.data
+
+        setOpeningHours(info.openingHours)
+      } catch (error) {
+        console.error('Failed to load opening hours:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadVisitorInfo()
+  }, [])
+
   return (
     <main>
       <section className="page-header">
@@ -15,7 +38,6 @@ function Visit() {
       </section>
 
       <section className="visit-section">
-
         <div className="visit-intro">
           <p className="section-label">VISITOR INFORMATION</p>
           <h2>Welcome to the Regional Museum</h2>
@@ -28,12 +50,28 @@ function Visit() {
         </div>
 
         <div className="visit-grid">
-
           <article className="visit-card">
             <span className="visit-number">01</span>
             <h3>Opening Hours</h3>
-            <p>Monday – Sunday</p>
-            <strong>10:00 AM – 5:00 PM</strong>
+
+            {loading ? (
+              <p>Loading opening hours...</p>
+            ) : openingHours ? (
+              <div>
+                <p>Monday – Sunday</p>
+
+                {Object.entries(openingHours).map(([day, hours]) => (
+                  <p key={day}>
+                    <strong>
+                      {day.charAt(0).toUpperCase() + day.slice(1)}:
+                    </strong>{' '}
+                    {hours}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p>Opening hours are currently unavailable.</p>
+            )}
           </article>
 
           <article className="visit-card">
@@ -59,11 +97,10 @@ function Visit() {
             </p>
             <strong>All visitors welcome</strong>
           </article>
-
         </div>
       </section>
     </main>
-  );
+  )
 }
 
-export default Visit;
+export default Visit
