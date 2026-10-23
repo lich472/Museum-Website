@@ -1,7 +1,9 @@
 import StatusIcon from '../../components/StatusIcon'
 import { Link } from 'react-router'
 import { useMembership } from './useMembership'
-import { annualPlan, isMember, money } from './membershipService'
+import { annualPlan } from './membershipService'
+import { money } from '../../extraBooking/bookingModel'
+import './membership.css'
 
 const benefits = [
   ['Single-day museum entry', true, false, true],
@@ -14,7 +16,7 @@ const benefits = [
 ] as const
 
 export default function MembershipsPage() {
-  const { account } = useMembership()
+  const { user, isMember } = useMembership()
 
   return (
     <section className="membership-page">
@@ -66,9 +68,9 @@ export default function MembershipsPage() {
                 </span>
                 <Link
                   className="member-secondary comparison-action"
-                  to={account ? '/account' : '/register'}
+                  to={user ? '/account' : '/signup'}
                 >
-                  {account ? 'My account' : 'Create an account'} →
+                  {user ? 'My account' : 'Create an account'} →
                 </Link>
               </th>
               <th scope="col" className="member-highlight">
@@ -83,7 +85,7 @@ export default function MembershipsPage() {
                   className="booking-button comparison-action"
                   to="/membership/plan"
                 >
-                  {isMember(account) ? 'Explore membership' : 'Become a member'} →
+                  {isMember ? 'Explore membership' : 'Become a member'} →
                 </Link>
               </th>
             </tr>

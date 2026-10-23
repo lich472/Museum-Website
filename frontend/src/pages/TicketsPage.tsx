@@ -112,7 +112,7 @@ export default function TicketsPage() {
       )}
       <div className="booking-navigation">
         <button 
-          className="inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
+          className="feature-button"
           type="submit">
 
           Continue to details →

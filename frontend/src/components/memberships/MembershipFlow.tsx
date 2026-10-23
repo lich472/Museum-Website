@@ -76,31 +76,25 @@ export function MembershipLayout() {
 function Summary() {
   const { isMember } = useMembership()
   return (
-    <aside className="rounded-lg bg-[#e5edf0] p-6 md:sticky md:top-6 md:p-7">
-      <span className="eyebrow">A LITTLE MORE MUSEUM</span>
-      <h2 className="mt-3.5 text-[28px]">Your membership</h2>
-      <p>
-        {annualPlan.name}
-        <br />
-        One adult · 12 months
-      </p>
-      <ul className="list-none p-0">
-        <li className="py-2 text-sm">Unlimited general admission</li>
-        <li className="py-2 text-sm">Priority booking for selected events</li>
-        <li className="py-2 text-sm">Member news and invitations</li>
-      </ul>
-      <div className="flex justify-between gap-3 border-t border-[#becdd0] py-3">
-        <strong>Total (AUD)</strong>
-        <strong>{money(annualPlan.cents)}</strong>
+    <aside className="membership-summary">
+      <header>
+        <span className="eyebrow">A LITTLE MORE MUSEUM</span>
+        <h2>Your membership</h2>
+      </header>
+      <div className="membership-summary-plan">
+        <strong>{annualPlan.name}</strong>
+        <p>One adult · 12 months</p>
       </div>
-      <p className="text-[13px] text-[#6d655a]">
-        One payment. No automatic renewal.
-      </p>
-      {isMember && (
-        <p className="text-[13px] text-[#6d655a]">
-          Your renewal adds 12 months to your current expiry date.
-        </p>
-      )}
+      <ul className="membership-summary-benefits">
+        <li>Unlimited general admission</li>
+        <li>Priority booking for selected events</li>
+        <li>Member news and invitations</li>
+      </ul>
+      <div className="membership-summary-price">
+        <div><strong>Total (AUD)</strong><strong>{money(annualPlan.cents)}</strong></div>
+        <p>One payment. No automatic renewal.</p>
+        {isMember && <p>Your renewal adds 12 months to your current expiry date.</p>}
+      </div>
     </aside>
   )
 }
@@ -108,17 +102,17 @@ function Summary() {
 export function MemberPlanPage() {
   const { isMember } = useMembership()
   return (
-    <div className="grid items-start gap-6 md:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)] md:gap-12">
+    <div className="membership-plan-layout grid items-start gap-6 md:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)] md:gap-12">
       <section>
         <span className="eyebrow">01 / YOUR MEMBERSHIP</span>
-        <h2 className="mt-0 text-[34px]">Make the museum part of your year.</h2>
+        <h2 className="member-heading">Make the museum part of your year.</h2>
         <p>Come back to favourite stories. Discover something new each time.</p>
-        <div className="mt-[30px] rounded-xl border-2 border-[var(--color-primary)] bg-white p-6 md:p-8">
-          <span className="inline-block rounded bg-[#f2eee5] px-3 py-2 text-[11px] tracking-[1px] text-[#79513c]">
+        <div className="member-plan-card">
+          <span className="member-tag">
             12 MONTHS OF DISCOVERY
           </span>
           <h2 className="text-[32px]">Annual membership</h2>
-          <p className="my-6 font-serif text-5xl text-[var(--color-primary)]">
+          <p className="member-plan-price">
             {money(annualPlan.cents)}{' '}
             <small className="font-sans text-[15px] text-[var(--color-text)]">
               / adult
@@ -131,17 +125,18 @@ export function MemberPlanPage() {
               : 'Your membership starts as soon as you confirm.'}
           </p>
         </div>
-        <div className="my-9 flex flex-wrap items-center justify-between gap-6">
+
+      </section>
+      <Summary />
+        <div className="membership-plan-actions flex flex-wrap items-center justify-between gap-6">
           <Link to="/membership">← Compare options</Link>
           <Link
-            className="inline-flex items-center justify-center rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+            className="feature-button inline-flex items-center justify-center rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
             to="/membership/checkout"
           >
             Continue →
           </Link>
         </div>
-      </section>
-      <Summary />
     </div>
   )
 }
@@ -181,8 +176,8 @@ export function MemberCheckoutPage() {
   return (
     <div className="grid items-start gap-6 md:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)] md:gap-12">
       <section>
-        <h2 className="mt-0 text-[34px]">Confirm your membership</h2>
-        <div className="rounded-xl border border-[var(--color-border)] bg-white p-6 md:p-8">
+        <h2 className="member-heading">Confirm your membership</h2>
+        <div className="member-white-panel">
           <h3>Membership holder</h3>
           <p>
             {user.name}
@@ -204,7 +199,7 @@ export function MemberCheckoutPage() {
         <div className="my-9 flex flex-wrap items-center justify-between gap-6">
           <Link to="/membership/plan">← Back</Link>
         <button
-          className="inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black transition-colors enabled:hover:border-[#f56c31] enabled:hover:bg-[#f56c31] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+          className="feature-button inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black transition-colors enabled:hover:border-[#f56c31] enabled:hover:bg-[#f56c31] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
           disabled={busy}
           onClick={confirm}
         >
@@ -229,9 +224,9 @@ export function MemberConfirmationPage() {
   const startsInFuture = new Date(membership.startsAt) > new Date()
 
   return (
-    <section className="mx-auto max-w-[700px] text-center">
+    <section className="member-confirmation">
       <span
-        className="inline-grid h-[70px] w-[70px] place-items-center rounded-full bg-[#dfebef] text-4xl text-[#426458]"
+        className="confirmation-check"
         aria-hidden="true"
       >
         <StatusIcon />
@@ -250,20 +245,25 @@ export function MemberConfirmationPage() {
             ? `Thank you, ${user.name}. Your renewal begins on ${date(membership.startsAt)}.`
             : `Thank you, ${user.name}. Your membership is active.`}
       </p>
-      <div className="mt-8 rounded-[14px] border-t-[5px] border-[var(--color-primary)] bg-[#e5edf0] p-6 text-left md:p-[38px]">
+      <div className="member-pass">
         <span className="eyebrow">REGIONAL MUSEUM · ANNUAL MEMBERSHIP</span>
         <h2 className="text-[34px] [overflow-wrap:anywhere]">{user.name}</h2>
         <p>Membership reference: <strong>{membership.reference}</strong></p>
         <p>Valid from <strong>{date(membership.startsAt)}</strong></p>
         <p>Valid until <strong>{date(membership.expiresAt)}</strong></p>
       </div>
-      <div className="mt-6 flex flex-wrap justify-center gap-4">
+      <div className="confirmation-reference">
+        <span>Annual membership · {money(membership.cents)} AUD</span>
+        <span>{date(membership.createdAt)}</span>
+      </div>
+      <div className="member-center-actions">
         <Link
-          className="inline-flex items-center justify-center rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+          className="feature-button inline-flex items-center justify-center rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
           to="/account"
         >
           View my account →
         </Link>
+        <Link className="member-secondary" to="/membership">Back to membership</Link>
       </div>
     </section>
   )
@@ -274,6 +274,7 @@ export function AccountPage() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [message, setMessage] = useState('')
   const [showAllMemberships, setShowAllMemberships] = useState(false)
+  const [tab, setTab] = useState('Overview')
 
   useEffect(() => {
     if (user) fetchMyBookings().then(setBookings).catch(() => setBookings([]))
@@ -296,13 +297,35 @@ export function AccountPage() {
   const visibleMemberships = showAllMemberships ? memberships : memberships.slice(0, 3)
 
   return (
-    <section className="space-y-8">
-      <h1>Hello, {user.name}.</h1>
+    <section className="member-account">
+      <div className="member-account-heading">
+        <div>
+          <span className="eyebrow">MY MUSEUM</span>
+          <h1>Hello, {user.name}.</h1>
+          <p>Your membership, all in one place.</p>
+        </div>
+      </div>
+      <nav className="member-tabs" aria-label="Account sections">
+        {['Overview', 'Personal details', 'Purchase history'].map((label) => (
+          <button key={label} type="button" aria-current={tab === label ? 'page' : undefined} onClick={() => setTab(label)}>{label}</button>
+        ))}
+      </nav>
+      {tab === 'Personal details' && (
+        <section className="member-white-panel member-profile">
+          <h2>Personal details</h2>
+          <div className="member-form-row">
+            <div className="booking-field"><label htmlFor="account-name">Name</label><input id="account-name" value={user.name} readOnly /></div>
+            <div className="booking-field"><label htmlFor="account-email">Email address</label><input id="account-email" value={user.email} readOnly /></div>
+          </div>
+        </section>
+      )}
+      {tab === 'Overview' && <div className="booking-columns">
 
-      <div className="rounded-[14px] border-t-[5px] border-[var(--color-primary)] bg-[#e5edf0] p-6 text-left md:p-[38px]">
+      <div className="member-pass">
         <span className="eyebrow">
           {isMember ? 'ACTIVE MEMBERSHIP' : 'YOUR MUSEUM ACCOUNT'}
         </span>
+        <h2>{user.name}</h2>
         <p className="[overflow-wrap:anywhere]">
           {isMember && expiresAt
             ? `Annual membership · Valid until ${date(expiresAt)}`
@@ -310,14 +333,14 @@ export function AccountPage() {
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
-            className="inline-flex items-center justify-center rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+            className="feature-button inline-flex items-center justify-center rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
             to="/membership/plan"
           >
             {isMember ? 'Renew membership' : 'Become a member'} →
           </Link>
           {isMember && (
             <button
-              className="inline-flex items-center justify-center rounded-md border border-[#c9bda9] bg-transparent px-[22px] py-3.5 text-center no-underline transition-colors hover:border-[#FF2C2C] hover:bg-[#FF2C2C] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"              onClick={cancel}
+              className="feature-button inline-flex items-center justify-center rounded-md border border-[#c9bda9] bg-transparent px-[22px] py-3.5 text-center no-underline transition-colors hover:border-[#FF2C2C] hover:bg-[#FF2C2C] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"              onClick={cancel}
             >
               Cancel membership
             </button>
@@ -326,8 +349,14 @@ export function AccountPage() {
         {message && <p role="status">{message}</p>}
       </div>
 
-      <div className="rounded-xl border border-[var(--color-border)] bg-white p-6 md:p-8">
-        <h2>● Visit bookings: </h2>
+      <div className="member-white-panel">
+        <h2>Make time for a visit</h2>
+        <p>Discover exhibitions and stories at your own pace.</p>
+        <Link className="member-link" to="/tickets">Browse tickets →</Link>
+      </div>
+      </div>}
+      {tab === 'Purchase history' && <div className="member-white-panel">
+        <h2>Ticket purchases</h2>
         {bookings.length ? (
           bookings.map((b) => (
             <div className={historyRow} key={b.reference}>
@@ -358,7 +387,7 @@ export function AccountPage() {
           </p>
         )}
 
-        <h2 className="mt-10">● Membership purchases history: </h2>
+        <h2 className="mt-10">Membership purchases </h2>
         {memberships.length ? (
           <>
             {visibleMemberships.map((m) => (
@@ -394,7 +423,7 @@ export function AccountPage() {
         ) : (
           <p>No membership purchases yet.</p>
         )}
-      </div>
+      </div>}
     </section>
   )
 }

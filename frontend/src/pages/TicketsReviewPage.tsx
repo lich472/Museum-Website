@@ -42,7 +42,7 @@ export default function TicketsReviewPage() {
       </p>
       <div className="booking-columns">
         <section className="review-details">
-          <h2>Contact details</h2>
+          <h2><strong>Contact details</strong></h2>
           <dl>
             <dt>Name</dt>
             <dd>
@@ -70,8 +70,8 @@ export default function TicketsReviewPage() {
           <div className="review-edit">
             {!pending && (
               <>
-                <Link to="/tickets">Edit tickets</Link>
-                <Link to="/tickets/details">Edit details</Link>
+                <Link className="feature-button" to="/tickets">Edit tickets</Link>
+                <Link className="feature-button" to="/tickets/details">Edit details</Link>
               </>
             )}
           </div>
@@ -97,7 +97,7 @@ export default function TicketsReviewPage() {
       <div className="booking-navigation">
         <span>No payment is collected at this step.</span>
         <button 
-          className="inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
+          className="feature-button"
           disabled={pending} 
           onClick={submit}
         >

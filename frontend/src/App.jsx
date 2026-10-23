@@ -1,6 +1,7 @@
 import "./App.css";
 import { Toaster } from 'react-hot-toast'
 import "./extraBooking/booking.css";
+import "./feature-layout.css";
 import {
   BrowserRouter,
   Routes,

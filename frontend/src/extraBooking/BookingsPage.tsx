@@ -16,7 +16,7 @@ export default function BookingsPage() {
           <p>Single-day entry · Adult, child and concession options</p>
           <Link
             to="/tickets"
-            className="inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
+            className="feature-button inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
           >
             Choose your tickets →
           </Link>
@@ -30,7 +30,7 @@ export default function BookingsPage() {
           <p>Explore membership plans and benefits.</p>
             <Link
               to="/membership"
-              className="inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
+              className="feature-button inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
             >
               Explore membership →
             </Link>
