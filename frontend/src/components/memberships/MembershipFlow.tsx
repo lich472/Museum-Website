@@ -1,28 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
-import {
-  Link,
-  Navigate,
-  Outlet,
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router'
+import { Link, Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router'
 import { useMembership } from './useMembership'
 import {
   annualPlan,
-  isMember,
-  membershipExpiry,
-  money,
-  nextExpiry,
-  purchase,
-  register,
-  saveProfile,
+  cancelMembership,
+  fetchMyBookings,
+  purchaseMembership,
 } from './membershipService'
-import type { Profile } from './membershipService'
-import { testDetails } from './membershipMockData'
-import CardPaymentFields from './CardPaymentFields'
+import { formatDate, money } from '../../extraBooking/bookingModel'
+import type { Booking } from '../../extraBooking/bookingModel'
 import StatusIcon from '../../components/StatusIcon'
 
 const date = (value: string) =>
@@ -31,6 +17,10 @@ const date = (value: string) =>
     month: 'long',
     year: 'numeric',
   })
+
+const historyRow =
+  'flex flex-wrap items-center gap-6 border-b border-[var(--color-border)] py-6 md:flex-nowrap'
+
 export function MembershipLayout() {
   const { pathname } = useLocation()
   const heading = useRef<HTMLHeadingElement>(null)
@@ -38,32 +28,39 @@ export function MembershipLayout() {
     heading.current?.focus()
     window.scrollTo(0, 0)
   }, [pathname])
-  const active = pathname.endsWith('/plan')
-    ? 0
-    : pathname.endsWith('/checkout')
-      ? 1
-      : 2
+  const active = pathname.endsWith('/plan') ? 0 : 1
   const steps = [
     ['Membership', '/membership/plan'],
-    ['Your details', '/membership/checkout'],
-    ['Payment', '/membership/payment'],
+    ['Confirm', '/membership/checkout'],
   ]
   return (
-    <div className="booking-flow membership-flow">
-      <h1 className="booking-title" ref={heading} tabIndex={-1}>
+    <div>
+      <h1
+        ref={heading}
+        tabIndex={-1}
+        className="text-center text-[clamp(30px,4vw,46px)] focus:outline-none"
+      >
         Your year of discovery
       </h1>
-      <nav className="booking-steps" aria-label="Membership progress">
+      <nav
+        aria-label="Membership progress"
+        className="mb-12 mt-7 flex justify-center gap-6 bg-white px-3 py-[26px] text-sm md:gap-12 md:text-base"
+      >
         {steps.map(([name, to], i) => (
           <span key={to}>
             {i < active ? (
-              <Link to={to}>
+              <Link to={to} className="pb-2.5">
                 {i + 1}. {name}
               </Link>
             ) : (
               <span
                 aria-current={i === active ? 'step' : undefined}
                 aria-disabled={i > active || undefined}
+                className={
+                  i === active
+                    ? 'border-b-2 border-current pb-2.5 text-[var(--color-primary)]'
+                    : 'pb-2.5 text-[#76716a]'
+                }
               >
                 {i + 1}. {name}
               </span>
@@ -75,59 +72,71 @@ export function MembershipLayout() {
     </div>
   )
 }
+
 function Summary() {
-  const { account } = useMembership()
+  const { isMember } = useMembership()
   return (
-    <aside className="booking-summary member-summary">
+    <aside className="rounded-lg bg-[#e5edf0] p-6 md:sticky md:top-6 md:p-7">
       <span className="eyebrow">A LITTLE MORE MUSEUM</span>
-      <h2>Your membership</h2>
+      <h2 className="mt-3.5 text-[28px]">Your membership</h2>
       <p>
         {annualPlan.name}
         <br />
         One adult · 12 months
       </p>
-      <ul>
-        <li>Unlimited general admission</li>
-        <li>Priority booking for selected events</li>
-        <li>Member news and invitations</li>
+      <ul className="list-none p-0">
+        <li className="py-2 text-sm">Unlimited general admission</li>
+        <li className="py-2 text-sm">Priority booking for selected events</li>
+        <li className="py-2 text-sm">Member news and invitations</li>
       </ul>
-      <div className="booking-total">
+      <div className="flex justify-between gap-3 border-t border-[#becdd0] py-3">
         <strong>Total (AUD)</strong>
         <strong>{money(annualPlan.cents)}</strong>
       </div>
-      <p className="field-help">One payment. No automatic renewal.</p>
-      {account && isMember(account) && (
-        <p className="field-help">
+      <p className="text-[13px] text-[#6d655a]">
+        One payment. No automatic renewal.
+      </p>
+      {isMember && (
+        <p className="text-[13px] text-[#6d655a]">
           Your renewal adds 12 months to your current expiry date.
         </p>
       )}
     </aside>
   )
 }
+
 export function MemberPlanPage() {
-  const { account } = useMembership()
+  const { isMember } = useMembership()
   return (
-    <div className="booking-columns">
+    <div className="grid items-start gap-6 md:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)] md:gap-12">
       <section>
         <span className="eyebrow">01 / YOUR MEMBERSHIP</span>
-        <h2 className="member-heading">Make the museum part of your year.</h2>
+        <h2 className="mt-0 text-[34px]">Make the museum part of your year.</h2>
         <p>Come back to favourite stories. Discover something new each time.</p>
-        <div className="member-plan-card">
-          <span className="member-tag">12 MONTHS OF DISCOVERY</span>
-          <h2>Annual membership</h2>
-          <p className="member-plan-price">
-            {money(annualPlan.cents)} <small>/ adult</small>
+        <div className="mt-[30px] rounded-xl border-2 border-[var(--color-primary)] bg-white p-6 md:p-8">
+          <span className="inline-block rounded bg-[#f2eee5] px-3 py-2 text-[11px] tracking-[1px] text-[#79513c]">
+            12 MONTHS OF DISCOVERY
+          </span>
+          <h2 className="text-[32px]">Annual membership</h2>
+          <p className="my-6 font-serif text-5xl text-[var(--color-primary)]">
+            {money(annualPlan.cents)}{' '}
+            <small className="font-sans text-[15px] text-[var(--color-text)]">
+              / adult
+            </small>
           </p>
           <p>Unlimited general admission for one named adult.</p>
           <p>
-            {isMember(account)
+            {isMember
               ? 'Keep exploring for another year. Your remaining membership time is preserved.'
-              : 'Your membership starts when your payment is complete.'}
+              : 'Your membership starts as soon as you confirm.'}
           </p>
         </div>
-        <div className="booking-navigation">
+        <div className="my-9 flex flex-wrap items-center justify-between gap-6">
           <Link to="/membership">← Compare options</Link>
-          <Link className="booking-button" to="/membership/checkout">
+          <Link
+            className="inline-flex items-center justify-center rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+            to="/membership/checkout"
+          >
             Continue →
           </Link>
         </div>
@@ -136,632 +145,255 @@ export function MemberPlanPage() {
     </div>
   )
 }
-function ProfileFields({ profile }: { profile?: Profile | null }) {
-  return (
-    <>
-      <div className="member-form-row">
-        <div className="booking-field">
-          <label htmlFor="firstName">First name</label>
-          <input
-            id="firstName"
-            name="firstName"
-            autoComplete="given-name"
-            defaultValue={profile?.firstName}
-            required
-            maxLength={80}
-          />
-        </div>
-        <div className="booking-field">
-          <label htmlFor="lastName">Last name</label>
-          <input
-            id="lastName"
-            name="lastName"
-            autoComplete="family-name"
-            defaultValue={profile?.lastName}
-            required
-            maxLength={80}
-          />
-        </div>
-      </div>
-      <div className="booking-field">
-        <label htmlFor="email">Email address</label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          defaultValue={profile?.email}
-          readOnly={!!profile}
-          required
-        />
-        <p className="field-help">
-          Use this email to access your account and membership.
-        </p>
-      </div>
-      <div className="member-form-row">
-        <div className="booking-field">
-          <label htmlFor="phone">
-            Phone <small>(optional)</small>
-          </label>
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            defaultValue={profile?.phone}
-          />
-        </div>
-        <div className="booking-field">
-          <label htmlFor="postcode">
-            Postcode <small>(optional)</small>
-          </label>
-          <input
-            id="postcode"
-            name="postcode"
-            autoComplete="postal-code"
-            inputMode="numeric"
-            pattern="[0-9]{4}"
-            title="Four-digit Australian postcode"
-            defaultValue={profile?.postcode}
-          />
-        </div>
-      </div>
-    </>
-  )
-}
-function readProfile(form: HTMLFormElement): Profile {
-  const data = new FormData(form)
-  return Object.fromEntries(
-    ['firstName', 'lastName', 'email', 'phone', 'postcode'].map((key) => [
-      key,
-      String(data.get(key) ?? '').trim(),
-    ]),
-  ) as Profile
-}
-function DetailsForm({ standalone = false }: { standalone?: boolean }) {
-  const formRef = useRef<HTMLFormElement>(null)
-  const [filled, setFilled] = useState(false)
-  const [testPassword, setTestPassword] = useState('')
-  function fillTestDetails() {
-    if (!formRef.current) return
-    const details = testDetails()
-    for (const [name, value] of Object.entries(details)) {
-      const field = formRef.current.elements.namedItem(name)
-      if (field instanceof HTMLInputElement && !field.readOnly)
-        field.value = value
-    }
-    setError('')
-    setFilled(true)
-    setTestPassword(details.password)
-  }
-  const { account, refresh, openLogin } = useMembership()
-  const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const profile = readProfile(event.currentTarget)
-    const data = new FormData(event.currentTarget)
-    setBusy(true)
-    setError('')
-    try {
-      if (account) saveProfile(profile)
-      else {
-        if (data.get('password') !== data.get('confirmPassword'))
-          throw new Error('Your passwords do not match.')
-        await register(profile, String(data.get('password')))
-      }
-      refresh()
-      const returnTo = params.get('returnTo')
-      navigate(
-        standalone
-          ? returnTo?.startsWith('/') &&
-            !returnTo.startsWith('//') &&
-            !['/register', '/login'].includes(returnTo)
-            ? returnTo
-            : '/account'
-          : `/membership/payment?order=${crypto.randomUUID()}`,
-      )
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setBusy(false)
-    }
-  }
-  return (
-    <form ref={formRef} onSubmit={submit} className="member-details">
-      <h2 className="member-heading">
-        {account
-          ? 'Confirm your details'
-          : standalone
-            ? 'Create your account'
-            : 'Your details & account'}
-      </h2>
-      {!account ? (
-        <p>
-          Already have an account?{' '}
-          <button className="member-link" type="button" onClick={openLogin}>
-            Log in
-          </button>
-        </p>
-      ) : (
-        <p>
-          Welcome back, {account.firstName}. Please check your details before
-          continuing.
-        </p>
-      )}
-      <div className="member-test-fill">
-        <button
-          type="button"
-          className="test-fill"
-          disabled={busy}
-          onClick={fillTestDetails}
-        >
-          Fill test details
-        </button>
-        {filled && (
-          <p className="field-help" role="status">
-            Test details filled. You can edit them before continuing.
-            {!account && (
-              <>
-                {' '}
-                Password: <strong>{testPassword}</strong>
-              </>
-            )}
-          </p>
-        )}
-      </div>
-      <ProfileFields profile={account} />
-      {!account && (
-        <>
-          <div className="booking-field">
-            <label htmlFor="password">Create a password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              minLength={8}
-              required
-            />
-            <p className="field-help">At least 8 characters.</p>
-          </div>
-          <div className="booking-field">
-            <label htmlFor="confirmPassword">Confirm password</label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              minLength={8}
-              required
-            />
-          </div>
-          <p className="field-help">
-            Your free account keeps your membership details together.
-          </p>
-        </>
-      )}
-      {!standalone && (
-        <p className="member-inline-note">
-          Annual membership · One adult · {money(annualPlan.cents)} for 12
-          months. Your membership is activated after payment.
-        </p>
-      )}
-      <label className="booking-checkbox">
-        <input type="checkbox" required />
-        {standalone
-          ? 'I agree to create an account using the details above.'
-          : 'I confirm these details are correct and understand this membership is for my personal use.'}
-      </label>
-      {error && (
-        <p className="booking-error" role="alert">
-          {error}
-        </p>
-      )}
-      <div className="booking-navigation">
-        <Link to={standalone ? '/membership' : '/membership/plan'}>← Back</Link>
-        <button className="booking-button" disabled={busy}>
-          {busy
-            ? 'Saving…'
-            : standalone
-              ? 'Create account →'
-              : 'Continue to payment →'}
-        </button>
-      </div>
-    </form>
-  )
-}
+
 export function MemberCheckoutPage() {
-  const { account } = useMembership()
-  return (
-    <div className="booking-columns">
-      <DetailsForm key={account?.id ?? 'guest'} />
-      <Summary />
-    </div>
-  )
-}
-export function RegisterPage() {
-  const { account } = useMembership()
-  if (account) return <Navigate to="/account" replace />
-  return (
-    <section className="member-register">
-      <div className="member-intro">
-        <span className="eyebrow">STAY CONNECTED</span>
-        <h1>A place for your discoveries.</h1>
-        <p>Create a free account. Join as a member whenever you are ready.</p>
-      </div>
-      <div className="member-white-panel">
-        <DetailsForm standalone />
-      </div>
-    </section>
-  )
-}
-export function MemberPaymentPage() {
-  const { account, refresh } = useMembership()
+  const { user, isMember, expiresAt, refresh } = useMembership()
   const navigate = useNavigate()
-  const [params] = useSearchParams()
+  const [requestId] = useState(() => crypto.randomUUID())
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const locked = useRef(false)
-  const requestId = params.get('order')
-  if (!account || !requestId)
-    return <Navigate to="/membership/checkout" replace />
-  const previous = account.orders.find((o) => o.requestId === requestId)
-  if (previous)
-    return <Navigate to={`/membership/confirmation/${previous.id}`} replace />
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (locked.current || !requestId) return
-    const form = event.currentTarget
-    const values = new FormData(form)
-    locked.current = true
+
+  if (!user)
+    return (
+      <Navigate
+        to={`/login?returnTo=${encodeURIComponent('/membership/checkout')}`}
+        replace
+      />
+    )
+
+  async function confirm() {
+    if (busy) return
     setBusy(true)
     setError('')
     try {
-      const order = await purchase(requestId, {
-        cardholder: String(values.get('cardholder') ?? ''),
-        number: String(values.get('cardNumber') ?? ''),
-        expiry: String(values.get('cardExpiry') ?? ''),
-        securityCode: String(values.get('securityCode') ?? ''),
+      const membership = await purchaseMembership(requestId)
+      await refresh()
+      navigate(`/membership/confirmation/${membership.reference}`, {
+        replace: true,
       })
-      form.reset()
-      refresh()
-      navigate(`/membership/confirmation/${order.id}`, { replace: true })
     } catch (e) {
       setError((e as Error).message)
     } finally {
-      locked.current = false
       setBusy(false)
     }
   }
+
   return (
-    <div className="booking-columns">
-      <form onSubmit={submit}>
-        <h2 className="member-heading">One step closer to discovery.</h2>
-        <div className="member-white-panel">
+    <div className="grid items-start gap-6 md:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)] md:gap-12">
+      <section>
+        <h2 className="mt-0 text-[34px]">Confirm your membership</h2>
+        <div className="rounded-xl border border-[var(--color-border)] bg-white p-6 md:p-8">
           <h3>Membership holder</h3>
           <p>
-            {account.firstName} {account.lastName}
+            {user.name}
             <br />
-            {account.email}
+            {user.email}
           </p>
-          <Link className="member-link" to="/membership/checkout">
-            Edit details
-          </Link>
         </div>
-        <CardPaymentFields disabled={busy} />
         <p>
-          Membership valid until {date(nextExpiry(membershipExpiry(account)))}
-          {' '}after payment. No automatic renewal.
+          {isMember && expiresAt
+            ? `Your renewal adds 12 months to your current expiry (${date(expiresAt)}).`
+            : 'Your membership starts as soon as you confirm.'}{' '}
+          No automatic renewal.
         </p>
-        <label className="booking-checkbox">
-          <input type="checkbox" required disabled={busy} />I confirm my annual
-          membership purchase of {money(annualPlan.cents)}.
-        </label>
         {error && (
-          <p className="booking-error" role="alert">
+          <p className="mt-2 block text-[#a32929]" role="alert">
             {error}
           </p>
         )}
-        <div className="booking-navigation">
-          {!busy && <Link to="/membership/checkout">← Back to details</Link>}
-          <button className="booking-button" disabled={busy}>
-            {busy
-              ? 'Processing payment…'
-              : `Pay ${money(annualPlan.cents)} & ${isMember(account) ? 'renew' : 'join'} →`}
-          </button>
+        <div className="my-9 flex flex-wrap items-center justify-between gap-6">
+          <Link to="/membership/plan">← Back</Link>
+        <button
+          className="inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black transition-colors enabled:hover:border-[#f56c31] enabled:hover:bg-[#f56c31] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+          disabled={busy}
+          onClick={confirm}
+        >
+          {busy ? 'Confirming…' : `Confirm ${money(annualPlan.cents)} membership →`}
+        </button>
         </div>
-        <p role="status" aria-live="polite">
-          {busy ? 'Please wait while we confirm your membership.' : ''}
-        </p>
-      </form>
+      </section>
       <Summary />
     </div>
   )
 }
+
 export function MemberConfirmationPage() {
-  const { account } = useMembership()
   const { reference } = useParams()
-  const order = account?.orders.find((o) => o.id === reference)
-  if (!order || !account)
-    return <Navigate to={account ? '/account' : '/membership'} replace />
+  const { user, status, loading } = useMembership()
+  if (!user) return <Navigate to="/membership" replace />
+  if (loading) return <p role="status">Loading…</p>
+  const membership = status?.memberships.find((m) => m.reference === reference)
+  if (!membership) return <Navigate to="/account" replace />
+
+  const cancelled = membership.status === 'cancelled'
+  const startsInFuture = new Date(membership.startsAt) > new Date()
+
   return (
-    <section className="booking-confirmation member-confirmation">
-      <span className="confirmation-check" aria-hidden="true">
+    <section className="mx-auto max-w-[700px] text-center">
+      <span
+        className="inline-grid h-[70px] w-[70px] place-items-center rounded-full bg-[#dfebef] text-4xl text-[#426458]"
+        aria-hidden="true"
+      >
         <StatusIcon />
       </span>
-      <p className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p>
-      <h1>Welcome to a year of discovery.</h1>
+      <h1>
+        {cancelled
+          ? 'Membership cancelled'
+          : startsInFuture
+            ? 'Your renewal is confirmed.'
+            : 'Welcome to a year of discovery.'}
+      </h1>
       <p>
-        Thank you, {account.firstName}. Your membership is active.
-        <br />
-        We look forward to welcoming you back.
+        {cancelled
+          ? 'This membership has been cancelled and is no longer active.'
+          : startsInFuture
+            ? `Thank you, ${user.name}. Your renewal begins on ${date(membership.startsAt)}.`
+            : `Thank you, ${user.name}. Your membership is active.`}
       </p>
-      <div className="member-pass">
+      <div className="mt-8 rounded-[14px] border-t-[5px] border-[var(--color-primary)] bg-[#e5edf0] p-6 text-left md:p-[38px]">
         <span className="eyebrow">REGIONAL MUSEUM · ANNUAL MEMBERSHIP</span>
-        <h2>
-          {account.firstName} {account.lastName}
-        </h2>
-        <p>Valid until {date(order.expiresAt)}</p>
-        <strong>{order.id}</strong>
+        <h2 className="text-[34px] [overflow-wrap:anywhere]">{user.name}</h2>
+        <p>Membership reference: <strong>{membership.reference}</strong></p>
+        <p>Valid from <strong>{date(membership.startsAt)}</strong></p>
+        <p>Valid until <strong>{date(membership.expiresAt)}</strong></p>
       </div>
-      <div className="confirmation-reference">
-        <span>Payment received · {money(order.cents)} AUD</span>
-        <span>{date(order.paidAt)}</span>
-        {order.payment && (
-          <span>
-            {order.payment.brand} · Ending in {order.payment.lastFour}
-          </span>
-        )}
-      </div>
-      <div className="member-center-actions">
-        <Link className="booking-button" to="/account">
+      <div className="mt-6 flex flex-wrap justify-center gap-4">
+        <Link
+          className="inline-flex items-center justify-center rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+          to="/account"
+        >
           View my account →
         </Link>
-        <Link className="member-secondary" to="/membership">
-          Back to membership
-        </Link>
       </div>
-    </section>
-  )
-}
-export function AccountPage() {
-  const { account, signOut, openLogin, refresh } = useMembership()
-  const [tab, setTab] = useState('Overview')
-  const [message, setMessage] = useState('')
-  if (!account)
-    return (
-      <section className="member-intro">
-        <h1>Your museum account</h1>
-        <p>Log in to view your personal details and membership.</p>
-        <button className="booking-button" onClick={openLogin}>
-          Log in
-        </button>
-        <p>
-          <Link className="member-link" to="/register">
-            Create an account
-          </Link>
-        </p>
-      </section>
-    )
-  function update(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    try {
-      saveProfile(readProfile(event.currentTarget))
-      refresh()
-      setMessage('Your details have been saved.')
-    } catch (e) {
-      setMessage((e as Error).message)
-    }
-  }
-  return (
-    <section className="member-account">
-      <div className="member-account-heading">
-        <div>
-          <span className="eyebrow">MY MUSEUM</span>
-          <h1>Hello, {account.firstName}.</h1>
-          <p>Your membership, all in one place.</p>
-        </div>
-        <button className="member-secondary" onClick={signOut}>
-          Log out
-        </button>
-      </div>
-      <nav className="member-tabs" aria-label="Account sections">
-        {['Overview', 'Personal details', 'Purchase history'].map((label) => (
-          <button
-            key={label}
-            aria-current={tab === label ? 'page' : undefined}
-            onClick={() => {
-              setTab(label)
-              setMessage('')
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
-      {tab === 'Overview' && (
-        <div className="booking-columns">
-          <div className="member-pass">
-            <span className="eyebrow">
-              {isMember(account) ? 'ACTIVE MEMBERSHIP' : 'YOUR MUSEUM ACCOUNT'}
-            </span>
-            <h2>
-              {account.firstName} {account.lastName}
-            </h2>
-            <p>
-              {isMember(account)
-                ? `Annual membership · Valid until ${date(membershipExpiry(account))}`
-                : 'Free account · Discover more with an annual membership.'}
-            </p>
-            <Link className="booking-button" to="/membership/plan">
-              {isMember(account) ? 'Renew membership' : 'Explore membership'} →
-            </Link>
-          </div>
-          <div className="member-white-panel">
-            <h2>Make time for a visit</h2>
-            <p>Discover exhibitions and stories at your own pace.</p>
-            <Link className="member-link" to="/tickets">
-              Browse tickets →
-            </Link>
-          </div>
-        </div>
-      )}
-      {tab === 'Personal details' && (
-        <form className="member-white-panel member-profile" onSubmit={update}>
-          <h2>Personal details</h2>
-          <ProfileFields profile={account} />
-          <button className="booking-button">Save details</button>
-          {message && <p role="status">{message}</p>}
-        </form>
-      )}
-      {tab === 'Purchase history' && (
-        <div className="member-white-panel">
-          <h2>Ticket purchases</h2>
-          {account.ticketOrders.length ? (
-            account.ticketOrders.map((order) => (
-              <div className="member-history-row" key={order.id}>
-                <div>
-                  <strong>
-                    {order.ticketName} × {order.quantity}
-                  </strong>
-                  <p>
-                    Visit: {date(order.visitDate)} · {order.id}
-                  </p>
-                  <p>Ordered: {date(order.purchasedAt)}</p>
-                  {order.payment && (
-                    <p>
-                      {order.payment.brand} · Ending in {order.payment.lastFour}
-                    </p>
-                  )}
-                </div>
-                <strong>{money(order.cents)}</strong>
-                <span className={`ticket-status ticket-status-${order.status}`}>
-                  {order.status === 'pending' ? 'Pending' : 'Confirmed'}
-                </span>
-                <Link
-                  className="member-link"
-                  to={`/account/tickets/${order.id}`}
-                >
-                  View receipt →
-                </Link>
-              </div>
-            ))
-          ) : (
-            <p>You have no ticket purchases yet.</p>
-          )}
-          <h2>Membership purchases</h2>
-          {account.orders.length ? (
-            [...account.orders].reverse().map((order) => (
-              <div className="member-history-row" key={order.id}>
-                <div>
-                  <strong>Annual membership</strong>
-                  <p>
-                    {date(order.paidAt)} · {order.id}
-                  </p>
-                  {order.payment && (
-                    <p>
-                      {order.payment.brand} · Ending in {order.payment.lastFour}
-                    </p>
-                  )}
-                </div>
-                <strong>{money(order.cents)}</strong>
-                <Link
-                  className="member-link"
-                  to={`/membership/confirmation/${order.id}`}
-                >
-                  View receipt →
-                </Link>
-              </div>
-            ))
-          ) : (
-            <p>
-              You have no membership purchases yet.{' '}
-              <Link className="member-link" to="/membership/plan">
-                Explore membership →
-              </Link>
-            </p>
-          )}
-        </div>
-      )}
-    </section>
-  )
-}
-export function LoginPage() {
-  const { account, openLogin } = useMembership()
-  if (account) return <Navigate to="/account" replace />
-  return (
-    <section className="member-intro">
-      <h1>Welcome back.</h1>
-      <p>Log in to manage your museum membership.</p>
-      <button className="booking-button" onClick={openLogin}>
-        Log in
-      </button>
-      <p>
-        <Link className="member-link" to="/register">
-          Create an account
-        </Link>
-      </p>
     </section>
   )
 }
 
-export function TicketReceiptPage() {
-  const { account } = useMembership()
-  const { reference } = useParams()
-  const order = account?.ticketOrders.find((ticket) => ticket.id === reference)
-  if (!account || !order) return <Navigate to="/account" replace />
-  const confirmed = order.status === 'confirmed'
+export function AccountPage() {
+  const { user, status, isMember, expiresAt, refresh } = useMembership()
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [message, setMessage] = useState('')
+  const [showAllMemberships, setShowAllMemberships] = useState(false)
+
+  useEffect(() => {
+    if (user) fetchMyBookings().then(setBookings).catch(() => setBookings([]))
+  }, [user])
+
+  if (!user) return <Navigate to="/login?returnTo=/account" replace />
+
+  async function cancel() {
+    if (!window.confirm('Cancel your membership? Member access ends straight away.')) return
+    try {
+      await cancelMembership()
+      await refresh()
+      setMessage('Your membership has been cancelled.')
+    } catch (e) {
+      setMessage((e as Error).message)
+    }
+  }
+
+  const memberships = status?.memberships ?? []
+  const visibleMemberships = showAllMemberships ? memberships : memberships.slice(0, 3)
+
   return (
-    <section className="booking-confirmation member-confirmation">
-      {confirmed && (
-        <span className="confirmation-check" aria-hidden="true">
-          <StatusIcon />
+    <section className="space-y-8">
+      <h1>Hello, {user.name}.</h1>
+
+      <div className="rounded-[14px] border-t-[5px] border-[var(--color-primary)] bg-[#e5edf0] p-6 text-left md:p-[38px]">
+        <span className="eyebrow">
+          {isMember ? 'ACTIVE MEMBERSHIP' : 'YOUR MUSEUM ACCOUNT'}
         </span>
-      )}
-      <p className="eyebrow">YOUR MUSEUM VISIT</p>
-      <h1>{confirmed ? 'Your ticket receipt' : 'Your ticket order'}</h1>
-      <p>
-        {confirmed
-          ? 'Your booking is confirmed.'
-          : 'Payment is pending. This order has not been confirmed.'}
-      </p>
-      <div className="member-white-panel ticket-receipt-details">
-        <span className={`ticket-status ticket-status-${order.status}`}>
-          {confirmed ? 'Confirmed' : 'Pending'}
-        </span>
-        <h2>{order.ticketName}</h2>
-        <dl>
-          <dt>Booking reference</dt>
-          <dd>{order.id}</dd>
-          <dt>Visitor</dt>
-          <dd>
-            {account.firstName} {account.lastName}
-          </dd>
-          <dt>Visit date</dt>
-          <dd>{date(order.visitDate)}</dd>
-          <dt>Quantity</dt>
-          <dd>{order.quantity}</dd>
-          <dt>Order date</dt>
-          <dd>{date(order.purchasedAt)}</dd>
-          <dt>{confirmed ? 'Amount paid' : 'Amount due'}</dt>
-          <dd>{money(order.cents)} AUD</dd>
-          {order.payment && (
-            <>
-              <dt>Payment card</dt>
-              <dd>
-                {order.payment.brand} · Ending in {order.payment.lastFour}
-              </dd>
-            </>
+        <p className="[overflow-wrap:anywhere]">
+          {isMember && expiresAt
+            ? `Annual membership · Valid until ${date(expiresAt)}`
+            : 'No active membership.'}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link
+            className="inline-flex items-center justify-center rounded-md border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center text-white no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+            to="/membership/plan"
+          >
+            {isMember ? 'Renew membership' : 'Become a member'} →
+          </Link>
+          {isMember && (
+            <button
+              className="inline-flex items-center justify-center rounded-md border border-[#c9bda9] bg-transparent px-[22px] py-3.5 text-center no-underline transition-colors hover:border-[#FF2C2C] hover:bg-[#FF2C2C] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"              onClick={cancel}
+            >
+              Cancel membership
+            </button>
           )}
-        </dl>
+        </div>
+        {message && <p role="status">{message}</p>}
       </div>
-      <div className="member-center-actions">
-        <Link className="booking-button" to="/account">
-          Back to my account →
-        </Link>
+
+      <div className="rounded-xl border border-[var(--color-border)] bg-white p-6 md:p-8">
+        <h2>● Visit bookings: </h2>
+        {bookings.length ? (
+          bookings.map((b) => (
+            <div className={historyRow} key={b.reference}>
+              <div className="flex-[1_1_100%] md:flex-1">
+                <strong>{formatDate(b.date)}</strong>
+                <p className="text-[13px]">
+                  {Object.values(b.quantities).reduce((a, n) => a + n, 0)} visitors · {b.reference}
+                </p>
+              </div>
+              <strong>{money(b.totalCents)}</strong>
+              <Link
+                className="text-[var(--color-primary)] underline underline-offset-4"
+                to={`/bookings/${b.reference}`}
+              >
+                View booking →
+              </Link>
+            </div>
+          ))
+        ) : (
+          <p>
+            You have no bookings yet.{' '}
+            <Link
+              className="text-[var(--color-primary)] underline underline-offset-4"
+              to="/tickets"
+            >
+              Book a visit →
+            </Link>
+          </p>
+        )}
+
+        <h2 className="mt-10">● Membership purchases history: </h2>
+        {memberships.length ? (
+          <>
+            {visibleMemberships.map((m) => (
+              <div className={historyRow} key={m._id}>
+                <div className="flex-[1_1_100%] md:flex-1">
+                  <strong>Annual membership</strong>
+                  <p className="text-[13px]">
+                    {date(m.startsAt)} – {date(m.expiresAt)} · {m.reference} ·{' '}
+                    <span className="capitalize">{m.status}</span>
+                  </p>
+                </div>
+                <strong>{money(m.cents)}</strong>
+                <Link
+                  className="text-[var(--color-primary)] underline underline-offset-4"
+                  to={`/membership/confirmation/${m.reference}`}
+                >
+                  View →
+                </Link>
+              </div>
+            ))}
+
+            {memberships.length > 3 && (
+              <button
+                type="button"
+                aria-expanded={showAllMemberships}
+                className="mt-4 text-[var(--color-primary)] underline underline-offset-4"
+                onClick={() => setShowAllMemberships((open) => !open)}
+              >
+                {showAllMemberships ? 'Less' : `More`}
+              </button>
+            )}
+          </>
+        ) : (
+          <p>No membership purchases yet.</p>
+        )}
       </div>
     </section>
   )

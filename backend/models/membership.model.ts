@@ -1,41 +1,45 @@
 import mongoose from "mongoose";
 
-type IMembership = {
-    userId: mongoose.Schema.Types.ObjectId,
-    start_date: Date,
-    renewal_date: Date,
-    status: string,
-    plan_type: string
-}
-
-const membershipSchema = new mongoose.Schema<IMembership>(
-    {
-        userId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        },
-        start_date: {
-            type: Date,
-            required: true
-        },
-        renewal_date: {
-            type: Date,
-            required: true
-        },
-        status: {
-            type: String,
-            enum: ["active", "expired", "cancelled"]
-        },
-        plan_type: {
-            type: String,
-            enum: ["free", "premium"],
-            default: "free"
-        }   
+const membershipSchema = new mongoose.Schema(
+  {
+    userId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "User", 
+        required: true, 
+        index: true 
     },
-    {timestamps: true}
-)
+    requestId: { 
+        type: String, 
+        required: true, 
+        unique: true 
+    }, // blocks double-submits
+    reference: { 
+        type: String, 
+        required: true, 
+        unique: true 
+    },
+    cents: { 
+        type: Number, 
+        required: true, 
+        min: 0 
+    },
+    startsAt: { 
+        type: Date, 
+        required: true 
+    },
+    expiresAt: { 
+        type: Date, 
+        required: true 
+    },
+    status: { 
+        type: String, 
+        enum: ["active", "cancelled"], 
+        default: "active" },
+    cancelledAt: { 
+        type: Date 
+    },
+  },
+  { timestamps: true }
+);
 
-const Membership = mongoose.model("Membership", membershipSchema);
-
-export default Membership;
+export default mongoose.model("Membership", membershipSchema);

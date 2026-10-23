@@ -47,3 +47,17 @@ export const adminRoute = (req: Request, res: Response, next: NextFunction) => {
 		return res.status(403).json({ message: "Access denied - Admin only" });
 	}
 };
+
+export const optionalAuth = async (req: Request, _res: Response, next: NextFunction) => {
+  try {
+    const accessToken = req.cookies?.accessToken;
+    if (accessToken) {
+      const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET!) as DecodedToken;
+      const user = await User.findById(decoded.userId).select("-password");
+      if (user) req.user = user;
+    }
+  } catch {
+    // Bad or expired token: treat as a guest instead of failing the booking
+  }
+  next();
+};

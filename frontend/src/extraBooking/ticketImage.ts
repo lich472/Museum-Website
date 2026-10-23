@@ -6,7 +6,7 @@ import { formatDate, money, ticketTypes } from './bookingModel'
 // Replace with the backend-issued admission payload when the API is connected.
 
 export function bookingQrPayload(booking: Booking) {
-  return `museum-booking:v1:${booking.requestId}`
+  return `${window.location.origin}/bookings/${booking.reference}`
 }
 
 export async function createTicketImage(booking: Booking) {
