@@ -48,7 +48,7 @@ function Collections() {
             materials from the Regional Museum collection.
             Each object tells a unique story about people,
             place and history."
-        image="src/images/collection_bg.webp"
+        image="images/collection_bg.webp"
       />
 
       <section className="collections-page">

@@ -57,7 +57,7 @@ function Events() {
         eyebrow="Discover"
         title="Events"
         description="Explore current and upcoming events that bring history, culture, art and regional stories to life."
-        image="src/images/event_bg.jpg"
+        image="images/event_bg.jpg"
       />
 
       <section className="exhibitions-page">

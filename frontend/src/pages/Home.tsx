@@ -32,7 +32,7 @@ function Home() {
       {/* ---------- Hero ---------- */}
       <section className="relative isolate overflow-hidden bg-gradient-to-br from-slate-900 to-slate-700 text-white">
         <img
-          src={"src/images/home_bg.jpg"}
+          src="images/home_bg.jpg"
           alt=""
           aria-hidden="true"
           decoding="async"
