@@ -153,7 +153,7 @@ export const DEFAULT_ACCESSIBILITY_POINTS: AccessibilityPoint[] = [
     mapX: 465, mapY: 250,
     icon: 'wheelchair',
     description:
-      'Complimentary wheelchairs available at the front desk in the lobby. No booking required — first come, first served. Ask staff for assistance.',
+      'Complimentary wheelchairs available at the front desk in the lobby. Ask staff for assistance.',
   },
   {
     id: 'quiet-room',
@@ -162,7 +162,7 @@ export const DEFAULT_ACCESSIBILITY_POINTS: AccessibilityPoint[] = [
     mapX: 400, mapY: 130,
     icon: 'quiet',
     description:
-      'Low-stimulation space with dimmed lighting and reduced noise for sensory breaks, off the central lobby. Open during museum hours. No booking required.',
+      'Low-stimulation space with dimmed lighting and reduced noise for sensory breaks, off the central lobby. Open during museum hours.',
   },
   {
     id: 'accessible-restroom',

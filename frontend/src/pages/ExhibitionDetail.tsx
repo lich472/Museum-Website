@@ -7,6 +7,7 @@ import { apiFetch } from "../api/client";
 import { formatDateLong, formatDateRangeLong } from "../utils/date";
 import { findRoomByLabel } from "../data/facilityMap";
 import usePageTitle from "../utils/usePageTitle";
+import RichText from "../components/RichText";
 
 /** An exhibition suggested as similar, plus why it was suggested. */
 type Recommendation = IExhibition & {
@@ -189,7 +190,7 @@ function ExhibitionDetail() {
 
           <h2>A story worth discovering</h2>
 
-          <p>{exhibition.description}</p>
+          <RichText html={exhibition.description} />
 
           <p>
             Discover carefully selected objects, stories and

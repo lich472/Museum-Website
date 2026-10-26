@@ -1,20 +1,31 @@
 import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import ExhibitionCard from "../components/ExhibitionCard";
-import { IExhibition } from "../types"; // Shared interface with MongoDB fields
+import { IExhibition } from "../types";
+import { useSearchSort } from "../hooks/useSearchSort";
+import SearchSortBar from "../components/SearchSortBar";
+import PageHeader from "../components/PageHeader";
+
+
+const searchText = (x: IExhibition) =>
+  [x.title, x.description, x.room, ...(x.tags ?? [])].join(" ");
+const dateOf = (x: IExhibition) => x.startDate;
 
 function Exhibitions() {
   const [exhibitions, setExhibitions] = useState<IExhibition[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const { query, setQuery, order, setOrder, results } = useSearchSort(exhibitions, {
+    getSearchText: searchText,
+    getDate: dateOf,
+  });
+
   useEffect(() => {
     const fetchExhibitions = async () => {
       try {
         setLoading(true);
-        // Calls your backend getAllExhibition controller route
         const response = await axios.get<{ exhibitions: IExhibition[] }>("/exhibitions");
-        
-        // Defensive check: handle both object envelopes and direct array fallbacks safely
+
         if (response.data && Array.isArray(response.data.exhibitions)) {
           setExhibitions(response.data.exhibitions);
         } else if (Array.isArray(response.data)) {
@@ -40,27 +51,32 @@ function Exhibitions() {
 
   return (
     <main>
-      <section className="page-header">
-        <div className="page-header-content">
-          <p className="section-label">DISCOVER</p>
-
-          <h1>Exhibitions</h1>
-
-          <p>
-            Explore current and upcoming exhibitions that bring
-            history, culture, art and regional stories to life.
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        eyebrow="Discover"
+        title="Exhibitions"
+        description="Explore current and upcoming exhibitions that bring history, culture, art and regional stories to life."
+        image="src/images/exhibition_bg.jpg"
+      />
 
       <section className="exhibitions-page">
+        {exhibitions.length > 0 && (
+          <SearchSortBar
+            query={query}
+            onQueryChange={setQuery}
+            order={order}
+            onOrderChange={setOrder}
+            label="exhibitions"
+            resultCount={results.length}
+            totalCount={exhibitions.length}
+          />
+        )}
+
         <div className="exhibition-grid">
-          {/* Using a fallback array just in case state evaluates to null/undefined */}
-          {(exhibitions || []).map((exhibition, index) => (
+          {results.map((exhibition, index) => (
             <ExhibitionCard
-              key={exhibition._id} // Swapped mock id for MongoDB string _id
+              key={exhibition._id}
               exhibition={exhibition}
-              number={`0${index + 1}`}
+              number={String(index + 1).padStart(2, "0")}
             />
           ))}
         </div>

@@ -24,7 +24,8 @@
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.11.2",
-    "resend": "^6.34.1"
+    "resend": "^6.34.1",
+    "sanitize-html": "^2.18.1"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
@@ -32,6 +33,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.5",
+    "@types/sanitize-html": "^2.16.2",
     "nodemon": "^3.1.14",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"

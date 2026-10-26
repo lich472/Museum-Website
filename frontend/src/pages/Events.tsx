@@ -1,25 +1,38 @@
 import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import EventCard from "../components/EventCard";
-import { IEvent } from "../types"; // Shared interface with MongoDB fields
+import { IEvent } from "../types";
+import { useSearchSort } from "../hooks/useSearchSort";
+import SearchSortBar from "../components/SearchSortBar";
+import PageHeader from "../components/PageHeader";
+
+
+// Defined outside the component so they aren't recreated on every render.
+const searchText = (e: IEvent) =>
+  [e.title, e.description, e.type, e.location].join(" ");
+const dateOf = (e: IEvent) => e.startDate;
 
 function Events() {
   const [events, setEvents] = useState<IEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Must be called before the early return below (rules of hooks).
+  const { query, setQuery, order, setOrder, results } = useSearchSort(events, {
+    getSearchText: searchText,
+    getDate: dateOf,
+  });
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
         const response = await axios.get<{ events: IEvent[] }>("/events");
-        
+
         if (response.data && Array.isArray(response.data.events)) {
           setEvents(response.data.events);
         } else if (Array.isArray(response.data)) {
           setEvents(response.data);
         }
-
-        console.log("events response:", response.data);
       } catch (err) {
         console.error("Error fetching all events:", err);
       } finally {
@@ -40,26 +53,32 @@ function Events() {
 
   return (
     <main>
-      <section className="page-header">
-        <div className="page-header-content">
-          <p className="section-label">DISCOVER</p>
-
-          <h1>events</h1>
-
-          <p>
-            Explore current and upcoming events that bring
-            history, culture, art and regional stories to life.
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        eyebrow="Discover"
+        title="Events"
+        description="Explore current and upcoming events that bring history, culture, art and regional stories to life."
+        image="src/images/event_bg.jpg"
+      />
 
       <section className="exhibitions-page">
+        {events.length > 0 && (
+          <SearchSortBar
+            query={query}
+            onQueryChange={setQuery}
+            order={order}
+            onOrderChange={setOrder}
+            label="events"
+            resultCount={results.length}
+            totalCount={events.length}
+          />
+        )}
+
         <div className="exhibition-grid">
-          {(events || []).map((event, index) => (
+          {results.map((event, index) => (
             <EventCard
-              key={event._id} 
+              key={event._id}
               event={event}
-              number={`0${index + 1}`}
+              number={String(index + 1).padStart(2, "0")}
             />
           ))}
         </div>

@@ -177,29 +177,6 @@ function FloorMap({
           );
         })}
       </svg>
-
-      <ul className="map-legend">
-        <li>
-          <span className="map-legend-swatch map-legend-swatch--gallery" aria-hidden="true" />
-          Gallery
-        </li>
-        <li>
-          <span className="map-legend-swatch map-legend-swatch--facility" aria-hidden="true" />
-          Facility
-        </li>
-        {hasMarkers && (
-          <li>
-            <span className="map-legend-swatch map-legend-swatch--point" aria-hidden="true" />
-            Point of interest
-          </li>
-        )}
-        {hasRoomFocus && (
-          <li>
-            <span className="map-legend-swatch map-legend-swatch--highlight" aria-hidden="true" />
-            Selected room
-          </li>
-        )}
-      </ul>
     </div>
   );
 }

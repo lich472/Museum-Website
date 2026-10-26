@@ -1,16 +1,33 @@
 import { useEffect, useState } from "react";
-import axios from "../lib/axios.ts"; 
+import axios from "../lib/axios.ts";
 import CollectionCard from "../components/CollectionCard";
+import { useSearchSort } from "../hooks/useSearchSort";
+import SearchSortBar from "../components/SearchSortBar";
+import PageHeader from "../components/PageHeader";
+
+
+// Defined outside the component so they aren't recreated on every render.
+// Put the date field your collection items really have first in dateOf.
+const searchText = (c) =>
+  [c.title ?? c.name, c.description, c.category, ...(c.tags ?? [])].join(" ");
+const dateOf = (c) => c.year ?? c.dateCreated ?? c.createdAt;
 
 function Collections() {
   const [collectionItems, setCollectionItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const { query, setQuery, order, setOrder, results } = useSearchSort(collectionItems, {
+    getSearchText: searchText,
+    getDate: dateOf,
+  });
+
   useEffect(() => {
     const fetchCollections = async () => {
       try {
         const response = await axios.get("/collections");
-        const fetchedData = response.data?.collections || (Array.isArray(response.data) ? response.data : []);
+        const fetchedData =
+          response.data?.collections ||
+          (Array.isArray(response.data) ? response.data : []);
         setCollectionItems(fetchedData);
       } catch (err) {
         console.error("Error loading museum collection items:", err);
@@ -24,18 +41,15 @@ function Collections() {
 
   return (
     <main>
-      <section className="page-header">
-        <div className="page-header-content">
-          <p className="section-label">EXPLORE THE COLLECTION</p>
-          <h1>Collection Highlights</h1>
-          <p>
-            Discover selected objects, artworks and cultural
+      <PageHeader
+        eyebrow="EXPLORE THE COLLECTION"
+        title="Collection Highlights"
+        description="Discover selected objects, artworks and cultural
             materials from the Regional Museum collection.
             Each object tells a unique story about people,
-            place and history.
-          </p>
-        </div>
-      </section>
+            place and history."
+        image="src/images/collection_bg.webp"
+      />
 
       <section className="collections-page">
         <div className="collections-intro">
@@ -45,25 +59,42 @@ function Collections() {
         </div>
 
         {loading ? (
-          <div className="loading" style={{ textAlign: 'center', padding: '3rem' }}>
+          <div className="loading" style={{ textAlign: "center", padding: "3rem" }}>
             <p>Loading historical catalog...</p>
           </div>
         ) : (
-          <div className="collection-grid">
-            {collectionItems.length > 0 ? (
-              collectionItems.map((item, index) => (
-                <CollectionCard
-                  key={item._id} 
-                  item={item}
-                  number={`0${index + 1}`}
-                />
-              ))
-            ) : (
-              <div className="no-data" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
-                <p>No collection items match the current catalog.</p>
-              </div>
+          <>
+            {collectionItems.length > 0 && (
+              <SearchSortBar
+                query={query}
+                onQueryChange={setQuery}
+                order={order}
+                onOrderChange={setOrder}
+                label="collection items"
+                resultCount={results.length}
+                totalCount={collectionItems.length}
+              />
             )}
-          </div>
+
+            <div className="collection-grid">
+              {collectionItems.length === 0 ? (
+                <div
+                  className="no-data"
+                  style={{ gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}
+                >
+                  <p>No collection items in the catalog yet.</p>
+                </div>
+              ) : (
+                results.map((item, index) => (
+                  <CollectionCard
+                    key={item._id}
+                    item={item}
+                    number={String(index + 1).padStart(2, "0")}
+                  />
+                ))
+              )}
+            </div>
+          </>
         )}
       </section>
     </main>
