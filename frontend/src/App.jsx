@@ -23,7 +23,7 @@ import Exhibitions from "./pages/Exhibitions";
 import ExhibitionDetail from "./pages/ExhibitionDetail";
 import Collections from "./pages/Collections";
 import CollectionDetail from "./pages/CollectionDetail";
-import Visit from "./pages/Visit";
+import VisitPlanning from "./pages/VisitPlanning";
 import SignupPage from "./pages/SignupPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
@@ -47,6 +47,8 @@ import {
 import EventDetail from "./pages/EventDetail.tsx";
 import Events from "./pages/Events.tsx";
 
+import EventRegister from "./components/EventRegister";
+
 function PagePosition() {
   const { pathname } = useLocation();
 
@@ -55,6 +57,11 @@ function PagePosition() {
   }, [pathname]);
 
   return null;
+}
+
+function KeepSearchRedirect({ to }) {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: to, search }} replace />;
 }
 
 function FeatureLayout() {
@@ -141,7 +148,11 @@ function App() {
         <Route path="/collections/:id" element={<CollectionDetail />} />
         <Route path="/events" element={<Events />} />
         <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/visit" element={<Visit />} />
+        <Route path="/events/:id/register" element={<EventRegister />} />
+
+        <Route path="/visit" element={<VisitPlanning />} />
+        <Route path="/facilities" element={<KeepSearchRedirect to="/visit" />} />
+        <Route path="/accessibility" element={<KeepSearchRedirect to="/visit" />} />
 
         <Route element={<FeatureLayout />}>
           <Route path="/booking" element={<BookingsPage />} />

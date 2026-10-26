@@ -16,6 +16,7 @@ import { connectDB } from "./lib/db.ts";
 import bookingRoutes from "./routes/booking.route.ts";
 import membershipRoutes from "./routes/membership.route.ts";
 import visitorInfoRoutes from './routes/visitorInfo.route.ts'
+import recommendationRoutes from "./routes/recommendation.route.ts";
 
 
 const app = express();
@@ -39,6 +40,7 @@ app.use("/api/exhibitions", exhibitionRoutes);
 app.use("/api/collections", collectionRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/memberships", membershipRoutes);
+app.use("/api/recommendations", recommendationRoutes);
 app.use('/api/visitor-info', visitorInfoRoutes)
 
 

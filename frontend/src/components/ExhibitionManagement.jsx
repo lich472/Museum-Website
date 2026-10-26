@@ -258,14 +258,19 @@ export default function ExhibitionManagement({ onCountChange }) {
         </select>
 
         <label>Room *</label>
-        <input
+        <select
           name="room"
-          type="text"
-          placeholder="e.g. Main Gallery"
           value={formData.room}
           onChange={handleChange}
           required
-        />
+        >
+          <option value="" disabled>Select a room...</option>
+          <option value="Gallery A">Gallery A</option>
+          <option value="Gallery B">Gallery B</option>
+          <option value="Gallery C">Gallery C</option>
+          <option value="Gallery D">Gallery D</option>
+        </select>
+
 
         <label>Tags</label>
         <input
