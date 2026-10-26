@@ -14,31 +14,27 @@ function CollectionCard({ item, number }) {
           <span>{number}</span>
         )}
       </div>
+      <Link
+        to={`/collections/${item._id}`}
+        className="discover-link"
+      >
+        <div className="collection-card-content">
+          <p className="collection-category">
+            {item.category}
+          </p>
 
-      <div className="collection-card-content">
-        <p className="collection-category">
-          {item.category}
-        </p>
+          <h3>{item.title}</h3>
 
-        <h3>{item.title}</h3>
+          <div className="collection-metadata">
+            <span>{item.period}</span>
+            <span>{item.origin}</span>
+          </div>
 
-        <div className="collection-metadata">
-          <span>{item.period}</span>
-          <span>{item.origin}</span>
+          <p className="collection-description">
+            {item.description}
+          </p>
         </div>
-
-        <p className="collection-description">
-          {item.description}
-        </p>
-
-        {/* Updated path configuration targeting your live database MongoDB _id field */}
-        <Link
-          to={`/collections/${item._id}`}
-          className="discover-link"
-        >
-          Discover Object →
-        </Link>
-      </div>
+      </Link>
     </article>
   );
 }
