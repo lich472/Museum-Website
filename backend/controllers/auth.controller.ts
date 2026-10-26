@@ -28,13 +28,13 @@ const setCookies = (res: Response, accessToken: string, refreshToken: string) =>
 	res.cookie("accessToken", accessToken, {
 	httpOnly: true,
 	secure: process.env.NODE_ENV === "production" ? true : false,
-	sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+	sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 	maxAge: 15 * 60 * 1000,
 	});
 	res.cookie("refreshToken", refreshToken, {
 	httpOnly: true,
 	secure: process.env.NODE_ENV === "production" ? true : false,
-	sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+	sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 	maxAge: 7 * 24 * 60 * 60 * 1000,
 	});
 };
@@ -157,7 +157,7 @@ export const refreshToken = async (req: Request, res: Response) => {
 		res.cookie("accessToken", accessToken, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
-			sameSite: "strict",
+			sameSite: "none",
 			maxAge: 15 * 60 * 1000,
 		});
 
