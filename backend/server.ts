@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 5001;
 
 // 1. Place CORS right at the top so it intercepts every request
 app.use(cors({
-  origin: "http://localhost:5173", 
+  origin: "https://museum-website-frontend.onrender.com", 
   credentials: true,               
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
