@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { useMembership } from './useMembership'
 import { annualPlan } from './membershipService'
 import { money } from '../../extraBooking/bookingModel'
+import PageHeader from "../PageHeader";
 
 const benefits = [
   ['Single-day museum entry', true, false, true],
@@ -26,16 +27,13 @@ export default function MembershipsPage() {
 
   return (
     <section>
-      <div className="mb-[30px] text-center md:mb-[46px]">
-        <span className="eyebrow">YOUR MUSEUM, ALL YEAR ROUND</span>
-        <h1 className="text-[clamp(36px,4.5vw,56px)]">One visit. One connection.</h1>
-        <p className="text-[#6d655a]">
-          If you plan to visit any of our museums two times or more in the next
-          year
-          <br />
-          it's cheaper to become a member.
-        </p>
-      </div>
+      <PageHeader
+              eyebrow="YOUR MUSEUM, ALL YEAR ROUND"
+              title="One visit. One connection."
+              description="If you plan to visit any of our museums two times or more in the next
+          year. it's cheaper to become a member."
+              image="images/membership_bg.jpg"
+      />
 
       <p className="block text-right text-xs text-[#6d655a] min-[826px]:hidden">
         Swipe across to compare all three options →

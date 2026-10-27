@@ -1,11 +1,16 @@
 import { Link } from 'react-router'
+import PageHeader from "../components/PageHeader";
 
 export default function BookingsPage() {
   return (
     <div className="booking-landing">
-      <p className="eyebrow">A DAY OF DISCOVERY</p>
-      <h1>Visit once. Or make it a habit.</h1>
-      <p>Choose a museum visit or explore membership.</p>
+      <PageHeader
+              eyebrow="A DAY OF DISCOVERY"
+              title="Visit once. Or make it a habit."
+              description="Choose a museum visit or explore membership."
+              image="images/booking_bg.jpg"
+      />
+
       <div className="booking-options">
         <article>
           <span className="option-number">01 / YOUR VISIT</span>
