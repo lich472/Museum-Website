@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
 import { Lock, UserPlus, LogIn, LogOut } from "lucide-react";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 
 function Navbar() {
@@ -88,6 +89,8 @@ function Navbar() {
 					</Link>
 				</>
 			)}
+
+			<LanguageSwitcher />
 
         </div>
 

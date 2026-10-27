@@ -1,31 +1,5 @@
 import { useEffect, useState } from "react";
 
-/**
- * Language switcher for the Google Translate website widget.
- *
- * The site is authored in English and translated on demand rather than keeping
- * a second copy of every string: choosing a language records the choice in the
- * `googtrans` cookie — the same cookie Google Translate itself reads — and then
- * reloads, so the translator runs against a freshly rendered page.
- *
- * Reloading, instead of driving Google's hidden <select> directly, is
- * deliberate: it keeps this component out of Google's DOM rewriting, and it
- * means the translator never has to cope with a half-updated React tree.
- *
- * Machine translation, so treat the output as a convenience, not
- * publication-quality copy.
- *
- * A cookie is a request, not a result. This component writes it and reloads,
- * and where `translate.google.com` is unreachable — the case the comment on the
- * script tag in `index.html` anticipates — the reload lands on a still-English
- * page carrying, say, a Chinese cookie. So after the reload the switcher checks
- * that Google really translated, and when it did not it says so plainly and
- * shows English again instead of displaying a language that is not in effect.
- *
- * IMPORTANT: this list and `includedLanguages` in index.html must agree. The
- * widget silently ignores a language that was not declared there.
- */
-
 const SOURCE_LANGUAGE = "en";
 const COOKIE_NAME = "googtrans";
 
