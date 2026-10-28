@@ -30,7 +30,6 @@ function VisitorInfoEditor() {
   const [saving, setSaving] = useState(false)
 
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     async function loadVisitorInfo() {
