@@ -32,3 +32,13 @@ dist-ssr
 
 # Output from the P5 UI test suite (screenshots and results.json)
 tests/.artifacts/
+# Local-only, not application source
+archive/
+# Local-only, not application source
+deliverables/
+# Local-only, not application source
+fill_p5_sections.py
+# Local-only, not application source
+make_p5_docx.py
+# Local-only, not application source
+P5 Sections for the Group Report.docx

@@ -115,12 +115,15 @@ function Facilities() {
   if (loading) return <div className="state-loading">⏳ Loading…</div>;
   if (!info) return <div className="state-error">No data available.</div>;
 
-  // An empty list from the API must not wipe the map: `[] || fallback` keeps the
-  // empty array, which is exactly how a backend with empty defaults removed every
-  // facility card and every marker from this page.
-  const facilities = info.facilities?.length
-    ? info.facilities
-    : DEFAULT_VISITOR_INFO.facilities;
+  // Must be a non-empty ARRAY. The database has been seen holding a legacy flat
+  // visitor-info document whose `facilities` is a comma-separated STRING, and a
+  // string has a `.length`, so a length check alone let it through:
+  // buildFacilityPoints then threw "facilities.map is not a function" and took
+  // the whole page down to a blank screen.
+  const facilities =
+    Array.isArray(info.facilities) && info.facilities.length > 0
+      ? info.facilities
+      : DEFAULT_VISITOR_INFO.facilities;
   const mapPoints = buildFacilityPoints(facilities, info.facilityLocations);
 
   const highlightedRoomId =

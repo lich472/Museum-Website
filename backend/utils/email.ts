@@ -1,6 +1,17 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+/*
+ * The client is deliberately NOT created here, at module load.
+ *
+ * `new Resend(undefined)` throws "Missing API key" immediately, and because
+ * booking.controller.ts imports this module, that error stopped the whole API
+ * from starting whenever RESEND_API_KEY was unset — a mail integration turning
+ * into a hard startup requirement. The client is created inside
+ * sendBookingEmail instead, which is only called after a booking has been saved
+ * and which its caller already wraps in .catch(). So a missing key now means
+ * "the confirmation email is logged as failed and not sent", not "the museum
+ * has no website".
+ */
 
 const money = (cents: number) =>
   new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(cents / 100);
