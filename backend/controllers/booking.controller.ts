@@ -51,6 +51,7 @@ export const createBooking = async (req: Request, res: Response) => {
 
     const booking = await Booking.create({
       requestId,
+      userId: (req as any).user?._id,   // empty for guests
       reference: "SA-" + crypto.randomBytes(4).toString("hex").toUpperCase(),
       date,
       quantities: cleanQuantities,
@@ -115,5 +116,19 @@ export const resendBookingEmail = async (req: Request, res: Response) => {
     res.status(200).json({ email: booking.details?.email, nextAllowedAt: allowedAt });  } catch (error) {
     console.error("resendBookingEmail error:", error);
     res.status(500).json({ message: "Could not send email" });
+  }
+};
+
+export const getMyBookings = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const email = String(user.email).toLowerCase();
+    const bookings = await Booking.find({
+      $or: [{ userId: user._id }, { "details.email": email }],
+    }).sort({ createdAt: -1 });
+    res.status(200).json({ bookings });
+  } catch (error) {
+    console.error("getMyBookings error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };

@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import axios from "../lib/axios.ts"; 
 import CollectionCard from "../components/CollectionCard";
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
-import usePageTitle from "../utils/usePageTitle";
+import RichText from "../components/RichText";
 
 function CollectionDetail() {
   const { id } = useParams(); // Removed TypeScript generic brackets
@@ -139,7 +139,7 @@ function CollectionDetail() {
         <div className="detail-main">
           <p className="section-label">ABOUT THE OBJECT</p>
           <h2>The story behind the object</h2>
-          <p>{item.description}</p>
+          <RichText html={item.description} />
         </div>
 
         <aside className="detail-info">

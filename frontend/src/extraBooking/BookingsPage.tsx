@@ -1,14 +1,18 @@
 import { Link } from 'react-router'
-import usePageTitle from '../utils/usePageTitle'
+import PageHeader from "../components/PageHeader";
 
 export default function BookingsPage() {
   usePageTitle('Tickets and membership')
 
   return (
     <div className="booking-landing">
-      <p className="eyebrow">A DAY OF DISCOVERY</p>
-      <h1>Visit once. Or make it a habit.</h1>
-      <p>Choose a museum visit or explore membership.</p>
+      <PageHeader
+              eyebrow="A DAY OF DISCOVERY"
+              title="Visit once. Or make it a habit."
+              description="Choose a museum visit or explore membership."
+              image="images/booking_bg.jpg"
+      />
+
       <div className="booking-options">
         <article>
           <span className="option-number">01 / YOUR VISIT</span>
@@ -17,7 +21,7 @@ export default function BookingsPage() {
           <p>Single-day entry · Adult, child and concession options</p>
           <Link
             to="/tickets"
-            className="mt-4 inline-block rounded-md border-2 border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white focus-visible:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+            className="inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
           >
             Choose your tickets →
           </Link>
@@ -29,11 +33,12 @@ export default function BookingsPage() {
             Stay connected to the museum and discover more throughout the year.
           </p>
           <p>Explore membership plans and benefits.</p>
-          <Link 
-            className="mt-4 inline-block rounded-md border-2 border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-4 text-center no-underline transition-colors hover:border-[#87412c] hover:bg-[#f56c31] hover:text-white focus-visible:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
-            to="/membership">
-            Explore membership →
-          </Link>
+            <Link
+              to="/membership"
+              className="inline-flex items-center justify-center rounded-md border-2 border-black bg-transparent px-6 py-4 text-center text-black no-underline transition-colors hover:border-[#f56c31] hover:bg-[#f56c31] hover:text-white"
+            >
+              Explore membership →
+            </Link>
         </article>
       </div>
     </div>

@@ -27,31 +27,30 @@ function ExhibitionCard({ exhibition, number }: ExhibitionCardProps) {
         )}
       </div>
 
-      <div className="exhibition-card-content">
-        {/* Replaced mock .category with an optional chain join over your database tags, fallback to status */}
-        <p className="exhibition-category">
-          {exhibition.tags && exhibition.tags.length > 0 
-            ? exhibition.tags.join(", ") 
-            : exhibition.status?.toUpperCase() || "EXHIBITION"}
-        </p>
+      <Link
+        to={`/exhibitions/${exhibition._id}`}
+      >
+        <div className="exhibition-card-content">
+          {/* Replaced mock .category with an optional chain join over your database tags, fallback to status */}
+          <p className="exhibition-category">
+            {exhibition.tags && exhibition.tags.length > 0 
+              ? exhibition.tags.join(", ") 
+              : exhibition.status?.toUpperCase() || "EXHIBITION"}
+          </p>
 
-        <h3>{exhibition.title}</h3>
+          <h3>{exhibition.title}</h3>
 
-        {/* dd/mm/yyyy; hidden entirely when the source has no dates */}
-        {dateRange && <p className="exhibition-date">{dateRange}</p>}
+          {/* Dynamic localized date span strings matching your layout grid expectations */}
+          <p className="exhibition-date">
+            {formattedStartDate} – {formattedEndDate}
+          </p>
 
-        <p className="exhibition-description">
-          {exhibition.description}
-        </p>
+          <p className="exhibition-description">
+            {exhibition.description}
+          </p>
+        </div>
+      </Link>
 
-        {/* Updated path routing reference hook to target the MongoDB string _id */}
-        <Link
-          to={`/exhibitions/${exhibition._id}`}
-          className="discover-link"
-        >
-          Discover Exhibition →
-        </Link>
-      </div>
     </article>
   );
 }

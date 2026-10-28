@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from '../lib/axios';
 import { toast } from 'react-hot-toast';
+import RichTextEditor from './RichTextEditor';
+import { stripHtml } from '../utils/richText';
 
 export default function CollectionManagement({ onCountChange }) {
   const [collections, setCollections] = useState([]);
@@ -11,6 +13,9 @@ export default function CollectionManagement({ onCountChange }) {
   const [period, setPeriod] = useState('');
   const [origin, setOrigin] = useState('');
   const [editingId, setEditingId] = useState(null);
+  // Bumped whenever the form is reset or a record is opened for editing, so the
+  // rich text editor reloads its text instead of keeping what was typed before.
+  const [formVersion, setFormVersion] = useState(0);
 
   function resetForm() {
     setTitle('');
@@ -20,6 +25,7 @@ export default function CollectionManagement({ onCountChange }) {
     setPeriod('');
     setOrigin('');
     setEditingId(null);
+    setFormVersion((v) => v + 1);
   }
 
   useEffect(() => {
@@ -40,7 +46,9 @@ export default function CollectionManagement({ onCountChange }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!title || !description || !imageUrl || !category || !period || !origin) {
+    // The editor is not a real input, so `required` can't do this check:
+    // stripHtml also catches a description that is only empty paragraphs.
+    if (!title || !stripHtml(description) || !imageUrl || !category || !period || !origin) {
       toast.error('Please fill in title, description, image URL, category, period and origin.');
       return;
     }
@@ -78,6 +86,7 @@ export default function CollectionManagement({ onCountChange }) {
     setPeriod(item.period || '');
     setOrigin(item.origin || '');
     setEditingId(item._id);
+    setFormVersion((v) => v + 1);
   }
 
   async function deleteCollection(id) {
@@ -99,7 +108,7 @@ export default function CollectionManagement({ onCountChange }) {
       <h2>Collection Management</h2>
       <form
         onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '500px', marginBottom: '2rem' }}
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '640px', marginBottom: '2rem' }}
       >
         <h3>{editingId === null ? 'Add Collection Item' : 'Edit Collection Item'}</h3>
 
@@ -107,7 +116,14 @@ export default function CollectionManagement({ onCountChange }) {
         <input type="text" placeholder="Category (e.g. Pottery, Tools)" value={category} onChange={(e) => setCategory(e.target.value)} />
         <input type="text" placeholder="Period (e.g. 1850s)" value={period} onChange={(e) => setPeriod(e.target.value)} />
         <input type="text" placeholder="Origin (e.g. South Australia)" value={origin} onChange={(e) => setOrigin(e.target.value)} />
-        <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+
+        <RichTextEditor
+          key={`${editingId ?? 'new'}-${formVersion}`}
+          label="Description"
+          value={description}
+          onChange={setDescription}
+        />
+
         <input type="text" placeholder="Image URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
 
         <button type="submit">{editingId === null ? 'Add Collection Item' : 'Save Changes'}</button>
@@ -130,29 +146,32 @@ export default function CollectionManagement({ onCountChange }) {
           </tr>
         </thead>
         <tbody>
-          {collections.map((item) => (
-            <tr key={item._id} style={{ borderBottom: '1px solid #eee' }}>
-              <td>{item.title}</td>
-              <td>{item.category}</td>
-              <td>{item.period}</td>
-              <td>{item.origin}</td>
-              <td>{item.description}</td>
-              <td>
-                {item.imageUrl && (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    style={{ width: '50px', height: 'auto' }}
-                    onError={(e) => (e.currentTarget.style.display = 'none')}
-                  />
-                )}
-              </td>
-              <td>
-                <button type="button" onClick={() => startEdit(item)} aria-label={`Edit ${item.title}`} style={{ marginRight: '0.5rem' }}>Edit</button>
-                <button type="button" onClick={() => deleteCollection(item._id)} aria-label={`Delete ${item.title}`}>Delete</button>
-              </td>
-            </tr>
-          ))}
+          {collections.map((item) => {
+            const preview = stripHtml(item.description);
+            return (
+              <tr key={item._id} style={{ borderBottom: '1px solid #eee' }}>
+                <td>{item.title}</td>
+                <td>{item.category}</td>
+                <td>{item.period}</td>
+                <td>{item.origin}</td>
+                <td>{preview.length > 80 ? `${preview.slice(0, 80)}…` : preview}</td>
+                <td>
+                  {item.imageUrl && (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      style={{ width: '50px', height: 'auto' }}
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                    />
+                  )}
+                </td>
+                <td>
+                  <button type="button" onClick={() => startEdit(item)} style={{ marginRight: '0.5rem' }}>Edit</button>
+                  <button type="button" onClick={() => deleteCollection(item._id)}>Delete</button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </section>

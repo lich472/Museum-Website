@@ -1,23 +1,12 @@
 import React, { useState } from 'react';
 import { FLOOR_ROOMS } from '../data/facilityMap';
 
-/** Room fills by kind, so galleries read differently from service rooms. */
 const ROOM_FILL = {
   gallery: '#e4ecf5',
   facility: '#eef2f6',
   circulation: '#f7f3ec',
 };
 
-/**
- * Ground-floor plan.
- *
- * Rooms are the primary interactive layer: selecting one marks it on the plan,
- * and the room named by `highlightedRoomId` is emphasised while the others dim.
- * Marker numbers follow the position of the entry in `highlights`, so they line
- * up with the numbered list the pages render underneath; an entry without
- * coordinates is simply not drawn (use that for a place that *is* a room rather
- * than a spot inside one).
- */
 function FloorMap({
   highlights = [],
   selectedId,
@@ -57,18 +46,11 @@ function FloorMap({
           const isHighlighted = highlightedRoomId === room.id;
           const count = roomCounts[room.id] ?? 0;
           const clickable = typeof onRoomSelect === 'function';
-          // Small service rooms keep their label to the left, which leaves the
-          // rest of the room free for the markers drawn inside it.
+
           const alignStart = room.kind === 'facility';
           const centreX = room.x + room.w / 2;
           const centreY = room.y + room.h / 2;
-          // Dimming when another room is highlighted used to be a 0.4 opacity on
-          // this whole group. That composited the room label (#2c3e50 on
-          // #e4ecf5) down to roughly 2.1:1 — below the 3:1 that even large bold
-          // text needs — even though the dimmed rooms stayed clickable. The
-          // group now keeps full opacity and only the rect's fill fades, so the
-          // label and the exhibition count stay readable; the stroke keeps its
-          // width so the room still reads as a selectable shape.
+
           const dimFill = hasRoomFocus && !isHighlighted;
 
           return (
@@ -134,9 +116,17 @@ function FloorMap({
 
         {/* main entrance */}
         <rect x="330" y="468" width="140" height="12" fill="#2c3e50" rx="2" />
-        <text x="400" y="460" textAnchor="middle" fontSize="20" fontWeight="600" fill="#2c3e50">
+        <text 
+          x="400" 
+          y="500"
+          textAnchor="middle" 
+          fontSize="20" 
+          fontWeight="600" 
+          fill="#2c3e50"
+        >
           Main Entrance
         </text>
+
 
         {/* markers inside rooms */}
         {highlights.map((point, index) => {
@@ -165,9 +155,6 @@ function FloorMap({
               onMouseLeave={() => setHovered(null)}
               style={{ cursor: 'pointer' }}
             >
-              {/* The stylesheet hides the default outline on .map-point and
-                  reveals this ring on :focus instead, so without it a keyboard
-                  user would see no focus indicator at all. */}
               <circle
                 className="map-point-focus-ring"
                 cx={point.mapX} cy={point.mapY} r={radius + 6}
@@ -190,29 +177,6 @@ function FloorMap({
           );
         })}
       </svg>
-
-      <ul className="map-legend">
-        <li>
-          <span className="map-legend-swatch map-legend-swatch--gallery" aria-hidden="true" />
-          Gallery
-        </li>
-        <li>
-          <span className="map-legend-swatch map-legend-swatch--facility" aria-hidden="true" />
-          Facility
-        </li>
-        {hasMarkers && (
-          <li>
-            <span className="map-legend-swatch map-legend-swatch--point" aria-hidden="true" />
-            Point of interest
-          </li>
-        )}
-        {hasRoomFocus && (
-          <li>
-            <span className="map-legend-swatch map-legend-swatch--highlight" aria-hidden="true" />
-            Selected room
-          </li>
-        )}
-      </ul>
     </div>
   );
 }

@@ -1,12 +1,15 @@
-import express from "express";
-import { getVisitorInfo, updateVisitorInfo } from "../controllers/visitorInfo.controller.ts";
-import { adminRoute, protectRoute } from "../middleware/auth.middleware.ts";
 
-const router = express.Router();
+import { Router } from 'express'
+import { protectRoute, adminRoute } from "../middleware/auth.middleware.ts";
 
-// Public: the accessibility and facilities pages read this while signed out.
-router.get("/", getVisitorInfo);
-// Staff only: this is the museum-wide content P4 edits in the admin dashboard.
-router.put("/", protectRoute, adminRoute, updateVisitorInfo);
+import {
+  getVisitorInfo,
+  updateVisitorInfo,
+} from '../controllers/visitorInfo.controller'
 
-export default router;
+const router = Router()
+
+router.get('/', getVisitorInfo)
+router.put('/',protectRoute, adminRoute, updateVisitorInfo)
+
+export default router

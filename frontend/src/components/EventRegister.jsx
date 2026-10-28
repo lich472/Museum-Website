@@ -1,43 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from '../lib/axios';
+import { useUserStore } from '../stores/useUserStore.js';
 import { eventDate, eventTime } from '../utils/date';
 import usePageTitle from '../utils/usePageTitle';
 
-/**
- * Places still available on an event.
- *
- * Events reach the frontend in two shapes: the TypeScript backend sends
- * `spotRemaining`, while `backend-fallback/server.js` sends `spotsRemaining`
- * (with a numeric `id`). Both are read, and `capacity` is only the last resort
- * — reading `capacity` alone made a sold-out fallback event look available.
- */
+/** Places still available. The TS backend sends spotRemaining; the fallback sends spotsRemaining. */
 const placesLeft = (event) =>
   event?.spotRemaining ?? event?.spotsRemaining ?? event?.capacity ?? 0;
 
-/**
- * The guest count as a number, for the places that need arithmetic or a JSON
- * body. `formData.numGuests` itself holds exactly what was typed, so the field
- * never rewrites the visitor's input under them.
- */
-const guestCount = (value) => {
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : NaN;
-};
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const inputClass =
+  'w-full rounded-md border border-slate-300 px-3 py-2 text-base disabled:bg-slate-100 ' +
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700';
+
+function Row({ label, children }) {
+  return (
+    <div className="flex justify-between gap-4 py-1">
+      <span className="text-slate-600">{label}</span>
+      <strong className="text-right">{children}</strong>
+    </div>
+  );
+}
 
 function EventRegister() {
   usePageTitle('Register for an event');
 
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useUserStore();
+  const isLoggedIn = Boolean(user);
 
   const [event, setEvent] = useState(null);
   const [loadingEvent, setLoadingEvent] = useState(true);
-  const [formData, setFormData] = useState({
-    visitorName: '',
-    email: '',
-    numGuests: 1,
-  });
+  // Only used by guests; logged-in users are identified by their account.
+  const [formData, setFormData] = useState({ visitorName: '', email: '' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [confirmation, setConfirmation] = useState(null);
@@ -45,8 +43,6 @@ function EventRegister() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        // The backend answers with the event itself; tolerate a { event }
-        // envelope too so this page survives that changing.
         const response = await axios.get(`/events/${id}`);
         const payload = response.data;
         setEvent(payload && payload.event ? payload.event : payload);
@@ -62,24 +58,15 @@ function EventRegister() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Store exactly what was typed, including "0" and "". Coercing here (the
-    // old parseInt-with-a-fallback-to-1) silently turned a typed 0 into 1, so
-    // the guest count that was submitted could differ from the one on screen.
-    // Coercion happens in validate(), where a bad value is reported.
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const validate = () => {
-    if (!formData.visitorName.trim()) return 'Please enter your name';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return 'Please enter a valid email';
-    const guests = guestCount(formData.numGuests);
-    if (!Number.isFinite(guests) || guests < 1) return 'At least 1 guest is required';
-    if (event && guests > placesLeft(event)) {
-      return `Only ${placesLeft(event)} place(s) left for this event`;
+    if (!isLoggedIn) {
+      if (!formData.visitorName.trim()) return 'Please enter your name';
+      if (!EMAIL_RE.test(formData.email)) return 'Please enter a valid email';
     }
+    if (event && placesLeft(event) < 1) return 'This event is fully booked';
     return null;
   };
 
@@ -95,98 +82,73 @@ function EventRegister() {
     setError(null);
 
     try {
-      // numGuests is sent as a number: formData keeps the typed string so the
-      // input is never rewritten, but the API expects a numeric field.
-      const response = await axios.post(`/events/${id}/register`, {
-        ...formData,
-        numGuests: guestCount(formData.numGuests),
-      });
+      // A logged-in user sends no identity: the backend reads it from the
+      // account, so it can't be spoofed from here.
+      const body = isLoggedIn
+        ? {}
+        : {
+            visitorName: formData.visitorName.trim(),
+            email: formData.email.trim(),
+          };
+      const response = await axios.post(`/events/${id}/register`, body);
       const data = response.data;
-
       if (!data?.success) throw new Error(data?.message || 'Registration failed');
 
       setConfirmation({
         reference:
-          data.reference ??
-          String(data.registrationId ?? '').slice(-6).toUpperCase(),
+          data.reference ?? String(data.registrationId ?? '').slice(-6).toUpperCase(),
         spotRemaining: data.spotRemaining,
       });
     } catch (err) {
-      // Prefer the backend's own wording: it knows whether the event is full,
-      // missing, or the input was rejected, and it is the authority on capacity.
-      const message =
-        err?.response?.data?.message || err?.message || 'Registration failed';
-      setError(message);
+      // The backend is the authority on capacity and duplicates, so prefer its wording.
+      setError(err?.response?.data?.message || err?.message || 'Registration failed');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const registeredName = isLoggedIn ? user.name : formData.visitorName;
+  const registeredEmail = isLoggedIn ? user.email : formData.email;
+
   // ---------- Confirmation ----------
   if (confirmation) {
     return (
-      <div style={{ maxWidth: '600px', margin: '40px auto', textAlign: 'center' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>✅</div>
-        {/* Explicit sizes: Tailwind's preflight resets headings to the body
-            size, so an unstyled h2 here would not read as a heading. */}
-        <h2 style={{ fontSize: '1.75rem', fontWeight: 'bold', marginBottom: '12px' }}>
-          Registration Confirmed
-        </h2>
-        <p style={{ color: '#666', marginBottom: '24px' }}>
-          Thank you, {formData.visitorName}. You're registered for{' '}
+      <div className="mx-auto my-10 max-w-xl px-4 text-center">
+        <div className="mb-4 text-5xl" aria-hidden="true">✅</div>
+        <h1 className="mb-3 text-3xl font-bold">Registration Confirmed</h1>
+        <p className="mb-6 text-slate-600">
+          Thank you, {registeredName}. You're registered for{' '}
           <strong>{event?.title}</strong>.
         </p>
 
-        <div
-          style={{
-            backgroundColor: '#f8f9fa',
-            padding: '20px',
-            borderRadius: '8px',
-            textAlign: 'left',
-            marginBottom: '24px',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ color: '#666' }}>Reference</span>
-            <strong>{confirmation.reference}</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ color: '#666' }}>Date &amp; Time</span>
-            <strong>{eventDate(event)} · {eventTime(event)}</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ color: '#666' }}>Location</span>
-            <strong>{event?.location}</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ color: '#666' }}>Guests</span>
-            <strong>{formData.numGuests}</strong>
-          </div>
+        <div className="mb-6 rounded-lg bg-slate-50 p-5 text-left">
+          <Row label="Reference">{confirmation.reference}</Row>
+          <Row label="Date & Time">
+            {eventDate(event)} · {eventTime(event)}
+          </Row>
+          <Row label="Location">{event?.location}</Row>
           {confirmation.spotRemaining !== undefined && (
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#666' }}>Places left</span>
-              <strong>{confirmation.spotRemaining}</strong>
-            </div>
+            <Row label="Places left">{confirmation.spotRemaining}</Row>
           )}
         </div>
 
-        {/* No email is sent by this project — the previous wording claimed one
-            was, which is not true. The reference above is what to quote. */}
-        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-subtle)', marginBottom: '24px' }}>
-          Please keep this reference. Registered as {formData.email}. If you need
+        <p className="mb-6 text-sm text-slate-600">
+          Please keep this reference. Registered as {registeredEmail}. If you need
           to change or cancel, contact the museum and quote the reference.
         </p>
 
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+        <div className="flex justify-center gap-3">
           <button
+            type="button"
             onClick={() => navigate('/events')}
-            style={{ padding: '10px 20px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', backgroundColor: 'white' }}
+            className="rounded-md border border-slate-300 bg-white px-5 py-2.5 hover:bg-slate-50"
           >
             Back to Events
           </button>
           <button
+            type="button"
             onClick={() => navigate('/')}
-            style={{ padding: '10px 20px', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: '#2c3e50', color: 'white' }}
+            className="rounded-md bg-[#2c3e50] px-5 py-2.5 text-white hover:bg-[#1f2d3a]"
           >
             Home
           </button>
@@ -196,18 +158,14 @@ function EventRegister() {
   }
 
   // ---------- Loading ----------
-  if (loadingEvent) {
-    return <div style={{ padding: '40px', textAlign: 'center' }}>⏳ Loading…</div>;
-  }
+  if (loadingEvent) return <div className="py-10 text-center">⏳ Loading…</div>;
 
   // ---------- Event missing ----------
   if (!event) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <p style={{ color: 'var(--color-danger)' }}>
-          {error || 'Event not found.'}
-        </p>
-        <Link to="/events">← Back to Events</Link>
+      <div className="py-10 text-center">
+        <p className="mb-3 text-red-700">{error || 'Event not found.'}</p>
+        <Link to="/events" className="text-blue-700 underline">← Back to Events</Link>
       </div>
     );
   }
@@ -217,117 +175,85 @@ function EventRegister() {
   const isFull = remaining <= 0;
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <button
-        onClick={() => navigate(`/events/${id}`)}
-        style={{ background: 'none', border: 'none', color: '#2c3e50', cursor: 'pointer', marginBottom: '16px' }}
-      >
+    <div className="mx-auto max-w-xl px-4 py-8">
+      <Link to={`/events/${id}`} className="mb-4 inline-block text-slate-800 underline hover:no-underline">
         ← Back to Event Details
-      </button>
+      </Link>
 
-      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '8px' }}>
-        Register for Event
-      </h1>
-      <p style={{ color: '#666', marginBottom: '24px' }}>{event.title}</p>
+      <h1 className="mb-2 text-3xl font-bold">Register for Event</h1>
+      <p className="mb-6 text-slate-600">{event.title}</p>
 
-      {/* Availability */}
       <div
-        style={{
-          padding: '12px 16px',
-          borderRadius: '6px',
-          backgroundColor: isFull ? '#fdecea' : '#eaf7ee',
-          marginBottom: '24px',
-          fontSize: '0.9rem',
-        }}
+        className={`mb-2 rounded-md px-4 py-3 text-sm ${
+          isFull ? 'bg-red-50 text-red-800' : 'bg-green-50 text-green-900'
+        }`}
       >
         {isFull
           ? '❌ This event is fully booked.'
           : `✅ ${remaining} of ${event.capacity} place(s) remaining.`}
       </div>
+      <p className="mb-6 text-sm text-slate-600">
+        One place per person, registered by email.
+      </p>
 
-      {/*
-        noValidate, deliberately: the email and guest-count checks in validate()
-        could never run while the browser's own constraint validation cancelled
-        the submit event first — `type="email"` and `min="1" max={remaining}`
-        did exactly that, so the accessible role="alert" message below never
-        appeared and the browser showed its own bubble instead. Submitting is
-        therefore always allowed, and validate() reports the problem in that
-        alert. The input types stay: they still give the right keyboard and
-        number spinner.
-      */}
-      <form onSubmit={handleSubmit} noValidate>
-        <div style={{ marginBottom: '20px' }}>
-          <label
-            htmlFor="register-visitor-name"
-            style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}
-          >
-            Your Name *
-          </label>
-          <input
-            id="register-visitor-name"
-            type="text"
-            name="visitorName"
-            value={formData.visitorName}
-            onChange={handleChange}
-            placeholder="Jane Doe"
-            disabled={isFull}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '1rem' }}
-          />
-        </div>
+      {/* noValidate on purpose: validate() reports problems in the role="alert"
+          box below instead of the browser's own bubble. */}
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        {isLoggedIn ? (
+          <p className="rounded-md bg-slate-50 p-3 text-slate-700">
+            Registering as <strong>{user.name}</strong> ({user.email})
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-slate-600">
+              Have an account?{' '}
+              <Link
+                to={`/login?returnTo=${encodeURIComponent(`/events/${id}/register`)}`}
+                className="text-blue-700 underline"
+              >
+                Log in
+              </Link>{' '}
+              to register with one click.
+            </p>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label
-            htmlFor="register-email"
-            style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}
-          >
-            Email *
-          </label>
-          <input
-            id="register-email"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="jane@example.com"
-            disabled={isFull}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '1rem' }}
-          />
-        </div>
+            <div>
+              <label htmlFor="register-visitor-name" className="mb-1.5 block font-medium">
+                Your Name *
+              </label>
+              <input
+                id="register-visitor-name"
+                type="text"
+                name="visitorName"
+                autoComplete="name"
+                value={formData.visitorName}
+                onChange={handleChange}
+                placeholder="Jane Doe"
+                disabled={isFull}
+                className={inputClass}
+              />
+            </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label
-            htmlFor="register-num-guests"
-            style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}
-          >
-            Number of Guests *
-          </label>
-          <input
-            id="register-num-guests"
-            type="number"
-            name="numGuests"
-            min="1"
-            max={remaining}
-            value={formData.numGuests}
-            onChange={handleChange}
-            disabled={isFull}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '1rem' }}
-          />
-          <small style={{ color: 'var(--color-text-subtle)' }}>
-            Max {remaining} guest(s) per registration.
-          </small>
-        </div>
+            <div>
+              <label htmlFor="register-email" className="mb-1.5 block font-medium">
+                Email *
+              </label>
+              <input
+                id="register-email"
+                type="email"
+                name="email"
+                autoComplete="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="jane@example.com"
+                disabled={isFull}
+                className={inputClass}
+              />
+            </div>
+          </>
+        )}
 
         {error && (
-          <div
-            role="alert"
-            style={{
-              padding: '12px',
-              backgroundColor: '#fdecea',
-              color: 'var(--color-danger)',
-              borderRadius: '6px',
-              marginBottom: '20px',
-            }}
-          >
+          <div role="alert" className="rounded-md bg-red-50 p-3 text-red-700">
             ⚠️ {error}
           </div>
         )}
@@ -335,17 +261,9 @@ function EventRegister() {
         <button
           type="submit"
           disabled={isFull || submitting}
-          style={{
-            width: '100%',
-            padding: '14px',
-            fontSize: '1rem',
-            borderRadius: '8px',
-            border: 'none',
-            backgroundColor: isFull || submitting ? '#ccc' : '#2c3e50',
-            color: 'white',
-            cursor: isFull || submitting ? 'not-allowed' : 'pointer',
-            fontWeight: 'bold',
-          }}
+          className="w-full rounded-lg bg-[#2c3e50] px-4 py-3.5 font-bold text-white hover:bg-[#1f2d3a]
+                     disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600
+                     focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
         >
           {submitting ? 'Submitting…' : 'Confirm Registration'}
         </button>

@@ -2,8 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import { IEvent } from "../types";
-import { formatDateLong, eventTime } from "../utils/date";
-import usePageTitle from "../utils/usePageTitle";
+import RichText from "../components/RichText";
 
 const badgeStyles: Record<string, string> = {
   workshop: "bg-blue-100 text-blue-800",
@@ -11,13 +10,21 @@ const badgeStyles: Record<string, string> = {
   tour: "bg-green-100 text-green-800",
 };
 
-/** A load failure: a real 404, or anything else (network, 500, timeout). */
-type LoadError = "not-found" | "failed";
+// Formats the date part: e.g., "Monday, 26 October 2026"
+const fmt = (d: string | Date) =>
+  new Date(d).toLocaleDateString(undefined, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
-/** Only an HTTP 404 means the event is missing; everything else is an outage. */
-function isNotFound(err: unknown): boolean {
-  return (err as { response?: { status?: number } } | null)?.response?.status === 404;
-}
+// Formats the time part: e.g., "9:34 PM"
+const fmtTime = (d: string | Date) =>
+  new Date(d).toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
 function EventDetail() {
   const { id } = useParams();
@@ -89,20 +96,14 @@ function EventDetail() {
 
   const sameDay =
     new Date(event.startDate).toDateString() === new Date(event.endDate).toDateString();
+
+  // Displays "Date, Start Time – End Time" if single day, otherwise "Start Date, Time – End Date, Time"
   const dateText = sameDay
-    ? formatDateLong(event.startDate)
-    : `${formatDateLong(event.startDate)} – ${formatDateLong(event.endDate)}`;
+    ? `${fmt(event.startDate)} @ ${fmtTime(event.startDate)} – ${fmtTime(event.endDate)}`
+    : `${fmt(event.startDate)} (${fmtTime(event.startDate)}) – ${fmt(event.endDate)} (${fmtTime(event.endDate)})`;
 
-  // Ported from the Jason_P5 detail page: main did not surface the start time.
-  const time = eventTime(event);
-
-  // Events reach the frontend in two shapes: the TypeScript backend sends
-  // `spotRemaining` (with an ObjectId `_id`), while backend-fallback/server.js
-  // sends `spotsRemaining` (with a numeric `id`). Read both, and only fall back
-  // to `capacity` when neither is present — reading capacity alone made a
-  // sold-out fallback event look fully available.
   const data = event as IEvent & { spotsRemaining?: number; id?: string | number };
-  const spotsLeft = data.spotRemaining ?? data.spotsRemaining ?? data.capacity;
+  const spotsLeft = event.spotRemaining ?? event.capacity;
   const soldOut = spotsLeft <= 0;
   const spotsColor = soldOut
     ? "text-red-600"
@@ -151,7 +152,7 @@ function EventDetail() {
         <div className="detail-main">
           <p className="section-label">ABOUT THE EVENT</p>
           <h2>About this event</h2>
-          <p>{event.description}</p>
+          <RichText html={event.description} />
         </div>
 
         <aside className="detail-info">
@@ -163,10 +164,10 @@ function EventDetail() {
           </div>
 
           <div className="info-item">
-            <span>Date</span>
+            <span>Date & Time</span>
             <div>
-              <strong className="block">Start: {formatDateLong(event.startDate)}</strong>
-              <strong className="block">End: {formatDateLong(event.endDate)}</strong>
+              <strong className="block">Start: {fmt(event.startDate)} at {fmtTime(event.startDate)}</strong>
+              <strong className="block mt-1">End: {fmt(event.endDate)} at {fmtTime(event.endDate)}</strong>
             </div>
           </div>
 

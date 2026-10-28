@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useUserStore } from "../stores/useUserStore";
-import { Lock, UserPlus, LogIn, LogOut, Menu, X } from "lucide-react";
-// Carried over from the Jason_P5 branch.
+import { Lock, UserPlus, LogIn, LogOut } from "lucide-react";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 
@@ -102,6 +101,15 @@ function Navbar() {
           <Link className="nav-buy-tickets" to="/booking">Buy Tickets</Link>
           <Link className="nav-membership" to="/membership">Membership</Link>
 
+		  	{user && (
+				<Link
+					to="/account"
+					className="text-sm font-medium text-[var(--color-primary)] hover:underline"
+				>
+					My account
+				</Link>
+			)}
+
 		  	{isAdmin && (
 				<Link
 					className='bg-black hover:bg-gray-500 text-white px-3 py-1 rounded-md font-medium
@@ -143,7 +151,7 @@ function Navbar() {
 				</>
 			)}
 
-          <LanguageSwitcher />
+			<LanguageSwitcher />
 
         </div>
 

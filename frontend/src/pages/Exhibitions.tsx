@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import ExhibitionCard from "../components/ExhibitionCard";
-import { IExhibition } from "../types"; // Shared interface with MongoDB fields
-import usePageTitle from "../utils/usePageTitle";
+import { IExhibition } from "../types";
+import { useSearchSort } from "../hooks/useSearchSort";
+import SearchSortBar from "../components/SearchSortBar";
+import PageHeader from "../components/PageHeader";
+
+
+const searchText = (x: IExhibition) =>
+  [x.title, x.description, x.room, ...(x.tags ?? [])].join(" ");
+const dateOf = (x: IExhibition) => x.startDate;
 
 function Exhibitions() {
   usePageTitle("Exhibitions");
@@ -14,15 +21,17 @@ function Exhibitions() {
   const [error, setError] = useState<boolean>(false);
   const [attempt, setAttempt] = useState<number>(0);
 
+  const { query, setQuery, order, setOrder, results } = useSearchSort(exhibitions, {
+    getSearchText: searchText,
+    getDate: dateOf,
+  });
+
   useEffect(() => {
     const fetchExhibitions = async () => {
       try {
         setLoading(true);
-        setError(false);
-        // Calls your backend getAllExhibition controller route
         const response = await axios.get<{ exhibitions: IExhibition[] }>("/exhibitions");
-        
-        // Defensive check: handle both object envelopes and direct array fallbacks safely
+
         if (response.data && Array.isArray(response.data.exhibitions)) {
           setExhibitions(response.data.exhibitions);
         } else if (Array.isArray(response.data)) {
@@ -49,51 +58,35 @@ function Exhibitions() {
 
   return (
     <main>
-      <section className="page-header">
-        <div className="page-header-content">
-          <p className="section-label">DISCOVER</p>
-
-          <h1>Exhibitions</h1>
-
-          <p>
-            Explore current and upcoming exhibitions that bring
-            history, culture, art and regional stories to life.
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        eyebrow="Discover"
+        title="Exhibitions"
+        description="Explore current and upcoming exhibitions that bring history, culture, art and regional stories to life."
+        image="images/exhibition_bg.jpg"
+      />
 
       <section className="exhibitions-page">
-        {/* The cards below title themselves with <h3> (`.exhibition-card h3`
-            in App.css is what sizes them, so the tag cannot move up to h2
-            without changing how they look). The outline therefore needs a
-            level-2 group heading here; it is visually hidden because the page
-            <h1> and its description already introduce the same grid. */}
-        <h2 className="sr-only">All exhibitions</h2>
-        {error ? (
-          /* Failure state, distinct from both the list and the empty state. */
-          <div className="state-error" role="status">
-            <p>Exhibitions are unavailable right now.</p>
-            <button
-              type="button"
-              className="primary-button"
-              onClick={() => setAttempt((current) => current + 1)}
-            >
-              Try again
-            </button>
-          </div>
-        ) : exhibitions.length > 0 ? (
-          <div className="exhibition-grid">
-            {exhibitions.map((exhibition, index) => (
-              <ExhibitionCard
-                key={exhibition._id} // Swapped mock id for MongoDB string _id
-                exhibition={exhibition}
-                number={`0${index + 1}`}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="state-empty">No exhibitions are currently listed.</p>
+        {exhibitions.length > 0 && (
+          <SearchSortBar
+            query={query}
+            onQueryChange={setQuery}
+            order={order}
+            onOrderChange={setOrder}
+            label="exhibitions"
+            resultCount={results.length}
+            totalCount={exhibitions.length}
+          />
         )}
+
+        <div className="exhibition-grid">
+          {results.map((exhibition, index) => (
+            <ExhibitionCard
+              key={exhibition._id}
+              exhibition={exhibition}
+              number={String(index + 1).padStart(2, "0")}
+            />
+          ))}
+        </div>
       </section>
     </main>
   );

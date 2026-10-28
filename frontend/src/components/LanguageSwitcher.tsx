@@ -1,31 +1,5 @@
 import { useEffect, useState } from "react";
 
-/**
- * Language switcher for the Google Translate website widget.
- *
- * The site is authored in English and translated on demand rather than keeping
- * a second copy of every string: choosing a language records the choice in the
- * `googtrans` cookie — the same cookie Google Translate itself reads — and then
- * reloads, so the translator runs against a freshly rendered page.
- *
- * Reloading, instead of driving Google's hidden <select> directly, is
- * deliberate: it keeps this component out of Google's DOM rewriting, and it
- * means the translator never has to cope with a half-updated React tree.
- *
- * Machine translation, so treat the output as a convenience, not
- * publication-quality copy.
- *
- * A cookie is a request, not a result. This component writes it and reloads,
- * and where `translate.google.com` is unreachable — the case the comment on the
- * script tag in `index.html` anticipates — the reload lands on a still-English
- * page carrying, say, a Chinese cookie. So after the reload the switcher checks
- * that Google really translated, and when it did not it says so plainly and
- * shows English again instead of displaying a language that is not in effect.
- *
- * IMPORTANT: this list and `includedLanguages` in index.html must agree. The
- * widget silently ignores a language that was not declared there.
- */
-
 const SOURCE_LANGUAGE = "en";
 const COOKIE_NAME = "googtrans";
 
@@ -56,7 +30,6 @@ function hasTranslated(): boolean {
   );
 }
 
-/** Has the widget's script run? It defines `google.translate` when it does. */
 function isWidgetScriptLoaded(): boolean {
   const googleNamespace = (
     window as unknown as { google?: { translate?: unknown } }
@@ -65,10 +38,6 @@ function isWidgetScriptLoaded(): boolean {
   return typeof googleNamespace?.translate !== "undefined";
 }
 
-/**
- * Labels are written in their own language: someone who lands in a language
- * they cannot read still needs to recognise their way back out.
- */
 const LANGUAGES = [
   { code: "en", label: "English" },
   { code: "zh-CN", label: "中文（简体）" },
@@ -87,7 +56,6 @@ const LANGUAGES = [
 
 type LanguageCode = (typeof LANGUAGES)[number]["code"];
 
-/** Which language Google Translate is applying, per the cookie Google uses. */
 export function readCurrentLanguage(): LanguageCode {
   const match = document.cookie.match(/(?:^|;\s*)googtrans=([^;]*)/);
   if (!match) return SOURCE_LANGUAGE;
@@ -95,17 +63,9 @@ export function readCurrentLanguage(): LanguageCode {
   const target = (decodeURIComponent(match[1]).split("/").pop() ?? "").toLowerCase();
   const known = LANGUAGES.find((language) => language.code.toLowerCase() === target);
 
-  // Anything unrecognised (or /en/en, which means "no translation") is English.
   return known ? known.code : SOURCE_LANGUAGE;
 }
 
-/**
- * Record the choice and reload.
- *
- * `path=/` with no domain attribute is what keeps this working on localhost,
- * where browsers reject a domain attribute. `/en/en` is how the widget is told
- * to leave the page alone.
- */
 function applyLanguage(code: LanguageCode): void {
   document.cookie = `${COOKIE_NAME}=/${SOURCE_LANGUAGE}/${code};path=/`;
   window.location.reload();
@@ -115,23 +75,11 @@ function LanguageSwitcher() {
   const [language, setLanguage] = useState<LanguageCode>(readCurrentLanguage);
   const [translationUnavailable, setTranslationUnavailable] = useState(false);
 
-  // The cookie is the source of truth, so re-read it once mounted in case the
-  // language was changed in another tab.
   useEffect(() => {
     setLanguage(readCurrentLanguage());
   }, []);
 
-  /*
-   * Did the language that was asked for actually arrive?
-   *
-   * Choosing a language writes the cookie and reloads, so the honest place to
-   * check is the page that comes back. Nothing is reported while there is still
-   * a chance: the interval below waits for the widget's script, then for
-   * Google's own marker on <html>, and only then concludes that automatic
-   * translation is unavailable.
-   */
   useEffect(() => {
-    // English is not a translation, so there is nothing to wait for.
     if (language === SOURCE_LANGUAGE || hasTranslated()) {
       setTranslationUnavailable(false);
       return;
@@ -140,7 +88,6 @@ function LanguageSwitcher() {
     const startedAt = Date.now();
 
     const decide = (): boolean => {
-      // A slow translation is still a translation: check that first.
       if (hasTranslated()) {
         setTranslationUnavailable(false);
         return true;
@@ -148,8 +95,6 @@ function LanguageSwitcher() {
 
       const waited = Date.now() - startedAt;
 
-      // The widget never even loaded (blocked script, or offline), or it loaded
-      // and never translated. Either way the page is still English.
       if (waited >= TRANSLATION_GRACE_MS) {
         setTranslationUnavailable(true);
         return true;
@@ -172,15 +117,10 @@ function LanguageSwitcher() {
     return () => window.clearInterval(timer);
   }, [language]);
 
-  // The page is only ever in the language that is really in effect, so the
-  // dropdown shows English while the requested translation is missing.
   const shownLanguage = translationUnavailable ? SOURCE_LANGUAGE : language;
 
   return (
     <>
-      {/* `notranslate` / translate="no" keep the translator from renaming the
-          language options themselves — the switcher should always read in its own
-          languages whatever the current one is. */}
       <label
         className="language-switcher notranslate"
         translate="no"
@@ -200,8 +140,6 @@ function LanguageSwitcher() {
           }}
         >
           {LANGUAGES.map((option) => (
-            // `lang` tells a screen reader which voice to use, so "中文" is not
-            // read out with English pronunciation (WCAG 3.1.2 Language of Parts).
             <option key={option.code} value={option.code} lang={option.code}>
               {option.label}
             </option>
@@ -210,11 +148,6 @@ function LanguageSwitcher() {
       </label>
 
       {translationUnavailable && (
-        // `role="status"` announces it without stealing focus. `notranslate` /
-        // translate="no" keep the message itself readable: it explains why the
-        // page is not translated, so it must not be translated either. The
-        // utilities keep it legible on the dark navbar (App.css styles the
-        // switcher, not this).
         <p
           className="language-switcher-notice notranslate text-xs text-amber-200 leading-snug max-w-[220px]"
           translate="no"

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Types } from 'mongoose';
 
 /**
  * A visitor's registration for a single event.
@@ -12,21 +12,25 @@ import mongoose from "mongoose";
  * `numGuests` counts the person registering plus anyone they bring, matching
  * what the registration form collects.
  */
-export type IRegistration = {
-	event: mongoose.Schema.Types.ObjectId;
-	visitorName: string;
-	email: string;
-	numGuests: number;
-};
+export interface IRegistration {
+  event: Types.ObjectId;
+  user?: Types.ObjectId;
+  visitorName: string;
+  email: string;
+}
 
 const registrationSchema = new mongoose.Schema<IRegistration>(
 	{
 		event: {
-			type: mongoose.Schema.Types.ObjectId,
+			type: Schema.Types.ObjectId,
 			ref: "Event",
 			required: true,
 			// Every useful query here starts from the event.
 			index: true,
+		},
+		user: { 
+			type: Schema.Types.ObjectId, 
+			ref: 'User' 
 		},
 		visitorName: {
 			type: String,
@@ -38,18 +42,17 @@ const registrationSchema = new mongoose.Schema<IRegistration>(
 			required: [true, "Email is required"],
 			trim: true,
 			lowercase: true,
-		},
-		numGuests: {
-			type: Number,
-			required: true,
-			min: [1, "At least one guest is required"],
-		},
+		}
 	},
 	{
 		timestamps: true,
 	}
 );
 
-const Registration = mongoose.model("Registration", registrationSchema);
+// One registration per email per event; the controller turns error 11000 into a 409.
+registrationSchema.index({ event: 1, email: 1 }, { unique: true });
+
+
+const Registration = mongoose.model<IRegistration>('Registration', registrationSchema);
 
 export default Registration;

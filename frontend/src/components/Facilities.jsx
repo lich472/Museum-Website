@@ -4,6 +4,8 @@ import FloorMap from './FloorMap';
 import {
   FACILITY_CARD_ICONS,
   GALLERY_ROOMS,
+  POINT_ICONS,
+  buildAccessibilityPoints,
   buildFacilityPoints,
   findRoomByLabel,
   groupExhibitionsByRoom,
@@ -12,39 +14,54 @@ import {
 } from '../data/facilityMap';
 import { DEFAULT_VISITOR_INFO } from '../data/visitorInfo';
 import { apiFetch } from '../api/client';
-import usePageTitle from '../utils/usePageTitle';
 
 /** The short letter shown on a gallery's card, taken from its label. */
 function galleryLetter(room) {
   return room.label.replace(/^Gallery\s+/i, '');
 }
 
-/**
- * The glyph for a facility.
- *
- * The card grid and the detail panel both call this, so one place cannot show
- * two different symbols — which it did while the cards used their own map and
- * the panel used another.
- */
+/** One glyph per facility, shared by the card grid and the detail panel. */
 function facilityGlyph(point) {
   return FACILITY_CARD_ICONS[point?.name] || '📍';
 }
 
-function Facilities() {
-  // Called before the loading/error early returns below, so the tab is named
-  // from the first render.
-  usePageTitle('Facilities');
+/** One glyph per accessibility point. */
+function accessGlyph(point) {
+  return POINT_ICONS[point?.icon] || '♿';
+}
 
+/** Accepts an array or a comma-separated string; anything else becomes []. */
+function toList(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    return value.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+const cardClass = (selected) =>
+  `relative flex flex-col items-center gap-1 rounded-lg border p-4 text-center
+   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700
+   ${
+     selected
+       ? 'border-amber-600 bg-amber-50 ring-2 ring-amber-600'
+       : 'border-slate-300 bg-white hover:bg-slate-50'
+   }`;
+
+const badgeClass =
+  'absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#2c3e50] text-xs font-bold text-white';
+
+function Facilities() {
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exhibitions, setExhibitions] = useState([]);
   const [exhibitionsLoaded, setExhibitionsLoaded] = useState(false);
-  // Either { kind: 'room', room } or { kind: 'facility', point }.
+  // { kind: 'room', room } | { kind: 'facility', point } | { kind: 'point', point }
   const [selection, setSelection] = useState(null);
   const detailRef = useRef(null);
   const [searchParams] = useSearchParams();
 
-  // An exhibition's "Location" links here as /facilities?room=Gallery%20A.
+  // An exhibition's "Location" links here as /visit?room=Gallery%20A.
   const requestedRoomName = searchParams.get('room');
   const requestedRoom = useMemo(
     () => findRoomByLabel(requestedRoomName),
@@ -57,20 +74,14 @@ function Facilities() {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((json) => {
-        setInfo(json.data ?? json);
-      })
+      .then((json) => setInfo(json.data ?? json))
       .catch((err) => {
-        // Neither backend answered: fall back to the data bundled with the
-        // frontend so the floor map still renders.
         console.warn(`[facilities] using bundled visitor info: ${err.message}`);
         setInfo(DEFAULT_VISITOR_INFO);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  // Exhibitions drive the per-gallery counts on the map and the gallery panel.
-  // Losing them only costs those extras, so a failure never blocks the page.
   useEffect(() => {
     let cancelled = false;
 
@@ -90,8 +101,6 @@ function Facilities() {
     };
   }, []);
 
-  // Follow the deep link, including when it changes while this page is already
-  // open (clicking another exhibition's room while staying on /facilities).
   useEffect(() => {
     if (requestedRoom) setSelection({ kind: 'room', room: requestedRoom });
   }, [requestedRoom]);
@@ -112,73 +121,86 @@ function Facilities() {
     [exhibitions]
   );
 
-  if (loading) return <div className="state-loading">⏳ Loading…</div>;
-  if (!info) return <div className="state-error">No data available.</div>;
+  if (loading) return <div className="py-10 text-center">⏳ Loading…</div>;
+  if (!info) {
+    return <div className="py-10 text-center text-red-700">No data available.</div>;
+  }
 
-  // Must be a non-empty ARRAY. The database has been seen holding a legacy flat
-  // visitor-info document whose `facilities` is a comma-separated STRING, and a
-  // string has a `.length`, so a length check alone let it through:
-  // buildFacilityPoints then threw "facilities.map is not a function" and took
-  // the whole page down to a blank screen.
-  const facilities =
-    Array.isArray(info.facilities) && info.facilities.length > 0
-      ? info.facilities
-      : DEFAULT_VISITOR_INFO.facilities;
-  const mapPoints = buildFacilityPoints(facilities, info.facilityLocations);
+  // An empty or wrongly shaped list from the API must not crash the page.
+  const apiFacilities = toList(info.facilities);
+  const facilities = apiFacilities.length
+    ? apiFacilities
+    : toList(DEFAULT_VISITOR_INFO.facilities);
+  const facilityPoints = buildFacilityPoints(facilities, info.facilityLocations);
 
-  const highlightedRoomId =
-    selection?.kind === 'room'
-      ? selection.room.id
-      : selection?.kind === 'facility'
-        ? selection.point.roomId
-        : undefined;
+  // undefined (not []) lets the builder apply its own defaults.
+  const accessPoints = buildAccessibilityPoints(
+    Array.isArray(info.accessibilityPoints) ? info.accessibilityPoints : undefined
+  );
 
-  /*
-   * A facility card and the room it sits in are two views of one place, so they
-   * resolve to the same selection.
-   *
-   * They did not before: the card carried the description and the room did not,
-   * so clicking the Café room on the map answered "Part of the ground floor
-   * layout." while clicking the Café card answered with the café's own
-   * description. The card grid and the panel both key off `currentFacility`, so
-   * one place can no longer show two different answers, or highlight in only one
-   * of the two places.
-   */
+  const selectedRoom = selection?.kind === 'room' ? selection.room : null;
+  const roomPoints = selectedRoom
+    ? accessPoints.filter((point) => point.roomId === selectedRoom.id)
+    : [];
+
+  // A facility card and the room it sits in resolve to the same selection.
   const currentFacility =
     selection?.kind === 'facility'
       ? selection.point
-      : selection?.kind === 'room'
-        ? mapPoints.find((point) => point.roomId === selection.room.id) ?? null
+      : selectedRoom
+        ? facilityPoints.find((point) => point.roomId === selectedRoom.id) ?? null
         : null;
 
-  const selectedRoom = selection?.kind === 'room' ? selection.room : null;
+  // A room holding exactly one accessibility point resolves to that point;
+  // the lobby holds several, so it stays a room selection.
+  const currentAccess =
+    selection?.kind === 'point'
+      ? selection.point
+      : selectedRoom && !currentFacility && roomPoints.length === 1
+        ? roomPoints[0]
+        : null;
 
+  const selectedPointId = currentAccess?.id;
   const galleryExhibitions = selectedRoom ? byRoomId[selectedRoom.id] ?? [] : [];
+
+  const highlightedRoomId = selectedRoom
+    ? selectedRoom.id
+    : selection?.kind === 'facility' || selection?.kind === 'point'
+      ? selection.point.roomId
+      : undefined;
 
   const selectRoom = (room) => setSelection({ kind: 'room', room });
   const selectFacility = (point) => setSelection({ kind: 'facility', point });
+  const selectPoint = (point) => setSelection({ kind: 'point', point });
 
   return (
-    <div className="page">
-      <h1>Facilities</h1>
-      <p className="page-subtitle">What's available during your visit.</p>
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-2xl font-bold">Facilities</h2>
+        <p className="text-slate-600">What's available during your visit.</p>
+      </div>
 
       {requestedRoomName && !requestedRoom && (
-        <p className="page-hint page-hint--warning">
+        <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           We don't have a map location for “{requestedRoomName}”. Ask at the front
           desk and our staff will point you the right way.
         </p>
       )}
 
-      <section aria-labelledby="facilities-map-heading" className="page-section">
-        <h2 id="facilities-map-heading">Where to Find Them</h2>
-        <p className="page-hint">
-          Select a room on the map, or pick a gallery or facility below, to see
-          more about it.
+      <section aria-labelledby="facilities-map-heading" className="space-y-3">
+        <h3 id="facilities-map-heading" className="text-xl font-semibold">
+          Ground Floor Map
+        </h3>
+        <p className="text-sm text-slate-600">
+          Select a room or a numbered marker to see more about it. The numbered
+          markers are accessibility points.
         </p>
 
-        <div className="map-wrapper">
+        <div className="mx-auto max-w-3xl rounded-lg border border-slate-200 bg-white p-2">
           <FloorMap
+            highlights={accessPoints}
+            selectedId={selectedPointId}
+            onSelect={selectPoint}
             highlightedRoomId={highlightedRoomId}
             onRoomSelect={selectRoom}
             roomCounts={counts}
@@ -187,45 +209,57 @@ function Facilities() {
 
         <div
           ref={detailRef}
-          className={`selection-detail${selection ? ' is-visible' : ''}`}
           role="status"
           aria-live="polite"
+          className={`min-h-20 rounded-lg border bg-slate-50 p-4 ${
+            selection ? 'border-amber-600' : 'border-slate-200'
+          }`}
         >
-          {currentFacility ? (
-            /* Both routes to a facility land here: its card, and its room. */
+          {currentAccess ? (
             <>
-              <div className="selection-detail-header">
-                <span className="selection-detail-icon" aria-hidden="true">
+              <div className="mb-2 flex items-center gap-3">
+                <span className="text-2xl" aria-hidden="true">
+                  {accessGlyph(currentAccess)}
+                </span>
+                <h4 className="text-lg font-semibold">{currentAccess.name}</h4>
+              </div>
+              <p className="text-slate-700">{currentAccess.description}</p>
+              <p className="mt-2 text-sm text-slate-600">Ground Floor · Main Building</p>
+            </>
+          ) : currentFacility ? (
+            <>
+              <div className="mb-2 flex items-center gap-3">
+                <span className="text-2xl" aria-hidden="true">
                   {facilityGlyph(currentFacility)}
                 </span>
-                <h3 className="selection-detail-title">{currentFacility.name}</h3>
+                <h4 className="text-lg font-semibold">{currentFacility.name}</h4>
               </div>
-              <p className="selection-detail-body">{currentFacility.description}</p>
-              <p className="selection-detail-meta">Ground Floor · Main Building</p>
+              <p className="text-slate-700">{currentFacility.description}</p>
+              <p className="mt-2 text-sm text-slate-600">Ground Floor · Main Building</p>
             </>
           ) : selectedRoom ? (
             <>
-              <div className="selection-detail-header">
-                <span className="selection-detail-icon" aria-hidden="true">
+              <div className="mb-2 flex items-center gap-3">
+                <span className="text-2xl" aria-hidden="true">
                   {roomIcon(selectedRoom)}
                 </span>
-                <h3 className="selection-detail-title">{selectedRoom.label}</h3>
+                <h4 className="text-lg font-semibold">{selectedRoom.label}</h4>
               </div>
 
               {galleryExhibitions.length > 0 ? (
                 <>
-                  <p className="selection-detail-body">
+                  <p className="text-slate-700">
                     {galleryExhibitions.length} exhibition
                     {galleryExhibitions.length === 1 ? '' : 's'} on display in this
                     space:
                   </p>
-                  <ul className="gallery-panel-list">
+                  <ul className="mt-2 list-disc space-y-1 pl-5">
                     {galleryExhibitions.map((exhibition) => (
-                      /* The fallback backend lists exhibitions with a numeric
-                         `id` instead of `_id`, so read both or the link ends up
-                         pointing at /exhibitions/undefined. */
                       <li key={exhibition._id ?? exhibition.id}>
-                        <Link to={`/exhibitions/${exhibition._id ?? exhibition.id}`}>
+                        <Link
+                          to={`/exhibitions/${exhibition._id ?? exhibition.id}`}
+                          className="text-blue-700 underline"
+                        >
                           {exhibition.title}
                         </Link>
                       </li>
@@ -233,7 +267,7 @@ function Facilities() {
                   </ul>
                 </>
               ) : (
-                <p className="selection-detail-body">
+                <p className="text-slate-700">
                   {!exhibitionsLoaded
                     ? 'Exhibition listings are unavailable right now.'
                     : selectedRoom.kind === 'gallery'
@@ -242,30 +276,48 @@ function Facilities() {
                 </p>
               )}
 
-              <p className="selection-detail-meta">Ground Floor · Main Building</p>
+              {/* The lobby holds several accessibility points, so list them. */}
+              {roomPoints.length > 1 && (
+                <div className="mt-3">
+                  <p className="text-slate-700">Accessibility points in this space:</p>
+                  <ul className="mt-2 flex flex-wrap gap-2">
+                    {roomPoints.map((point) => (
+                      <li key={point.id || point.name}>
+                        <button
+                          type="button"
+                          onClick={() => selectPoint(point)}
+                          className="rounded-md border border-slate-300 bg-white px-3 py-1 text-sm hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700"
+                        >
+                          <span aria-hidden="true">{accessGlyph(point)}</span> {point.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <p className="mt-2 text-sm text-slate-600">Ground Floor · Main Building</p>
             </>
           ) : (
-            <p className="selection-detail-placeholder">
-              Select a room or a facility to see more information.
+            <p className="italic text-slate-600">
+              Select a room, a facility or a marker to see more information.
             </p>
           )}
         </div>
       </section>
 
-      <section aria-labelledby="galleries-heading" className="page-section">
-        <h2 id="galleries-heading">Galleries</h2>
-        <p className="page-hint">
+      <section aria-labelledby="galleries-heading" className="space-y-3">
+        <h3 id="galleries-heading" className="text-xl font-semibold">Galleries</h3>
+        <p className="text-sm text-slate-600">
           Four galleries, lettered A to D. Select one to locate it on the map and
           see what is showing.
         </p>
 
-        <div className="facility-icon-grid">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {GALLERY_ROOMS.map((room) => {
             const isSelected =
               selection?.kind === 'room' && selection.room.id === room.id;
             const count = counts[room.id] ?? 0;
-            // Only claim a gallery is empty once the exhibition list has
-            // actually arrived — a failed request must not read as "nothing on".
             const countLabel = !exhibitionsLoaded
               ? ''
               : count > 0
@@ -277,27 +329,22 @@ function Facilities() {
                 key={room.id}
                 type="button"
                 onClick={() => selectRoom(room)}
-                className={`facility-icon-card${isSelected ? ' is-selected' : ''}`}
+                className={cardClass(isSelected)}
                 aria-pressed={isSelected}
               >
-                <span className="facility-icon-badge">{galleryLetter(room)}</span>
-                <span className="icon" aria-hidden="true">
-                  🖼
-                </span>
-                <span className="label">{room.label}</span>
+                <span className={badgeClass}>{galleryLetter(room)}</span>
+                <span className="text-3xl" aria-hidden="true">🖼</span>
+                <span className="text-sm font-medium">{room.label}</span>
                 {countLabel && (
-                  <span className="facility-icon-count">{countLabel}</span>
+                  <span className="text-xs text-slate-600">{countLabel}</span>
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* An exhibition whose `room` has no place on the plan is bucketed into
-            `unplaced` by groupExhibitionsByRoom rather than dropped silently, so
-            it is counted here instead of vanishing without trace. */}
         {unplaced.length > 0 && (
-          <p className="page-hint">
+          <p className="text-sm text-slate-600">
             {unplaced.length} exhibition{unplaced.length === 1 ? '' : 's'} in the
             listings {unplaced.length === 1 ? 'has' : 'have'} no location on this
             floor plan, so {unplaced.length === 1 ? 'it is' : 'they are'} not
@@ -306,13 +353,12 @@ function Facilities() {
         )}
       </section>
 
-      <section aria-labelledby="facilities-list-heading" className="page-section">
-        <h2 id="facilities-list-heading">All Facilities</h2>
-        <div className="facility-icon-grid">
-          {mapPoints.map((point) => {
-            // A room selection that resolves to this facility counts as selected
-            // too, so clicking the room and clicking the card light up the same
-            // card.
+      <section aria-labelledby="facilities-list-heading" className="space-y-3">
+        <h3 id="facilities-list-heading" className="text-xl font-semibold">
+          All Facilities
+        </h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {facilityPoints.map((point) => {
             const isSelected = currentFacility?.id === point.id;
 
             return (
@@ -320,13 +366,44 @@ function Facilities() {
                 key={point.id}
                 type="button"
                 onClick={() => selectFacility(point)}
-                className={`facility-icon-card${isSelected ? ' is-selected' : ''}`}
+                className={cardClass(isSelected)}
                 aria-pressed={isSelected}
               >
-                <span className="icon" aria-hidden="true">
+                <span className="text-3xl" aria-hidden="true">
                   {facilityGlyph(point)}
                 </span>
-                <span className="label">{point.name}</span>
+                <span className="text-sm font-medium">{point.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section aria-labelledby="access-points-heading" className="space-y-3">
+        <h3 id="access-points-heading" className="text-xl font-semibold">
+          Accessibility Points
+        </h3>
+        <p className="text-sm text-slate-600">
+          The numbers match the markers on the map.
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {accessPoints.map((point, index) => {
+            const isSelected = selectedPointId === point.id;
+
+            return (
+              <button
+                key={point.id || point.name}
+                type="button"
+                onClick={() => selectPoint(point)}
+                className={cardClass(isSelected)}
+                aria-pressed={isSelected}
+              >
+                {/* No coordinates means no marker, so no number badge. */}
+                {point.mapX != null && <span className={badgeClass}>{index + 1}</span>}
+                <span className="text-3xl" aria-hidden="true">
+                  {accessGlyph(point)}
+                </span>
+                <span className="text-sm font-medium">{point.name}</span>
               </button>
             );
           })}

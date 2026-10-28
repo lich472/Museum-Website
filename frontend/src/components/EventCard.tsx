@@ -51,34 +51,28 @@ function EventCard({ event, number }: EventCardProps) {
         )}
       </div>
 
-      <div className="exhibition-card-content">
-        <p className="exhibition-category capitalize">{event.type}</p>
+      <Link
+        to={`/events/${event._id}`}
+        className="discover-link"
+      >
+        <div className="exhibition-card-content">
+          <p className="exhibition-category capitalize">{event.type}</p>
 
-        <h3>{event.title}</h3>
+          <h3>{event.title}</h3>
 
-        <p className={`text-sm font-semibold ${spotsColor}`}>
-          {soldOut ? "Fully booked" : `${left} spots left`}
-        </p>
+          <p className={`text-sm font-semibold ${spotsColor}`}>
+            {soldOut ? "Fully booked" : `Spots remaining: ${spotsLeft}`}
+          </p>
 
-        {/* Long form with the start time; main's detail page uses the same form. */}
-        <p className="exhibition-date">
-          {formatDateLong(event.startDate)}
-          {time ? ` · ${time}` : ""}
-        </p>
+          <p className="exhibition-date">
+            {formattedStartDate} – {formattedEndDate}
+          </p>
 
-        {event.location && (
-          <p className="text-sm text-gray-600">{event.location}</p>
-        )}
-
-        <p className="exhibition-description">{description}</p>
-
-        <Link
-          to={`/events/${data._id ?? data.id}`}
-          className="discover-link"
-        >
-          Discover event →
-        </Link>
-      </div>
+          <p className="exhibition-description">
+            {event.description}
+          </p>
+        </div>
+      </Link>
     </article>
   );
 }
