@@ -29,7 +29,6 @@ function Home() {
 
   return (
     <main>
-      {/* ---------- Hero ---------- */}
       <section className="relative isolate overflow-hidden bg-gradient-to-br from-slate-900 to-slate-700 text-white">
         <img
           src="images/home_bg.jpg"
@@ -81,7 +80,6 @@ function Home() {
         </div>
       </section>
 
-      {/* ---------- Featured exhibitions ---------- */}
       <section className="mx-auto max-w-6xl px-4 py-14">
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>

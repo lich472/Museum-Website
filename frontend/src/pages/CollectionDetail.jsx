@@ -6,7 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner.jsx";
 import RichText from "../components/RichText";
 
 function CollectionDetail() {
-  const { id } = useParams(); // Removed TypeScript generic brackets
+  const { id } = useParams();
   const [item, setItem] = useState(null);
   const [relatedCollections, setRelatedCollections] = useState([]);
   const [loading, setLoading] = useState(true);
