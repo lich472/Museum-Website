@@ -20,7 +20,7 @@
  * `res.ok` / `res.json()` exactly as they did with plain `fetch`.
  */
 
-const PRIMARY_BASE = '/api';
+const PRIMARY_BASE =  import.meta.env.VITE_API_URL || '/api';
 
 /*
  * Where the P5 fallback server lives.
