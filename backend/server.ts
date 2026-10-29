@@ -24,8 +24,11 @@ app.use("/api/events", eventRoutes);
 app.use("/api/exhibitions", exhibitionRoutes);
 
 
+export default app;
 
-app.listen(PORT, () => {
-  console.log("Server is running on http://localhost:" + PORT);
-  connectDB();
-});
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log("Server is running on http://localhost:" + PORT);
+    connectDB();
+  });
+}

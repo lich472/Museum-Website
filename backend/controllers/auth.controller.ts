@@ -3,6 +3,7 @@ import User from "../models/user.model.ts";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response } from "express";
 import { Types } from "mongoose";
+import mongoose from "mongoose";
 
 type DecodeToken = JwtPayload & {
 	userId: Types.ObjectId
@@ -63,10 +64,16 @@ export const signup = async (req: Request, res: Response) => {
 			role: user.role,
 		});
 	} catch (error) {
-		if(error instanceof Error){
-			console.log("Error in signup controller", error.message);
-			res.status(500).json({ message: error.message });
-		}
+	if (error instanceof mongoose.Error.ValidationError) {
+		return res.status(400).json({ message: error.message });
+	}
+
+	if (error instanceof Error) {
+		console.log("Error in signup controller", error.message);
+		return res.status(500).json({ message: error.message });
+	}
+
+	return res.status(500).json({ message: "Server error" });
 	}
 };
 

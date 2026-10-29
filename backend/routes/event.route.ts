@@ -4,7 +4,7 @@ import { adminRoute, protectRoute } from "../middleware/auth.middleware.ts";
 
 const router = express.Router();
 
-router.post("/createEvent", createEvent);
+router.post("/createEvent", protectRoute, adminRoute, createEvent); // changes after the test case failed
 router.get("/getAllEvent", protectRoute, getAllEvent);
 router.get("/:id", protectRoute, getEventById);
 router.delete("/:id", protectRoute, adminRoute, deleteEvent);
