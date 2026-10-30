@@ -5,11 +5,12 @@ import { IEvent } from "../types";
 import { useSearchSort } from "../hooks/useSearchSort";
 import SearchSortBar from "../components/SearchSortBar";
 import PageHeader from "../components/PageHeader";
+import { stripHtml } from "../utils/richText";
 
 
 // Defined outside the component so they aren't recreated on every render.
 const searchText = (e: IEvent) =>
-  [e.title, e.description, e.type, e.location].join(" ");
+  [e.title, stripHtml(e.description), e.type, e.location].join(" ");
 const dateOf = (e: IEvent) => e.startDate;
 
 function Events() {

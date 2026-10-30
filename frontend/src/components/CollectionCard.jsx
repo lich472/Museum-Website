@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { previewText } from "../utils/richText";
 
 function CollectionCard({ item, number }) {
   return (
@@ -31,7 +32,7 @@ function CollectionCard({ item, number }) {
           </div>
 
           <p className="collection-description">
-            {item.description}
+            {previewText(item.description)}
           </p>
         </div>
       </Link>

@@ -19,6 +19,17 @@ export function toHtml(text: string | null | undefined): string {
 }
 
 export function stripHtml(html: string | null | undefined): string {
-  const doc = new DOMParser().parseFromString(toHtml(html), 'text/html');
+  const spaced = toHtml(html).replace(
+    /<\/(p|h[1-6]|li|blockquote|div)>|<br\s*\/?>/gi,
+    ' '
+  );
+  const doc = new DOMParser().parseFromString(spaced, 'text/html');
   return (doc.body.textContent ?? '').replace(/\s+/g, ' ').trim();
+}
+
+export function previewText(html: string | null | undefined, max = 150): string {
+  const text = stripHtml(html);
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  return `${cut.slice(0, cut.lastIndexOf(' ') > 0 ? cut.lastIndexOf(' ') : max)}…`;
 }

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { IEvent } from "../types"; // Import the type matching your MongoDB Schema
+import { previewText } from "../utils/richText";
 
 // Explicitly type the component's incoming props for TypeScript safety
 interface EventCardProps {
@@ -53,7 +54,7 @@ function EventCard({ event, number }: EventCardProps) {
           </p>
 
           <p className="exhibition-description">
-            {event.description}
+            {previewText(event.description)}
           </p>
         </div>
       </Link>

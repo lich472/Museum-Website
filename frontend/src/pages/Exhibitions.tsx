@@ -5,10 +5,11 @@ import { IExhibition } from "../types";
 import { useSearchSort } from "../hooks/useSearchSort";
 import SearchSortBar from "../components/SearchSortBar";
 import PageHeader from "../components/PageHeader";
+import { stripHtml } from "../utils/richText";
 
 
 const searchText = (x: IExhibition) =>
-  [x.title, x.description, x.room, ...(x.tags ?? [])].join(" ");
+  [x.title, stripHtml(x.description), x.room, ...(x.tags ?? [])].join(" ");
 const dateOf = (x: IExhibition) => x.startDate;
 
 function Exhibitions() {

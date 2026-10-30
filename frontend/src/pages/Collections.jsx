@@ -4,13 +4,13 @@ import CollectionCard from "../components/CollectionCard";
 import { useSearchSort } from "../hooks/useSearchSort";
 import SearchSortBar from "../components/SearchSortBar";
 import PageHeader from "../components/PageHeader";
+import { stripHtml } from "../utils/richText";
 
 
 // Defined outside the component so they aren't recreated on every render.
 // Put the date field your collection items really have first in dateOf.
 const searchText = (c) =>
-  [c.title ?? c.name, c.description, c.category, ...(c.tags ?? [])].join(" ");
-const dateOf = (c) => c.year ?? c.dateCreated ?? c.createdAt;
+  [c.title ?? c.name, stripHtml(c.description), c.category, ...(c.tags ?? [])].join(" ");const dateOf = (c) => c.year ?? c.dateCreated ?? c.createdAt;
 
 function Collections() {
   const [collectionItems, setCollectionItems] = useState([]);
