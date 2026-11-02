@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "../lib/axios";
 import { IEvent } from "../types";
+import RichText from "../components/RichText";
 
 const badgeStyles: Record<string, string> = {
   workshop: "bg-blue-100 text-blue-800",
@@ -9,12 +10,20 @@ const badgeStyles: Record<string, string> = {
   tour: "bg-green-100 text-green-800",
 };
 
+// Formats the date part: e.g., "Monday, 26 October 2026"
 const fmt = (d: string | Date) =>
   new Date(d).toLocaleDateString(undefined, {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
+  });
+
+// Formats the time part: e.g., "9:34 PM"
+const fmtTime = (d: string | Date) =>
+  new Date(d).toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
   });
 
 function EventDetail() {
@@ -60,10 +69,13 @@ function EventDetail() {
 
   const sameDay =
     new Date(event.startDate).toDateString() === new Date(event.endDate).toDateString();
-  const dateText = sameDay
-    ? fmt(event.startDate)
-    : `${fmt(event.startDate)} – ${fmt(event.endDate)}`;
 
+  // Displays "Date, Start Time – End Time" if single day, otherwise "Start Date, Time – End Date, Time"
+  const dateText = sameDay
+    ? `${fmt(event.startDate)} @ ${fmtTime(event.startDate)} – ${fmtTime(event.endDate)}`
+    : `${fmt(event.startDate)} (${fmtTime(event.startDate)}) – ${fmt(event.endDate)} (${fmtTime(event.endDate)})`;
+
+  const data = event as IEvent & { spotsRemaining?: number; id?: string | number };
   const spotsLeft = event.spotRemaining ?? event.capacity;
   const soldOut = spotsLeft <= 0;
   const spotsColor = soldOut
@@ -110,7 +122,7 @@ function EventDetail() {
         <div className="detail-main">
           <p className="section-label">ABOUT THE EVENT</p>
           <h2>About this event</h2>
-          <p>{event.description}</p>
+          <RichText html={event.description} />
         </div>
 
         <aside className="detail-info">
@@ -122,11 +134,10 @@ function EventDetail() {
           </div>
 
           <div className="info-item">
-            <span>Date</span>
+            <span>Date & Time</span>
             <div>
-              <strong className="block">Start: {fmt(event.startDate)}</strong>
-              <span> </span>
-              <strong className="block">End: {fmt(event.endDate)}</strong>
+              <strong className="block">Start: {fmt(event.startDate)} at {fmtTime(event.startDate)}</strong>
+              <strong className="block mt-1">End: {fmt(event.endDate)} at {fmtTime(event.endDate)}</strong>
             </div>
           </div>
 
@@ -143,14 +154,24 @@ function EventDetail() {
           </div>
 
           {soldOut ? (
-            <button disabled className="primary-button detail-button cursor-not-allowed opacity-50">
-              Fully booked
+            <button
+              disabled
+              className="primary-button detail-button cursor-not-allowed opacity-50"
+            >
+              Registration closed
             </button>
           ) : (
-            <Link to="/visit" className="primary-button detail-button">
-              Plan Your Visit
+            <Link
+              to={`/events/${data._id ?? data.id}/register`}
+              className="primary-button detail-button"
+            >
+              Register for this event
             </Link>
           )}
+
+          <Link to="/visit" className="secondary-button detail-button">
+            Plan Your Visit
+          </Link>
         </aside>
       </section>
     </main>

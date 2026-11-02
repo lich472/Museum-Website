@@ -1,6 +1,8 @@
 import express from "express";
 import { getAllEvent, createEvent, deleteEvent, getEventById, updateEvent } from "../controllers/event.controller.ts";
 import { adminRoute, protectRoute } from "../middleware/auth.middleware.ts";
+import { registerForEvent } from '../controllers/event.controller';
+import { optionalAuth } from "../middleware/auth.middleware.ts";
 
 const router = express.Router();
 
@@ -9,5 +11,6 @@ router.post("/", protectRoute, adminRoute, createEvent);
 router.get("/:id", getEventById);
 router.delete("/:id", protectRoute, adminRoute, deleteEvent);
 router.put("/:id", protectRoute, adminRoute, updateEvent);
+router.post('/:id/register', optionalAuth, registerForEvent);
 
 export default router;

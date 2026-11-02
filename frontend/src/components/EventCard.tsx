@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { IEvent } from "../types"; // Import the type matching your MongoDB Schema
+import { previewText } from "../utils/richText";
 
 // Explicitly type the component's incoming props for TypeScript safety
 interface EventCardProps {
@@ -35,30 +36,28 @@ function EventCard({ event, number }: EventCardProps) {
         )}
       </div>
 
-      <div className="exhibition-card-content">
-        <p className="exhibition-category capitalize">{event.type}</p>
+      <Link
+        to={`/events/${event._id}`}
+        className="discover-link"
+      >
+        <div className="exhibition-card-content">
+          <p className="exhibition-category capitalize">{event.type}</p>
 
-        <h3>{event.title}</h3>
+          <h3>{event.title}</h3>
 
-        <p className={`text-sm font-semibold ${spotsColor}`}>
-          {soldOut ? "Fully booked" : `Spots remaining: ${spotsLeft}`}
-        </p>
+          <p className={`text-sm font-semibold ${spotsColor}`}>
+            {soldOut ? "Fully booked" : `Spots remaining: ${spotsLeft}`}
+          </p>
 
-        <p className="exhibition-date">
-          {formattedStartDate} – {formattedEndDate}
-        </p>
+          <p className="exhibition-date">
+            {formattedStartDate} – {formattedEndDate}
+          </p>
 
-        <p className="exhibition-description">
-          {event.description}
-        </p>
-
-        <Link
-          to={`/events/${event._id}`}
-          className="discover-link"
-        >
-          Discover event →
-        </Link>
-      </div>
+          <p className="exhibition-description">
+            {previewText(event.description)}
+          </p>
+        </div>
+      </Link>
     </article>
   );
 }

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { IExhibition } from "../types"; // Import the type matching your MongoDB Schema
+import { previewText } from "../utils/richText";
 
 // Explicitly type the component's incoming props for TypeScript safety
 interface ExhibitionCardProps {
@@ -27,33 +28,30 @@ function ExhibitionCard({ exhibition, number }: ExhibitionCardProps) {
         )}
       </div>
 
-      <div className="exhibition-card-content">
-        {/* Replaced mock .category with an optional chain join over your database tags, fallback to status */}
-        <p className="exhibition-category">
-          {exhibition.tags && exhibition.tags.length > 0 
-            ? exhibition.tags.join(", ") 
-            : exhibition.status?.toUpperCase() || "EXHIBITION"}
-        </p>
+      <Link
+        to={`/exhibitions/${exhibition._id}`}
+      >
+        <div className="exhibition-card-content">
+          {/* Replaced mock .category with an optional chain join over your database tags, fallback to status */}
+          <p className="exhibition-category">
+            {exhibition.tags && exhibition.tags.length > 0 
+              ? exhibition.tags.join(", ") 
+              : exhibition.status?.toUpperCase() || "EXHIBITION"}
+          </p>
 
-        <h3>{exhibition.title}</h3>
+          <h3>{exhibition.title}</h3>
 
-        {/* Dynamic localized date span strings matching your layout grid expectations */}
-        <p className="exhibition-date">
-          {formattedStartDate} – {formattedEndDate}
-        </p>
+          {/* Dynamic localized date span strings matching your layout grid expectations */}
+          <p className="exhibition-date">
+            {formattedStartDate} – {formattedEndDate}
+          </p>
 
-        <p className="exhibition-description">
-          {exhibition.description}
-        </p>
+          <p className="exhibition-description">
+            {previewText(exhibition.description)}
+          </p>
+        </div>
+      </Link>
 
-        {/* Updated path routing reference hook to target the MongoDB string _id */}
-        <Link
-          to={`/exhibitions/${exhibition._id}`}
-          className="discover-link"
-        >
-          Discover Exhibition →
-        </Link>
-      </div>
     </article>
   );
 }
