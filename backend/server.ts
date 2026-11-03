@@ -1,7 +1,4 @@
-import "dotenv/config";
-import dotenv from "dotenv";
-// Always load environment variables immediately at the top
-dotenv.config(); 
+import "./lib/env.ts";
 
 import express from "express";
 import cookieParser from "cookie-parser";
@@ -25,10 +22,17 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+const allowedOrigins = [
+  "https://museum-website-frontend.onrender.com",
+  ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
+  ...(process.env.NODE_ENV !== "production"
+    ? ["http://localhost:5173", "http://127.0.0.1:5173"]
+    : []),
+];
 
 // 1. Place CORS right at the top so it intercepts every request
 app.use(cors({
-  origin: "https://museum-website-frontend.onrender.com", 
+  origin: allowedOrigins,
   credentials: true,               
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]

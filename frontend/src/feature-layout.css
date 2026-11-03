@@ -197,16 +197,46 @@
 }
 .feature-shell .booking-confirmation .booking-summary h2 strong { font-weight: 400; }
 .feature-shell .member-account .member-tabs {
-  gap: 24px;
+  --account-tab-gap: clamp(24px, 4vw, 40px);
+  display: flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: var(--account-tab-gap);
+  overflow-x: auto;
   padding-bottom: 0;
   margin: 24px 0 36px;
 }
 .feature-shell .member-account .member-tabs button {
-  background: #f7f4ef;
+  position: relative;
+  flex: 0 0 auto;
+  background: transparent;
   border-radius: 0;
   padding: 16px 0;
-  border-bottom: 3px solid #f7f4ef;
+  border-bottom: 3px solid transparent;
   color: #34332f;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+.feature-shell .member-account .member-tabs button:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: calc(var(--account-tab-gap) / -2 - 1.5px);
+  width: 3px;
+  height: 20px;
+  border-radius: 2px;
+  background: #d9d0c4;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.feature-shell .member-account .member-tabs button:hover {
+  color: #a64f32;
+}
+.feature-shell .member-account .member-tabs button:focus-visible {
+  outline: 2px solid #a64f32;
+  outline-offset: -2px;
 }
 .feature-shell .member-account .member-tabs button[aria-current] {
   border-bottom-color: #a64f32;
